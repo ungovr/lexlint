@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lexlint.org/schema/lexlint.schema.json",
+  "title": "lexlint.yml",
+  "description": "The committed LexLint manifest. You declare what your app does and where it operates; the lint writes its findings underneath. Manifest-first, not detection-first.",
+  "type": "object",
+  "required": ["version", "app", "profile"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "enum": [1] },
+    "app": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "repo": { "type": "string", "format": "uri" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "description": "Your declaration. LexLint never infers this from your code.",
+      "required": ["activities", "jurisdictions"],
+      "additionalProperties": false,
+      "properties": {
+        "activities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["crawls_web", "trains_models", "generates_content",
+                     "deploys_chatbot", "processes_voice", "processes_biometrics",
+                     "automated_outreach", "high_risk_decisions"]
+          }
+        },
+        "jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Jurisdiction slugs, lowercase, \"/\"-separated. Declare every jurisdiction you operate in: an undeclared one is simply unlinted, and unlinted is not clean.",
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(/[a-z0-9-]+)*$" }
+        },
+        "domains": {
+          "type": "object",
+          "description": "Domain to jurisdiction slug, as resolved by resolve_domain_jurisdiction. A null value means unresolved: check the operator's terms page and declare what you find.",
+          "additionalProperties": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "lint": {
+      "type": "object",
+      "description": "Written by the lint. Only state, where, and note are yours to edit.",
+      "additionalProperties": false,
+      "properties": {
+        "run_at": { "type": "string", "format": "date" },
+        "tool": { "type": "string" },
+        "summary": { "type": "string" },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "vanished": { "type": "array", "items": { "$ref": "#/$defs/vanished" } }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": ["id", "severity", "state"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": { "type": "string", "enum": ["error", "warn", "info"] },
+        "kind": { "type": "string", "enum": ["obligation", "coverage"] },
+        "jurisdiction": { "type": ["string", "null"] },
+        "summary": { "type": "string" },
+        "citation": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"] },
+        "status": { "type": ["string", "null"] },
+        "effective_date": { "type": ["string", "null"] },
+        "as_of_date": { "type": ["string", "null"] },
+        "stale": { "type": ["boolean", "null"] },
+        "confidence": { "type": ["string", "null"] },
+        "resolved_from": { "type": ["string", "array", "null"] },
+        "state": {
+          "type": "string",
+          "enum": ["new", "acknowledged"],
+          "description": "Exactly two values. There is no resolved, fixed, waived, or ignored: an obligation applies whether or not you have met it, so a finding never goes away. acknowledged means you have seen it and recorded where you handled it."
+        },
+        "where": { "type": "string", "description": "Where in your code you handled it." },
+        "note": { "type": "string" }
+      }
+    },
+    "vanished": {
+      "type": "object",
+      "description": "An acknowledged finding that stopped appearing. Kept, and warned about, until a human removes it: the instrument may have been repealed, or its citation may have been edited upstream so the derived id moved. Those have opposite implications and the lint cannot tell them apart.",
+      "required": ["id", "last_seen"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "last_seen": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "The date this finding was last confirmed present. Null means the prior manifest recorded no run_at to report: the lint declines to invent a sighting date that did not happen."
+        }
+      }
+    }
+  }
+}
