@@ -18,5 +18,5 @@ Run the LexLint loop against this repository.
 The passing state is "no basic issues found". Never restate it as clearance or
 certification, and never report a jurisdiction with no data as a pass.
 
-The full procedure, including the severity model and the honesty rules, is in
+The full procedure, including the severity model and the reporting rules, is in
 the `lexlint` skill.

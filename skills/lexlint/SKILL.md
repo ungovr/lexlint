@@ -102,7 +102,7 @@ specific enough to map onto the code that was just written. For each one, find
 the file it implicates, fix what is cheap to fix now, and record the location in
 `where` with a short `note`.
 
-### 6. Report honestly
+### 6. Report only what the lint can claim
 
 The passing state is **"no basic issues found"**. Never restate it as clearance,
 certification, or a clean bill of health, and never suppress a coverage warning
