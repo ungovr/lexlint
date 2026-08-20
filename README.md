@@ -8,35 +8,54 @@ replaces neither QA nor legal review.
 
 ## Install
 
-LexLint runs on your own UnGovr Open Data key, so set that first. Mint one free
-at https://www.ungovr.org/open-data/api-keys and put it in your environment
-**before** you install:
+LexLint runs on your own UnGovr Open Data key, so set that first.
 
 ```
 export UNGOVR_API_KEY=your-key-here
 ```
 
-Then add the marketplace and install the plugin:
+Mint one free at https://www.ungovr.org/open-data/api-keys
+
+**Minting revokes any key you already hold**, and no surface warns you at the
+time. If a key is already in use somewhere, mint deliberately.
+
+Then add the marketplace and install the plugin. Either form works:
 
 ```
-/plugin marketplace add ungovr/lexlint
-/plugin install lexlint@lexlint
+claude plugin marketplace add ungovr/lexlint
+claude plugin install lexlint@lexlint
 ```
 
-The key comes first because a missing one fails quietly rather than loudly. The
-plugin still installs, the server still reports itself connected, and the header
-simply goes out empty, so nothing complains until your first tool call comes
-back rejected from upstream. If a fresh install answers a lint with an
-authorization failure, check `UNGOVR_API_KEY` before you suspect LexLint.
+or, inside a session, `/plugin marketplace add ungovr/lexlint` then
+`/plugin install lexlint@lexlint`. The non-interactive form is the one to use
+in a script or a container image.
 
-LexLint stores no keys. Yours is passed straight through to the UnGovr Open Data
-API on every call, and the upstream free tier is the only meter.
+**Restart your session after installing.** Plugins load at process start, and
+so does `UNGOVR_API_KEY`. A `/clear` is not a restart. Until you restart, the
+status commands will report the server healthy while the plugin is absent.
+
+Then run `/lexlint` and read the preflight line. It reports whether the key
+reached LexLint, whether it is valid, and how much of today's allowance is
+left, which is the check the next three steps depend on.
+
+## What it costs
+
+LexLint stores no keys. Yours is passed straight through to the UnGovr Open
+Data API on every call, and the upstream free tier is the only meter:
+**50 requests per key per UTC day**, resetting at 00:00 UTC.
+
+A lint costs roughly one request per declared jurisdiction, so a six
+jurisdiction app runs several times a day well inside the free tier. A very
+large declaration is a different matter: budget it against the number above
+before you spend it.
 
 ## Use
 
-Run `/lexlint` in any repo. The skill will ask what your app does and where it
-operates, write a `lexlint.yml`, run the lint, and walk the findings back into
-your code.
+Run `/lexlint` in any repo. The skill runs a preflight, asks what your app does
+and where it operates, previews what the corpus holds for those jurisdictions,
+runs the lint, collapses the findings into a short plan you approve, and then
+works that plan: shipping diffs, drafting the documents your findings call for,
+and routing what is not yours to act on alone.
 
 ## `lexlint.yml`
 

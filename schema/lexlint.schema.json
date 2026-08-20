@@ -39,7 +39,7 @@
           "minItems": 1,
           "uniqueItems": true,
           "description": "Jurisdiction slugs, lowercase, \"/\"-separated. Declare every jurisdiction you operate in: an undeclared one is simply unlinted, and unlinted is not clean.",
-          "items": { "type": "string", "pattern": "^[a-z0-9]+(/[a-z0-9-]+)*$" }
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(/[a-z0-9-]+)*$", "description": "A jurisdiction slug, lowercase and \"/\"-separated. ALWAYS QUOTE IT: YAML reads a bare no as boolean false, so an unquoted list silently drops Norway. A jurisdiction left off is not passed, it is unlinted, and unlinted is not clean." }
         },
         "domains": {
           "type": "object",
@@ -50,13 +50,18 @@
     },
     "lint": {
       "type": "object",
-      "description": "Written by the lint. Only state, where, and note are yours to edit.",
+      "description": "Written by the lint, except work_items, which triage writes. Yours to edit: work_items, and state, where, note and handled_by on a finding. A re-run carries all of those across and refreshes the rest.",
       "additionalProperties": false,
       "properties": {
         "run_at": { "type": "string", "format": "date" },
         "tool": { "type": "string" },
         "summary": { "type": "string" },
         "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "work_items": {
+          "type": "array",
+          "description": "Triage output: one entry per thing to actually do, each carrying the findings it answers.",
+          "items": { "$ref": "#/$defs/work_item" }
+        },
         "vanished": { "type": "array", "items": { "$ref": "#/$defs/vanished" } }
       }
     }
@@ -69,12 +74,38 @@
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "severity": { "type": "string", "enum": ["error", "warn", "info"] },
-        "kind": { "type": "string", "enum": ["obligation", "coverage"] },
+        "kind": {
+          "type": "string",
+          "enum": ["obligation", "coverage", "posture", "pending"],
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: LexLint could not read something, or holds no data for a declared jurisdiction; never a pass. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument that is not law yet, or is enacted but enjoined; a duty to watch rather than one to act on."
+        },
         "jurisdiction": { "type": ["string", "null"] },
         "summary": { "type": "string" },
+        "posture": {
+          "type": "object",
+          "description": "Only on kind: posture. The jurisdiction-wide crawl-law attributes this finding summarises, carried verbatim from the corpus so the manifest records what was read rather than only what was concluded. crawl_policy and access_legality are open string maps: a new axis added to the corpus must land in a manifest without a schema change, because the alternative is a lint that refuses to write its own result.",
+          "properties": {
+            "crawl_policy": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+            "access_legality": { "type": "object", "additionalProperties": { "type": ["string", "null"] } }
+          },
+          "additionalProperties": true
+        },
+        "basis": {
+          "type": ["string", "null"],
+          "description": "Only on kind: posture. The corpus value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds."
+        },
         "citation": { "type": ["string", "null"] },
         "url": { "type": ["string", "null"] },
         "status": { "type": ["string", "null"] },
+        "requires": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "What the instrument requires of an operator it binds, where the corpus states it. Omitted rather than emitted empty: an empty list beside a real obligation reads as \"nothing required\", and this corpus states exposure, never clearance."
+        },
+        "applies_to": {
+          "type": ["string", "null"],
+          "description": "Whom the instrument binds, as the corpus records it. Reported, not filtered on: deciding a government-only duty does not reach this caller needs an actor role the profile does not yet collect."
+        },
         "effective_date": { "type": ["string", "null"] },
         "as_of_date": { "type": ["string", "null"] },
         "stale": { "type": ["boolean", "null"] },
@@ -86,7 +117,12 @@
           "description": "Exactly two values. There is no resolved, fixed, waived, or ignored: an obligation applies whether or not you have met it, so a finding never goes away. acknowledged means you have seen it and recorded where you handled it."
         },
         "where": { "type": "string", "description": "Where in your code you handled it." },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "handled_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Slug of the work item that answers this finding. Free text today; a mitigation-catalogue key later. Not a claim that the obligation is discharged."
+        }
       }
     },
     "vanished": {
@@ -100,6 +136,29 @@
           "type": ["string", "null"],
           "format": "date",
           "description": "The date this finding was last confirmed present. Null means the prior manifest recorded no run_at to report: the lint declines to invent a sighting date that did not happen."
+        }
+      }
+    },
+    "work_item": {
+      "type": "object",
+      "required": ["id", "lane", "title", "findings"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lane": {
+          "type": "string",
+          "enum": ["code", "doc", "counsel"],
+          "description": "code ships a diff, doc drafts an artifact into the repo, counsel is routed to a human and acted on by nobody here."
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "findings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "jurisdictions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
         }
       }
     }
