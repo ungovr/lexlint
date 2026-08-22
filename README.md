@@ -6,6 +6,16 @@ will operate, and get cited, jurisdiction-specific findings before you ship.
 Like a code linter: it catches basic issues early, it certifies nothing, and it
 replaces neither QA nor legal review.
 
+Thin by design, so you can see exactly what you are installing:
+
+- **No executables.** The bundle is one skill, one command, and the schema.
+  Everything that runs here runs in your own agent, where you can read it.
+- **One execution path.** The lint is deterministic and happens in one place,
+  a stateless worker; the law data behind it updates server-side, not in this
+  bundle.
+- **No stored keys.** Yours passes straight through to the UnGovr Open Data
+  API on every call, and LexLint keeps nothing.
+
 ## Install
 
 LexLint runs on your own UnGovr Open Data key, so set that first.
