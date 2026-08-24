@@ -16,12 +16,17 @@ when the law changes underneath it.
 
 ## Setup
 
-The tools need an UnGovr Open Data API key, passed as `X-API-Key`. Mint one
-free at https://www.ungovr.org/open-data/api-keys
+The tools need an UnGovr Open Data API key, passed as `X-API-Key` and read from
+`UNGOVR_API_KEY`. If the developer has no key, do not describe the problem and
+stop. Run the `/lexlint-key` flow: hand over
 
-Set it as `UNGOVR_API_KEY` in your environment, and restart the session: the
-value is read at process start, so exporting it in a running session does
-nothing.
+https://ungovr.org/settings/api-keys?cli=lexlint
+
+ask them to sign in, copy the key and paste it back, then persist it and tell
+them to restart. Signing in lands them on the page that mints, beside a Copy
+Key button. The value is read at process start, so a key set inside a running
+session is read by nothing, which is why the restart is a step rather than a
+footnote.
 
 **Run `check_access` before anything else**, and show the developer the result
 as one line:
@@ -30,8 +35,16 @@ as one line:
 key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-If `key_present` is false, stop there and give them the mint URL. Do not ask
-what the app does first: they cannot act on the answer.
+If `key_present` is false, stop and run the setup flow above. Do not ask what
+the app does first: they cannot act on the answer.
+
+Every response that reports a key problem carries a `setup` object with the
+URL and the steps in it, and every tool's error carries the same thing under
+`error.data.setup`. Walk those steps. `setup.reason` distinguishes the two
+cases and they differ on one point that matters: `missing` means use an
+existing key if there is one, because minting revokes it, while `rejected`
+means mint. `setup` is null on a healthy call and on an upstream outage, so a
+null there is not a key problem to go looking for.
 
 If `key_valid` is true and `quota_remaining` is 0, the key WORKS and today's
 free allowance is spent. Say when it returns. **Do not suggest minting a new
@@ -40,7 +53,8 @@ key**: minting silently revokes the one they hold.
 If `key_valid` is null, LexLint learned nothing about the key: the Open Data
 API did not answer. Report it as our outage, not their setup, and again **do
 not suggest minting**. Only `key_valid: false` means the key was actually
-rejected, and that is the one case where the mint URL belongs.
+rejected, and that is the one case where minting belongs: run `/lexlint-key`
+and follow the `rejected` steps.
 
 `corpus_reachable` is three-valued for the same reason: true when the corpus
 was read, false when the read failed, and null when it was never attempted.

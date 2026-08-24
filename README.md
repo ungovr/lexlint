@@ -19,18 +19,7 @@ Thin by design, so you can see exactly what you are installing:
 
 ## Install
 
-LexLint runs on your own UnGovr Open Data key, so set that first.
-
-```
-export UNGOVR_API_KEY=your-key-here
-```
-
-Mint one free at https://www.ungovr.org/open-data/api-keys
-
-**Minting revokes any key you already hold**, and no surface warns you at the
-time. If a key is already in use somewhere, mint deliberately.
-
-Then add the marketplace and install the plugin. Either form works:
+Add the marketplace and install the plugin. Either form works:
 
 ```
 claude plugin marketplace add ungovr/lexlint
@@ -41,9 +30,31 @@ or, inside a session, `/plugin marketplace add ungovr/lexlint` then
 `/plugin install lexlint@lexlint`. The non-interactive form is the one to use
 in a script or a container image.
 
-**Restart your session after installing.** Plugins load at process start, and
-so does `UNGOVR_API_KEY`. A `/clear` is not a restart. Until you restart, the
-status commands will report the server healthy while the plugin is absent.
+**Restart your session after installing.** Plugins load at process start. A
+`/clear` is not a restart. Until you restart, the status commands will report
+the server healthy while the plugin is absent.
+
+## Get a key
+
+LexLint runs on your own UnGovr Open Data key. Run `/lexlint-key` and it will
+hand you a link, take the key you paste back, and put it where your next
+session will read it. If you would rather do it by hand:
+
+1. Sign in at https://ungovr.org/settings/api-keys?cli=lexlint
+2. Copy the key. The full value is shown once, when it is created.
+3. Put it in your shell profile as `UNGOVR_API_KEY`. That is
+   `export UNGOVR_API_KEY=<your-key>` in bash and zsh,
+   `set -gx UNGOVR_API_KEY <your-key>` in fish, and
+   `$env:UNGOVR_API_KEY = '<your-key>'` in PowerShell.
+4. Start a new session. The value is read at process start, so a key exported
+   into a running session is read by nothing.
+
+**An account holds one key at a time, so generating a new one revokes the old
+one** and anything still using it stops working. If a key is already in use
+somewhere, that is the one to use here.
+
+A key you paste into a session is recorded in that session's transcript. Treat
+it the way you would any other secret in a log.
 
 Then run `/lexlint` and read the preflight line. It reports whether the key
 reached LexLint, whether it is valid, and how much of today's allowance is
