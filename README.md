@@ -1,7 +1,8 @@
 # LexLint
 
-A compliance lint for AI and scraping law. Declare what your app does and where it
-will operate, and get cited, jurisdiction-specific findings before you ship.
+A compliance lint for AI, scraping, and privacy law. Declare what your app does
+and where it will operate, and get cited, jurisdiction-specific findings before
+you ship.
 
 Like a code linter: it catches basic issues early, it certifies nothing, and it
 replaces neither QA nor legal review.

@@ -1,7 +1,8 @@
 # LexLint for agents
 
-LexLint is a lint for AI and scraping law. Like a code linter, it catches basic
-issues early, it certifies nothing, and it replaces neither QA nor legal review.
+LexLint is a lint for AI, scraping, and privacy law. Like a code linter, it
+catches basic issues early, it certifies nothing, and it replaces neither QA nor
+legal review.
 This file is the same procedure the `lexlint` skill carries, written for any
 agent that reads `AGENTS.md` instead. The tools are served over MCP at
 https://mcp.lexlint.org/mcp and the connection details are in `.mcp.json` beside
@@ -66,6 +67,14 @@ Read the code to inform your questions, never to answer them on the
 developer's behalf. Declaring `trains_models` because you saw a model import,
 when the app only calls an API, produces findings for obligations that do not
 apply.
+
+**Ask about voices and faces even when nothing here is AI.** `processes_voice`
+and `processes_biometrics` reach privacy law rather than AI law, so they attach
+to a support line that keeps call recordings or a kiosk that matches a face,
+with no model anywhere in the product. Developers routinely leave both
+undeclared for that reason. Declared, they return biometric statutes with their
+own consent, retention and destruction duties, and in Illinois a private right
+of action the person whose voiceprint you took can bring directly.
 
 **Where will it operate?** This question has three plausible readings and
 developers pick the wrong one. It is not where the users are, and it is not

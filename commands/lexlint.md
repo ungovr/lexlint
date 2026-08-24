@@ -1,5 +1,5 @@
 ---
-description: Lint this app against the AI and scraping law of the jurisdictions it operates in
+description: Lint this app against the AI, scraping, and privacy law of the jurisdictions it operates in
 ---
 
 Run the LexLint loop against this repository.

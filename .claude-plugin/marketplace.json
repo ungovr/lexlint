@@ -1,12 +1,12 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "lexlint",
-  "description": "LexLint: a compliance lint for AI and scraping law, covering 200 or more jurisdictions.",
+  "description": "LexLint: a compliance lint for AI, scraping, and privacy law, covering 200 or more jurisdictions.",
   "owner": { "name": "UnGovr", "url": "https://www.ungovr.org" },
   "plugins": [
     {
       "name": "lexlint",
-      "description": "A compliance lint for AI and scraping law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
+      "description": "A compliance lint for AI, scraping, and privacy law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
       "author": { "name": "UnGovr" },
       "category": "security",
       "source": "./",
