@@ -29,15 +29,56 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, and show the developer the result
-as one line:
+**Run `check_access` before anything else**, pass `client_version: "1.7.0"`,
+and show the developer the result as one line:
 
 ```
-key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.7.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
+
+**That version string is yours and it is `1.7.0`.** State it, do not go looking
+for it: it is checked against the bundle's own `plugin.json` before this file
+ships, and a version read out of a file at runtime is a version that can be
+read from the wrong tree.
 
 If `key_present` is false, stop and run the setup flow above. Do not ask what
 the app does first: they cannot act on the answer.
+
+### When the response says a newer LexLint exists
+
+An installed plugin is frozen at the version it was installed at. Nothing
+updates it on its own, and a developer running a stale one gets today's data
+through last month's instructions: the server can hand back a field that the
+installed skill has never heard of, and the run quietly does nothing with it.
+That has already happened once, which is why `check_access` answers the
+question at all.
+
+`update_available` is three-valued, and only `true` is an instruction:
+
+- **`true`**: say so once, plainly, in the run's opening lines, and give the
+  command. Do not make it the whole report and do not repeat it: it is a
+  footnote to their lint, not the reason they came.
+
+  ```
+  lexlint 1.4.0 · a newer LexLint (1.7.0) is available
+    claude plugin update lexlint@lexlint     (then restart Claude Code)
+  ```
+
+  Two things worth adding when they ask why it did not take: the update only
+  loads at session start, and `--scope` defaults to `user`, so a project that
+  installed LexLint locally needs
+  `claude plugin update lexlint@lexlint --scope local` run from that project's
+  directory or it keeps loading the old copy.
+
+- **`false`**: nothing to say. Print the version on the status line and move
+  on.
+- **`null`**: LexLint learned nothing about your version, which is not the
+  same as being current. Say nothing about updates at all: a guess here either
+  sends a current developer to run a pointless command or reassures a stale one.
+
+The lint is what they asked for. Run it either way: a stale plugin still lints,
+and refusing to work until someone updates would be a worse failure than the
+one this exists to catch.
 
 Once the repo has a cache, that same line carries its state: see "Cache what
 you fetched".
@@ -355,7 +396,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.7.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
