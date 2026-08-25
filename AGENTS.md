@@ -212,7 +212,7 @@ Write the plan to `lint.work_items` and point each finding at its item with
   DOC      AI-usage statement in the product README
            eu · kr
 
-  2 findings routed to counsel, listed with their citations.
+  2 findings routed to counsel, listed with their citations linked.
 ```
 
 **Get their approval before touching a file.** They may merge items, split
@@ -237,10 +237,34 @@ it as a draft for the developer to own and edit, and stating plainly that it is
 not legal advice and that its existence discharges nothing.
 
 **Counsel lane.** Do not draft user-facing legal text or advise on it. Record
-the finding with `handled_by: counsel` and list it with its citation so the
-developer can hand a lawyer something specific rather than a warning.
+the finding with `handled_by: counsel` and list it with its citation, linked as
+below, so the developer can hand a lawyer something specific rather than a
+warning.
 
 Every lane sets `state: acknowledged`. There is no `resolved`.
+
+### Link every citation that has a page
+
+A finding whose instrument has a LexLint page carries `note_url`. Everywhere
+you show that finding, show its citation as a link to that page: in the triage
+list, in the work item, in the counsel list, in `lexlint.yml`. A citation alone
+is a string to go and search for. The page behind it holds the summary, the
+status, the effective date, what the instrument asks of an app, and the source
+the research was read from.
+
+```
+  COUNSEL  Confirm whether the labeling duty reaches this product
+           eu - [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50)
+```
+
+**Never construct that URL.** `note_url` is a short code stored with the
+record, not something derivable from the citation, and an instrument the
+research engine has not reached carries none. No `note_url`, no link: show the
+citation plain. A guessed link 404s underneath a statute the developer is about
+to act on, which is worse than the citation on its own.
+
+Carry `note_url` into the manifest beside `citation`, so the committed file
+stays readable in six months.
 
 ### 7. Report only what the lint can claim
 
@@ -364,6 +388,33 @@ Findings also carry a `kind`:
 A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
 crawler author can be told.
+
+## Sending feedback
+
+There is one tool that writes rather than reads: `submit_feedback`. It sends
+the developer's feedback on LexLint to the people who build it, recorded
+against their UnGovr account so we can write back.
+
+**It runs only when the developer asks for it, and sends only what they have
+explicitly approved.** Never volunteer it. Never offer it as a next step after
+a lint. Never run it in a headless or CI session, where there is nobody to
+approve anything. And never read the session transcript to build the summary: a
+key pasted into a session is recorded there, and a summary built from one would
+carry the developer's own key to us.
+
+The shape:
+
+1. Draft a short usage summary from what you actually did this session. If no
+   lint ran, omit it rather than inventing one.
+2. Ask what they want to say.
+3. Print the exact payload, in full, and wait for an explicit yes.
+4. Call `submit_feedback(comments, usage_summary?)` and report the receipt.
+
+If the call fails, say plainly that nothing was sent. Never report a submission
+you did not get a receipt for. One submission per session.
+
+Nothing else about a session is ever collected. LexLint has no telemetry, and
+this tool is the only thing that sends anything anywhere.
 
 ## What this is not
 

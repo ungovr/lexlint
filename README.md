@@ -79,6 +79,16 @@ runs the lint, collapses the findings into a short plan you approve, and then
 works that plan: shipping diffs, drafting the documents your findings call for,
 and routing what is not yours to act on alone.
 
+## Feedback
+
+`/lexlint-feedback` sends your feedback on LexLint to the people who build it,
+recorded against your UnGovr account so we can write back. It runs only when
+you ask for it, it shows you the exact text before it sends anything, and it
+sends nothing you have not approved.
+
+There is no other telemetry. Nothing about your sessions is collected
+automatically.
+
 ## `lexlint.yml`
 
 Manifest-first, not detection-first. LexLint does not read your code to guess

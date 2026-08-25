@@ -388,6 +388,33 @@ A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
 crawler author can be told.
 
+## Sending feedback
+
+There is one tool that writes rather than reads: `submit_feedback`. It sends
+the developer's feedback on LexLint to the people who build it, recorded
+against their UnGovr account so we can write back.
+
+**It runs only when the developer asks for it, and sends only what they have
+explicitly approved.** Never volunteer it. Never offer it as a next step after
+a lint. Never run it in a headless or CI session, where there is nobody to
+approve anything. And never read the session transcript to build the summary: a
+key pasted into a session is recorded there, and a summary built from one would
+carry the developer's own key to us.
+
+The shape:
+
+1. Draft a short usage summary from what you actually did this session. If no
+   lint ran, omit it rather than inventing one.
+2. Ask what they want to say.
+3. Print the exact payload, in full, and wait for an explicit yes.
+4. Call `submit_feedback(comments, usage_summary?)` and report the receipt.
+
+If the call fails, say plainly that nothing was sent. Never report a submission
+you did not get a receipt for. One submission per session.
+
+Nothing else about a session is ever collected. LexLint has no telemetry, and
+this tool is the only thing that sends anything anywhere.
+
 ## What this is not
 
 LexLint is a research summary, not legal advice, and not authorization to access
