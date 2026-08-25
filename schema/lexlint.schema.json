@@ -96,6 +96,10 @@
         },
         "citation": { "type": ["string", "null"] },
         "url": { "type": ["string", "null"] },
+        "note_url": {
+          "type": ["string", "null"],
+          "description": "LexLint's own page on this instrument, when it has one: what the citation should be shown as a link to. Distinct from url, which is the official source. Copied from the run and never constructed: a jurisdiction researched before the note pages existed has none, and a guessed URL is a dead link beside a statute."
+        },
         "status": { "type": ["string", "null"] },
         "requires": {
           "type": "array",

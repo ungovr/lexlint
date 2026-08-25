@@ -38,6 +38,9 @@ key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 If `key_present` is false, stop and run the setup flow above. Do not ask what
 the app does first: they cannot act on the answer.
 
+Once the repo has a cache, that same line carries its state: see "Cache what
+you fetched".
+
 Every response that reports a key problem carries a `setup` object with the
 URL and the steps in it, and every tool's error carries the same thing under
 `error.data.setup`. Walk those steps. `setup.reason` distinguishes the two
@@ -208,7 +211,7 @@ Write the plan to `lint.work_items` and point each finding at its item with
   DOC      AI-usage statement in the product README
            eu · kr
 
-  2 findings routed to counsel, listed with their citations.
+  2 findings routed to counsel, listed with their citations linked.
 ```
 
 **Get their approval before touching a file.** They may merge items, split
@@ -233,10 +236,34 @@ it as a draft for the developer to own and edit, and stating plainly that it is
 not legal advice and that its existence discharges nothing.
 
 **Counsel lane.** Do not draft user-facing legal text or advise on it. Record
-the finding with `handled_by: counsel` and list it with its citation so the
-developer can hand a lawyer something specific rather than a warning.
+the finding with `handled_by: counsel` and list it with its citation, linked as
+below, so the developer can hand a lawyer something specific rather than a
+warning.
 
 Every lane sets `state: acknowledged`. There is no `resolved`.
+
+### Link every citation that has a page
+
+A finding whose instrument has a LexLint page carries `note_url`. Everywhere
+you show that finding, show its citation as a link to that page: in the triage
+list, in the work item, in the counsel list, in `lexlint.yml`. A citation alone
+is a string to go and search for. The page behind it holds the summary, the
+status, the effective date, what the instrument asks of an app, and the source
+the research was read from.
+
+```
+  COUNSEL  Confirm whether the labeling duty reaches this product
+           eu - [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50)
+```
+
+**Never construct that URL.** `note_url` is a short code stored with the
+record, not something derivable from the citation, and an instrument the
+research engine has not reached carries none. No `note_url`, no link: show the
+citation plain. A guessed link 404s underneath a statute the developer is about
+to act on, which is worse than the citation on its own.
+
+Carry `note_url` into the manifest beside `citation`, so the committed file
+stays readable in six months.
 
 ### 7. Report only what the lint can claim
 
@@ -244,6 +271,98 @@ The passing state is **"no basic issues found"**. Never restate it as clearance,
 certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
 warning, never a silent pass, and unlinted is not the same as clean.
+
+## Cache what you fetched
+
+A jurisdiction payload is roughly 10 KB and costs one upstream request every
+time it is read, plus one more for each parent the resolution walk passes
+through on the way. A triage pass that re-reads the same six jurisdictions
+while working the lanes spends most of a day's free tier re-downloading law
+that did not change.
+
+So persist what `get_ai_law` and `get_scraping_law` return, into the repo you
+are working in:
+
+```
+.lexlint/
+  jurisdictions/
+    us.json
+    us/ca.json
+    eu.json
+```
+
+Add `.lexlint/` to `.gitignore` unless the developer asks for it committed.
+Committing it deliberately is a reasonable choice and often a good one: it
+turns "the law changed underneath us" into a diff a reviewer can read.
+Committing it by accident is neither, so ask rather than assume.
+
+Each file holds the payload plus the two fields that make it checkable:
+
+```json
+{
+  "slug": "us/ca",
+  "as_of_date": "2026-08-12",
+  "cached_at": "2026-08-25T20:31:00Z",
+  "payload": { }
+}
+```
+
+`as_of_date` is the payload's own `provenance.as_of_date`, lifted to the top
+level so the check below can run without parsing the whole file.
+
+**Key on the resolved slug, never the requested one.** `get_ai_law("us/ca/sf")`
+walks up and answers from `us/ca`, reporting the walk in `resolved_from`. Filed
+under what was asked for, one corpus row lands in the cache repeatedly under
+slugs `check_access` has never heard of, and not one of those entries can be
+revalidated.
+
+### Revalidating is free, so do it every run
+
+`check_access` is already the first call of every run, and passing the declared
+slugs makes it report `as_of_date` for each of them in that one request. That
+is the whole freshness check: compare each cached `as_of_date` against what
+`check_access` just reported, and re-fetch only what moved. A cache of any size
+revalidates inside a call you were making anyway, so there is no size at which
+checking costs more than not checking.
+
+Re-fetch a jurisdiction when any of these holds:
+
+- `check_access` reports an `as_of_date` the cached copy does not carry.
+- The cached entry is more than 24 hours old. `as_of_date` is a review date
+  rather than a build stamp, so a correction that does not move it is invisible
+  to the comparison above, and the 24-hour bound is what limits how long such
+  an edit can be served from disk.
+- The file does not parse, or its envelope disagrees with the payload inside.
+  Delete it and fetch. An entry LexLint cannot read is not a cache hit.
+
+### What the cache must never do
+
+**It must never create coverage.** If `check_access` reports `held: false` for
+a slug, a copy cached while it was held does not make it held. Report the
+coverage warning exactly as a run with no cache would. Coverage is what the
+corpus holds now, and a local file answering otherwise is the reassuring wrong
+answer with a cache in front of it.
+
+**It must never feed the lint.** `lint_app_profile` reads the corpus
+server-side and verifies it against the published manifest, by row count, byte
+count and digest, on every run. Nothing hands it a cached copy, and that is
+deliberate: the verification is what stops a half-published corpus from linting
+clean, so a cache able to reach it would be a way to skip it. Findings are not
+cached either, for the same reason `lint.vanished` exists.
+
+**It must never be quiet about itself.** Extend the status line the run already
+prints:
+
+```
+key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+cache: 5 jurisdictions held, 1 refreshed
+```
+
+Someone reading a citation is owed the knowledge of whether it was read from
+the corpus this minute or from a copy taken yesterday.
+
+Domain resolutions need none of this. `profile.domains` in `lexlint.yml`
+already records them, so a domain sitting there is not resolved a second time.
 
 ## The severity model
 

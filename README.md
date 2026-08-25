@@ -107,6 +107,7 @@ lint:
       jurisdiction: eu
       summary: "TDM opt-outs are enforceable rights reservations"
       citation: "DSM Directive Art. 4(3)"
+      note_url: "https://lexlint.org/l/eu-2019-790-4"
       as_of_date: "2026-07-27"
       stale: false
       state: acknowledged
