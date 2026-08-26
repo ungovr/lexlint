@@ -29,14 +29,14 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.7.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.8.0"`,
 and show the developer the result as one line:
 
 ```
-lexlint 1.7.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.8.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.7.0`.** State it, do not go looking
+**That version string is yours and it is `1.8.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -60,7 +60,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.7.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.8.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -322,7 +322,7 @@ through on the way. A triage pass that re-reads the same six jurisdictions
 while working the lanes spends most of a day's free tier re-downloading law
 that did not change.
 
-So persist what `get_ai_law` and `get_scraping_law` return, into the repo you
+So persist what `get_law` returns, into the repo you
 are working in:
 
 ```
@@ -352,7 +352,7 @@ Each file holds the payload plus the two fields that make it checkable:
 `as_of_date` is the payload's own `provenance.as_of_date`, lifted to the top
 level so the check below can run without parsing the whole file.
 
-**Key on the resolved slug, never the requested one.** `get_ai_law("us/ca/sf")`
+**Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
 walks up and answers from `us/ca`, reporting the walk in `resolved_from`. Filed
 under what was asked for, one corpus row lands in the cache repeatedly under
 slugs `check_access` has never heard of, and not one of those entries can be
@@ -396,7 +396,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.7.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.8.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
