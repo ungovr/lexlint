@@ -28,14 +28,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.8.0"`,
-and show the developer the result as one line:
+**Run `check_access` before anything else**, pass `client_version: "1.9.0"`,
+and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
+same upstream request, so asking here pays twice for one answer. Show the
+developer the result as one line:
 
 ```
-lexlint 1.8.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.9.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.8.0`.** State it, do not go looking
+**That version string is yours and it is `1.9.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -59,7 +61,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.8.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.9.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -105,9 +107,10 @@ was read, false when the read failed, and null when it was never attempted.
 Never render null as "unreachable".
 
 LexLint stores no keys. Yours is passed through to the UnGovr Open Data API on
-every call, and the upstream free tier is the only meter. A lint costs roughly
-one request per declared jurisdiction, so a six-jurisdiction app runs several
-times a day inside the free tier.
+every call, and the upstream free tier is the only meter. A whole run costs a
+handful of requests regardless of how many jurisdictions are declared: the
+preflight, one for `set_profile`, and the lint's own reads of the bulk export.
+Declaring more places does not cost more.
 
 ## The loop
 
@@ -146,8 +149,8 @@ and unlinted is not clean.
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.
 
-Then call `check_access` again with the slugs, and show the coverage preview
-before spending the lint:
+`set_profile` in step 3 checks the slugs and returns the coverage preview.
+Show it to the developer before spending the lint:
 
 ```
 You declared 6 jurisdictions. LexLint holds data for all 6.
@@ -179,17 +182,45 @@ label. A `null` result is not permission to guess either: a vanity TLD says
 nothing about who operates the site. Check the operator's terms page, find the
 establishment, and declare what you found.
 
-### 3. Run the lint
+### 3. Set the profile, then run the lint
+
+Two calls. The first validates the declaration and tells you what the corpus
+holds for it; the second returns findings.
 
 ```
-lint_app_profile(
+set_profile(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"]
 )
 ```
 
-Unknown argument names and unknown activity values are refused rather than
-ignored, so a typo cannot produce a falsely clean run.
+Unknown argument names and unknown activity values are refused here rather than
+ignored, so a typo cannot produce a falsely clean run. Read three things off
+the answer before going on:
+
+- **A malformed slug is REFUSED here**, with every bad one named, and no
+  request is spent. A slug LexLint cannot parse is not a jurisdiction with no
+  data, it is one that never gets looked at, so fix the spelling with the
+  developer and call again rather than proceeding without it.
+- **`coverage`** says what is held for each slug, and `resolved_from_parent`
+  says which ones answered from a parent. Tell the developer when a slug they
+  named is answering from one rung up.
+- **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
+  what you typed: it is normalized, and the manifest should hold the same
+  strings the next run will send.
+
+**This step costs one upstream request, and it is the same one `check_access`
+spends on coverage.** So call `check_access` with no `jurisdictions` argument
+and let this step answer coverage. Asking both pays twice for one answer.
+
+```
+run_lint(
+  activities=["crawls_web", "generates_content"],
+  jurisdictions=["us", "de", "eu", "kr"]
+)
+```
+
+Same two arguments, from the profile you just had blessed.
 
 ### 4. Merge the findings into the manifest
 
@@ -359,16 +390,21 @@ revalidated.
 
 ### Revalidating is free, so do it every run
 
-`check_access` is already the first call of every run, and passing the declared
-slugs makes it report `as_of_date` for each of them in that one request. That
-is the whole freshness check: compare each cached `as_of_date` against what
-`check_access` just reported, and re-fetch only what moved. A cache of any size
-revalidates inside a call you were making anyway, so there is no size at which
-checking costs more than not checking.
+`set_profile` is already a call of every run, and it reports `as_of_date` for
+each declared slug in that one request. That is the whole freshness check:
+compare each cached `as_of_date` against what `set_profile` just reported, and
+re-fetch only what moved. A cache of any size revalidates inside a call you were
+making anyway, so there is no size at which checking costs more than not
+checking.
+
+Do **not** pass `jurisdictions` to `check_access` to get these dates. It answers
+the same question off the same upstream request, so asking both spends two
+requests for one answer, which is the cost the two-step split was arranged to
+avoid.
 
 Re-fetch a jurisdiction when any of these holds:
 
-- `check_access` reports an `as_of_date` the cached copy does not carry.
+- `set_profile` reports an `as_of_date` the cached copy does not carry.
 - The cached entry is more than 24 hours old. `as_of_date` is a review date
   rather than a build stamp, so a correction that does not move it is invisible
   to the comparison above, and the 24-hour bound is what limits how long such
@@ -384,7 +420,7 @@ coverage warning exactly as a run with no cache would. Coverage is what the
 corpus holds now, and a local file answering otherwise is the reassuring wrong
 answer with a cache in front of it.
 
-**It must never feed the lint.** `lint_app_profile` reads the corpus
+**It must never feed the lint.** `run_lint` reads the corpus
 server-side and verifies it against the published manifest, by row count, byte
 count and digest, on every run. Nothing hands it a cached copy, and that is
 deliberate: the verification is what stops a half-published corpus from linting
@@ -395,7 +431,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.8.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.9.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

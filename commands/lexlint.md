@@ -11,7 +11,7 @@ Run the LexLint loop against this repository.
    does and where it will operate, quoting every jurisdiction slug. Never
    infer the declaration from the code.
 3. Resolve any domains named in the manifest with `resolve_domain_jurisdiction`.
-4. Call `lint_app_profile` with the declared activities and jurisdictions.
+4. Call `run_lint` with the declared activities and jurisdictions.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
    `lint.work_items` across untouched, and moving vanished acknowledgments to
