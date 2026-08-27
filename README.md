@@ -34,6 +34,39 @@ in a script or a container image.
 `/clear` is not a restart. Until you restart, the status commands will report
 the server healthy while the plugin is absent.
 
+## Update
+
+**LexLint moves, and your installed copy does not.** The law data behind the
+lint updates server-side and reaches you without doing anything. The bundle in
+this repository is the other half, and it is frozen at the version you
+installed until you update it: the skill's instructions, the command, and
+`lexlint.schema.json` all sit on your machine.
+
+That matters more here than for most plugins, because the skill is the product.
+A stale copy runs a workflow the server has moved past, and validates
+`lexlint.yml` against a schema that is no longer the current one.
+
+```
+claude plugin update lexlint@lexlint
+```
+
+**Then restart your session.** Plugins load at process start, so an update
+applied inside a running session is read by nothing until the next one.
+
+Two things worth knowing when an update looks like it did not take:
+
+- **`--scope` defaults to `user`.** If you installed LexLint into a single
+  project with `--scope local`, the user-scope update does not touch it. Run
+  `claude plugin update lexlint@lexlint --scope local` from that project's
+  directory.
+- **`claude plugin marketplace update` and `claude plugin update` are
+  different commands.** The first refreshes the catalog, the second moves your
+  installed copy. Running only the first leaves you exactly where you were.
+
+You do not have to track releases yourself. Every `check_access` and every
+`run_lint` reply tells you the version you are running and whether a newer one
+exists, so the skill will say so at the top of a run when it matters.
+
 ## Get a key
 
 LexLint runs on your own UnGovr Open Data key. Run `/lexlint-key` and it will

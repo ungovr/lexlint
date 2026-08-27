@@ -1,6 +1,6 @@
 {
   "name": "lexlint",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "A compliance lint for AI, scraping, and privacy law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "author": { "name": "UnGovr", "url": "https://www.ungovr.org" },
   "homepage": "https://lexlint.org",
