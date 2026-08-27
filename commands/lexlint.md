@@ -5,7 +5,10 @@ description: Lint this app against the AI, scraping, and privacy law of the juri
 Run the LexLint loop against this repository.
 
 1. Run `check_access` first and show the result. A missing or spent key needs
-   handling before any question is worth asking.
+   handling before any question is worth asking. The same response says which
+   models this procedure is tested against: if your own is not one of them, show
+   `model_notice` and let the developer decide whether to continue. It is an
+   advisory, so the lint runs either way.
 2. Read `lexlint.yml` at the repo root, or the path given in `$ARGUMENTS` if
    one was provided. If no manifest exists, create one by asking what the app
    does and where it will operate, quoting every jurisdiction slug. Never

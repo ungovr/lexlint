@@ -29,16 +29,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.11.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.12.0"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.11.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.12.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.11.0`.** State it, do not go looking
+**That version string is yours and it is `1.12.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -66,7 +66,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.11.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.12.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -88,6 +88,56 @@ one this exists to catch.
 
 Once the repo has a cache, that same line carries its state: see "Cache what
 you fetched".
+
+### When you are not running a model LexLint is tested against
+
+Every `check_access` response also says which models LexLint's procedure is
+exercised against. `tested_model_families` holds lowercase family tokens, and
+`model_notice` is the sentence to show. The policy comes down; nothing about
+your model goes up. LexLint is never told which model you are, and
+`check_access` has no argument that could carry it, because the only thing that
+knows which model is reading this file is you.
+
+**You know which model you are. Do not go looking for it.** A model id read out
+of a config file, an environment variable or a settings dump names whatever that
+file says, which is not necessarily the model reading this line.
+
+Lowercase your own model id and test whether it contains any token in
+`tested_model_families`. If it does, say nothing. A developer told their setup
+is fine learns to skim the preflight, and this is a footnote to their lint
+either way.
+
+If it does not, name the model you are and print `model_notice` verbatim, then
+ask:
+
+```
+LexLint on claude-sonnet-5.
+
+  LexLint's procedure is written and tested against Claude Opus and
+  Fable. Other models may follow it less closely, and a lint that
+  skips a step is a lint that quietly under-reports.
+
+  Continue on this model, or switch and re-run?
+```
+
+Then do what they say. **Continuing is a real answer**, and the lint that
+follows is the normal one: this is an advisory rather than a gate, nothing here
+can verify a model it was told about, and refusing to work would trade a
+possible weakness for a certain failure.
+
+**If there is nobody to ask, print it and lint anyway.** A CI job, a cron run
+and a dispatched subagent have no developer in them, and silence must never
+resolve to a refusal. The warning belongs in the transcript regardless, where
+whoever reads the findings later can see what produced them.
+
+If the fields are absent, say nothing about models at all. An older server does
+not answer this, and absent is not the same as unsuitable.
+
+`run_lint` returns the same two fields, for the run that never called the
+preflight at all. **Say it once per session**, in the opening lines, exactly as
+with a stale version: a warning repeated on every result is one an agent learns
+to skip past. If you already showed it at the preflight, the copy on the lint is
+the same policy arriving twice, not a second thing to report.
 
 Every response that reports a key problem carries a `setup` object with the
 URL and the steps in it, and every tool's error carries the same thing under
@@ -222,7 +272,7 @@ and let this step answer coverage. Asking both pays twice for one answer.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.11.0"
+  client_version="1.12.0"
 )
 ```
 
@@ -440,7 +490,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.11.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.12.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
