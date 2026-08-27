@@ -28,19 +28,23 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.9.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.10.0"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.9.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.10.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.9.0`.** State it, do not go looking
+**That version string is yours and it is `1.10.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
+
+Pass the same `client_version` on every `run_lint` call. A run that skips the
+preflight still deserves to learn a newer plugin exists, and the server can
+only compare a version it was sent.
 
 If `key_present` is false, stop and run the setup flow above. Do not ask what
 the app does first: they cannot act on the answer.
@@ -61,7 +65,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.9.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.10.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -216,11 +220,15 @@ and let this step answer coverage. Asking both pays twice for one answer.
 ```
 run_lint(
   activities=["crawls_web", "generates_content"],
-  jurisdictions=["us", "de", "eu", "kr"]
+  jurisdictions=["us", "de", "eu", "kr"],
+  client_version="1.10.0"
 )
 ```
 
-Same two arguments, from the profile you just had blessed.
+The same declaration, from the profile you just had blessed, plus your own
+`client_version`. The version is not part of the profile and never goes into
+`lexlint.yml`: it describes the plugin making the call, not the app being
+linted.
 
 ### 4. Merge the findings into the manifest
 
@@ -431,7 +439,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.9.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.10.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -489,8 +497,15 @@ The shape:
 If the call fails, say plainly that nothing was sent. Never report a submission
 you did not get a receipt for. One submission per session.
 
-Nothing else about a session is ever collected. LexLint has no telemetry, and
-this tool is the only thing that sends anything anywhere.
+One other thing is sent automatically, and it is the whole of the rest of the
+list: which plugin version you are running. It rides the `check_access`
+preflight LexLint already makes, and is stored on its own, in a place that holds
+nothing but version numbers. It is how we tell whether anyone is still on a
+bundle old enough that retiring an old tool name would break them. A version
+string and nothing else: not the key, not an address, and no record of what was
+linted.
+
+Nothing else about a session is collected automatically.
 
 ## What this is not
 

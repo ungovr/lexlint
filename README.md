@@ -86,8 +86,15 @@ recorded against your UnGovr account so we can write back. It runs only when
 you ask for it, it shows you the exact text before it sends anything, and it
 sends nothing you have not approved.
 
-There is no other telemetry. Nothing about your sessions is collected
-automatically.
+One other thing is sent, automatically, and it is the whole of the rest of
+the list: **which plugin version you are running**. It rides the preflight
+LexLint already makes, and we store it on its own, in a place that holds
+nothing but version numbers. It is how we tell whether anyone is still on a
+bundle old enough that retiring an old tool name would break them. A version
+string and nothing else: not your key, not your address, and no record of what
+you linted.
+
+Nothing else about your sessions is collected automatically.
 
 ## `lexlint.yml`
 
