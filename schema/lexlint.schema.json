@@ -111,6 +111,19 @@
           "description": "Whom the instrument binds, as the corpus records it. Reported, not filtered on: deciding a government-only duty does not reach this caller needs an actor role the profile does not yet collect."
         },
         "effective_date": { "type": ["string", "null"] },
+        "lifecycle": {
+          "type": "object",
+          "description": "What the instrument status and dates mean, read as of the call. Derived, not stored, so its values move without a corpus change.",
+          "properties": {
+            "band": { "type": "string", "enum": ["new", "recent", "in_force", "imminent", "proposed", "blocked", "historical", "unknown"] },
+            "label": { "type": "string" },
+            "tone": { "type": "string", "enum": ["force", "live", "pending", "spent"] },
+            "detail": { "type": ["string", "null"] },
+            "commencement_established": { "type": "boolean" }
+          },
+          "required": ["band", "label", "tone", "detail", "commencement_established"],
+          "additionalProperties": false
+        },
         "as_of_date": { "type": ["string", "null"] },
         "stale": { "type": ["boolean", "null"] },
         "confidence": { "type": ["string", "null"] },
