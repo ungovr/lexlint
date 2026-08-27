@@ -29,16 +29,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.13.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.14.0"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.13.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.14.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.13.0`.** State it, do not go looking
+**That version string is yours and it is `1.14.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -66,7 +66,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.13.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.14.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -169,6 +169,27 @@ Declaring more places does not cost more.
 
 ## The loop
 
+### How to show a list
+
+Three of the things below are lists with a repeating shape: the coverage
+preview, the triage plan, the counsel list. **Show each of those as a markdown
+table**, the way the examples do. Every surface that runs LexLint renders GFM
+tables, and a fenced code block is the one construct none of them prettifies:
+fencing a table opts out of the rendering on purpose, for no gain.
+
+Three rules keep the tables readable:
+
+- **Three or four columns, never more.** A terminal is roughly 80 to 100
+  columns wide, and a six-column table with a citation in it wraps into mush.
+  If a fifth column is tempting, the row is really two rows, or the column
+  belongs in `lexlint.yml` rather than on screen.
+- **The citation goes last**, because it is the widest cell and the only one
+  that can be allowed to wrap.
+- **Keep the fences where they belong.** A `claude plugin update` line, the
+  `.lexlint/` tree, and the JSON cache envelope are all things to copy verbatim
+  rather than read. Those stay fenced. The status line stays fenced too: it is
+  one line, not a list.
+
 ### 1. Read or create `lexlint.yml`
 
 If the repo has one, read it. If not, ask the developer two questions and write
@@ -205,23 +226,26 @@ and unlinted is not clean.
 disappears from the declaration without a trace.
 
 `set_profile` in step 3 checks the slugs and returns the coverage preview.
-Show it to the developer before spending the lint:
+Show it to the developer before spending the lint, as a table:
 
-```
 You declared 6 jurisdictions. LexLint holds data for all 6.
-  us      19 instruments · reviewed 2026-08-12
-  us/ca   14 instruments · reviewed 2026-08-12
-  eu      12 instruments · reviewed 2026-08-12
-  de       8 instruments · reviewed 2026-08-12
-  gb       6 instruments · reviewed 2026-08-12
-  kr       3 instruments · reviewed 2026-08-12
+
+| Jurisdiction | Instruments | Reviewed |
+|---|---:|---|
+| `us` | 19 | 2026-08-12 |
+| `us/ca` | 14 | 2026-08-12 |
+| `eu` | 12 | 2026-08-12 |
+| `de` | 8 | 2026-08-12 |
+| `gb` | 6 | 2026-08-12 |
+| `kr` | 3 | 2026-08-12 |
 
 Depth varies. A low count is coverage LexLint has, not coverage the
 jurisdiction lacks.
-```
 
 A slug with `held: false` returns a coverage warning, never a pass. Say so
-here, not after the run.
+here, not after the run, and give it a row of its own rather than dropping it
+from the table: a jurisdiction missing from the preview reads as one nobody
+declared.
 
 ### 2. Resolve any domains the app talks to
 
@@ -272,7 +296,7 @@ and let this step answer coverage. Asking both pays twice for one answer.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.13.0"
+  client_version="1.14.0"
 )
 ```
 
@@ -332,18 +356,15 @@ Each work item takes one of exactly three lanes:
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`. Then show the developer:
 
-```
-12 findings across 8 jurisdictions → 5 things to do
+12 findings across 8 jurisdictions, and 5 things to do.
 
-  CODE     honor machine-readable TDM reservations before fetch
-           eu · de · fr
-  CODE     label synthetic content on generated output
-           eu · kr · us/ca
-  DOC      AI-usage statement in the product README
-           eu · kr
+| Lane | What to do | Jurisdictions |
+|---|---|---|
+| CODE | Honor machine-readable TDM reservations before fetch | `eu` `de` `fr` |
+| CODE | Label synthetic content on generated output | `eu` `kr` `us/ca` |
+| DOC | AI-usage statement in the product README | `eu` `kr` |
 
-  2 findings routed to counsel, listed with their citations linked.
-```
+2 findings are routed to counsel, listed below with their citations linked.
 
 **Get their approval before touching a file.** They may merge items, split
 them, or strike one. This is the step where a list becomes a plan, and it is
@@ -382,10 +403,9 @@ is a string to go and search for. The page behind it holds the summary, the
 status, the effective date, what the instrument asks of an app, and the source
 the research was read from.
 
-```
-  COUNSEL  Confirm whether the labeling duty reaches this product
-           eu - [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50)
-```
+| Lane | What to do | Where | Citation |
+|---|---|---|---|
+| COUNSEL | Confirm whether the labeling duty reaches this product | `eu` | [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50) |
 
 **Never construct that URL.** `note_url` is a short code stored with the
 record, not something derivable from the citation, and an instrument the
@@ -490,7 +510,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.13.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.14.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
