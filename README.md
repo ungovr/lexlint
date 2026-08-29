@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://lexlint.org/static/lexlint/lexlint-mark-dark.svg">
+  <img src="https://lexlint.org/static/lexlint/lexlint-mark.svg" alt="LexLint" width="76">
+</picture>
+
 # LexLint
 
 A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. Declare what your app does
@@ -6,6 +11,18 @@ you ship.
 
 Like a code linter: it catches basic issues early, it certifies nothing, and it
 replaces neither QA nor legal review.
+
+<a href="https://lexlint.org/is-the-risk-real">
+  <img src="https://lexlint.org/static/lexlint/need-lexlint.png" width="560"
+       alt="You need LexLint if your code or your AI agent fetches pages from sites you don't own, AI writes any content your users see, your app has users in more than one country, or your app holds personal data, voices, or faces. One checked box is enough.">
+</a>
+
+The law behind all four of those rows is readable without installing anything.
+https://lexlint.org/law is what LexLint tracks, jurisdiction by jurisdiction,
+down to the individual instrument, and https://lexlint.org/news is the same law
+as it moves in the press. Both are the corpus the lint runs against, so they are
+also the way to see what a run would have to say about your jurisdictions before
+you set one up.
 
 Thin by design, so you can see exactly what you are installing:
 
@@ -210,6 +227,8 @@ does not mean you are in the clear.
 ## More
 
 - Product: https://lexlint.org
+- The law it tracks, jurisdiction by jurisdiction: https://lexlint.org/law
+- Relevant law in the press: https://lexlint.org/news
 - Docs and tool reference: https://mcp.lexlint.org/docs
 - A worked example, end to end: https://mcp.lexlint.org/example
 
