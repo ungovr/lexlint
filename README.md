@@ -9,7 +9,7 @@ replaces neither QA nor legal review.
 
 Thin by design, so you can see exactly what you are installing:
 
-- **No executables.** The bundle is one skill, one command, and the schema.
+- **No executables.** The bundle is one skill, three commands, and the schema.
   Everything that runs here runs in your own agent, where you can read it.
 - **One execution path.** The lint is deterministic and happens in one place,
   a stateless worker; the law data behind it updates server-side, not in this
@@ -29,6 +29,29 @@ claude plugin install lexlint@lexlint
 or, inside a session, `/plugin marketplace add ungovr/lexlint` then
 `/plugin install lexlint@lexlint`. The non-interactive form is the one to use
 in a script or a container image.
+
+**On Claude Code for the web there is no terminal and no `/plugin`, so the
+repository carries the install.** Commit this as `.claude/settings.json` and
+every cloud session on the repository starts with LexLint already installed:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "lexlint": { "source": { "source": "github", "repo": "ungovr/lexlint" } }
+  },
+  "enabledPlugins": { "lexlint@lexlint": true }
+}
+```
+
+Two settings on the cloud environment go with it. Add `mcp.lexlint.org` to its
+allowed domains, because the default network access tier reaches GitHub, which
+is what makes the marketplace fetch above work, and does not reach the LexLint
+server, so without it the plugin installs and then no tool call connects. Then
+set `UNGOVR_API_KEY` as an environment variable there, which is where the
+bundle's server configuration reads the key from at session start.
+
+Full setup for every client, including Codex and the plain JSON block:
+https://mcp.lexlint.org/docs
 
 **Restart your session after installing.** Plugins load at process start. A
 `/clear` is not a restart. Until you restart, the status commands will report
@@ -127,7 +150,11 @@ bundle old enough that retiring an old tool name would break them. A version
 string and nothing else: not your key, not your address, and no record of what
 you linted.
 
-Nothing else about your sessions is collected automatically.
+Nothing else about your sessions is collected automatically by LexLint. Your
+key is an UnGovr Open Data key, and that API keeps a request log of its own,
+set out at https://www.ungovr.org/open-data/api-keys and holding which
+collection was asked for and a one-way hash of the key, never which
+jurisdiction you looked up.
 
 ## `lexlint.yml`
 

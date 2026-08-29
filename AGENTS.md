@@ -29,16 +29,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.14.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.15.0"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.14.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.14.0`.** State it, do not go looking
+**That version string is yours and it is `1.15.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -66,7 +66,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.14.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.15.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -102,10 +102,16 @@ knows which model is reading this file is you.
 of a config file, an environment variable or a settings dump names whatever that
 file says, which is not necessarily the model reading this line.
 
-Lowercase your own model id and test whether it contains any token in
-`tested_model_families`. If it does, say nothing. A developer told their setup
-is fine learns to skim the preflight, and this is a footnote to their lint
-either way.
+Lowercase your own model id, split it into words on every character that is
+not a letter, and test whether any one of those words is exactly a token in
+`tested_model_families`. **Whole words, never substrings.** `solar-pro` is not
+`sol` and `octopus-v2` is not `opus`, and a substring rule clears both: it
+fails by staying silent about a model nobody has tested, which is the one
+failure this section exists to prevent.
+
+If one of your words is a token, say nothing. A developer told their setup is
+fine learns to skim the preflight, and this is a footnote to their lint either
+way.
 
 If it does not, name the model you are and print `model_notice` verbatim, then
 ask:
@@ -113,12 +119,17 @@ ask:
 ```
 LexLint on claude-sonnet-5.
 
-  LexLint's procedure is written and tested against Claude Opus and
-  Fable. Other models may follow it less closely, and a lint that
-  skips a step is a lint that quietly under-reports.
+  <model_notice, printed verbatim, wrapped to your output width>
 
   Continue on this model, or switch and re-run?
 ```
+
+The notice is **not reproduced here on purpose.** It is server-owned so that
+which models are tested can change without every frozen install having to be
+updated, and a copy of its wording in this file would be a second source of
+truth that goes stale the first time the tested set moves. It did: this block
+quoted a two-model sentence for as long as the set had two models in it. Print
+what the response hands you.
 
 Then do what they say. **Continuing is a real answer**, and the lint that
 follows is the normal one: this is an advisory rather than a gate, nothing here
@@ -296,7 +307,7 @@ and let this step answer coverage. Asking both pays twice for one answer.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.14.0"
+  client_version="1.15.0"
 )
 ```
 
@@ -510,7 +521,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.14.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -576,7 +587,11 @@ bundle old enough that retiring an old tool name would break them. A version
 string and nothing else: not the key, not an address, and no record of what was
 linted.
 
-Nothing else about a session is collected automatically.
+Nothing else about a session is collected automatically by LexLint. The key is
+an UnGovr Open Data key, and that API keeps a request log of its own, set out
+at https://www.ungovr.org/open-data/api-keys and holding which collection was
+asked for and a one-way hash of the key, never which jurisdiction was looked
+up.
 
 ## What this is not
 
