@@ -29,16 +29,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.15.0"`,
+**Run `check_access` before anything else**, pass `client_version: "1.15.1"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.15.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.15.0`.** State it, do not go looking
+**That version string is yours and it is `1.15.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -66,7 +66,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.15.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.15.1) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -188,12 +188,17 @@ table**, the way the examples do. Every surface that runs LexLint renders GFM
 tables, and a fenced code block is the one construct none of them prettifies:
 fencing a table opts out of the rendering on purpose, for no gain.
 
-Three rules keep the tables readable:
+Four rules keep the tables readable:
 
 - **Three or four columns, never more.** A terminal is roughly 80 to 100
   columns wide, and a six-column table with a citation in it wraps into mush.
   If a fifth column is tempting, the row is really two rows, or the column
   belongs in `lexlint.yml` rather than on screen.
+- **A cell never carries an unbounded list.** Bounding the columns bounds
+  nothing if one cell can eat the terminal by itself. When a cell would hold
+  more than three items, show three and a count, `eu` `de` `fr` +17 more,
+  and name the full set in a line under the table, where a wrap costs
+  nothing.
 - **The citation goes last**, because it is the widest cell and the only one
   that can be allowed to wrap.
 - **Keep the fences where they belong.** A `claude plugin update` line, the
@@ -307,7 +312,7 @@ and let this step answer coverage. Asking both pays twice for one answer.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.15.0"
+  client_version="1.15.1"
 )
 ```
 
@@ -367,15 +372,28 @@ Each work item takes one of exactly three lanes:
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`. Then show the developer:
 
-12 findings across 8 jurisdictions, and 5 things to do.
+31 findings across 22 jurisdictions, and 5 things to do.
 
 | Lane | What to do | Jurisdictions |
 |---|---|---|
-| CODE | Honor machine-readable TDM reservations before fetch | `eu` `de` `fr` |
+| CODE | Honor machine-readable TDM reservations before fetch | `eu` `de` `fr` +17 more |
 | CODE | Label synthetic content on generated output | `eu` `kr` `us/ca` |
 | DOC | AI-usage statement in the product README | `eu` `kr` |
 
+The TDM item spans `eu` and its declared national implementations: `de` `fr`
+`it` `es` `nl` `pl` `se` `dk` `fi` `at` `be` `cz` `ie` `pt` `ro` `hu` `bg`
+`hr` `sk`.
+
 2 findings are routed to counsel, listed below with their citations linked.
+
+A work item that spans many jurisdictions keeps its one row: three slugs, a
+count, and a line under the table naming the span in full. Twenty slugs in
+the cell wrap the row until `What to do`, the one column the developer acts
+on, is unreadable. Splitting the item into one row per jurisdiction is worse:
+it quietly rebuilds the per-jurisdiction list this step exists to collapse,
+and hides the most useful fact the plan carries, one mitigation answering
+twenty findings. The committed `lexlint.yml` holds each item's full list
+wherever the table shows a count.
 
 **Get their approval before touching a file.** They may merge items, split
 them, or strike one. This is the step where a list becomes a plan, and it is
@@ -521,7 +539,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.15.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
