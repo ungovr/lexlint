@@ -1,6 +1,6 @@
 # LexLint
 
-A compliance lint for AI, scraping, and privacy law. Declare what your app does
+A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 

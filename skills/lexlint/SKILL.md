@@ -1,11 +1,11 @@
 ---
 name: lexlint
-description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need to know which AI, scraping, and privacy-law obligations apply in the jurisdictions it will operate in, before release
+description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need to know which AI, scraping, privacy, age-gating and news-aggregation law applies in the jurisdictions it will operate in, before release
 ---
 
 # LexLint
 
-A lint for AI, scraping, and privacy law. Like a code linter, it catches basic
+A lint for AI, scraping, privacy, age-gating, and news-aggregation law. Like a code linter, it catches basic
 issues early, it certifies nothing, and it replaces neither QA nor legal review.
 
 **LexLint does not read your code to work out what your app does.** You declare
@@ -28,16 +28,16 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.15.1"`,
+**Run `check_access` before anything else**, pass `client_version: "1.15.3"`,
 and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
 same upstream request, so asking here pays twice for one answer. Show the
 developer the result as one line:
 
 ```
-lexlint 1.15.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.15.1`.** State it, do not go looking
+**That version string is yours and it is `1.15.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -65,7 +65,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.15.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.15.3) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -311,7 +311,7 @@ and let this step answer coverage. Asking both pays twice for one answer.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.15.1"
+  client_version="1.15.3"
 )
 ```
 
@@ -538,7 +538,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.15.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.15.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
