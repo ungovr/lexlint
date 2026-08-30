@@ -73,11 +73,15 @@
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "severity": { "type": "string", "enum": ["error", "warn", "info"] },
+        "severity": {
+          "type": "string",
+          "enum": ["warn", "info"],
+          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which of three kinds it is: an instrument LexLint cannot say is currently binding (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), or a note about what was not reported (coverage). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
+        },
         "kind": {
           "type": "string",
           "enum": ["obligation", "coverage", "posture", "pending"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: LexLint could not read something, or holds no data for a declared jurisdiction; never a pass. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument that is not law yet, or is enacted but enjoined; a duty to watch rather than one to act on."
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument that is not law yet, or is enacted but enjoined; a duty to watch rather than one to act on."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "summary": { "type": "string" },

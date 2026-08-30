@@ -1,11 +1,12 @@
 ---
 name: lexlint
-description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need to know which AI, scraping, privacy, age-gating and news-aggregation law applies in the jurisdictions it will operate in, before release
+description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need cited findings on AI, scraping, and privacy law, plus age-gating and news-aggregation law reference lookups, in the jurisdictions it will operate in, before release
 ---
 
 # LexLint
 
-A lint for AI, scraping, privacy, age-gating, and news-aggregation law. Like a code linter, it catches basic
+A lint for AI, scraping, and privacy law, backed by an AI, scraping, privacy, age-gating, and
+news-aggregation law corpus. Like a code linter, it catches basic
 issues early, it certifies nothing, and it replaces neither QA nor legal review.
 
 **LexLint does not read your code to work out what your app does.** You declare
@@ -28,16 +29,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.15.3"`,
-and **do not pass `jurisdictions`**: `set_profile` answers coverage off the
-same upstream request, so asking here pays twice for one answer. Show the
+**Run `check_access` before anything else**, pass `client_version: "1.16.2"`.
+`jurisdictions` is not known yet at this point, and that costs nothing: `check_access`
+spends this one request either way, and `set_profile` answers the same coverage
+question later, off its own separate request. Show the
 developer the result as one line:
 
 ```
-lexlint 1.15.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.15.3`.** State it, do not go looking
+**That version string is yours and it is `1.16.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -65,7 +67,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.15.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.16.2) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -172,10 +174,18 @@ was read, false when the read failed, and null when it was never attempted.
 Never render null as "unreachable".
 
 LexLint stores no keys. Yours is passed through to the UnGovr Open Data API on
-every call, and the upstream free tier is the only meter. A whole run costs a
-handful of requests regardless of how many jurisdictions are declared: the
-preflight, one for `set_profile`, and the lint's own reads of the bulk export.
-Declaring more places does not cost more.
+every call, and the upstream free tier is the only meter. `check_access`,
+`set_profile`, and `run_lint` together cost five upstream requests, however
+many jurisdictions are declared: one for the preflight, one for `set_profile`,
+and three for `run_lint`'s reads of the bulk export, which are filtered to
+your declaration in memory rather than fetched per jurisdiction.
+`check_access`'s own coverage preview rides the preflight's one request
+either way; `set_profile` answers the identical question off its own separate
+request, so asking both is redundant, not costlier, and neither order saves
+anything. That five does not cover step 2 of the loop below: resolving a
+domain the app talks to costs one to four more requests per domain not
+already recorded in `profile.domains`, so a run that resolves several domains
+costs more than five.
 
 ## The loop
 
@@ -303,15 +313,16 @@ the answer before going on:
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send.
 
-**This step costs one upstream request, and it is the same one `check_access`
-spends on coverage.** So call `check_access` with no `jurisdictions` argument
-and let this step answer coverage. Asking both pays twice for one answer.
+**This step costs one upstream request, separate from `check_access`'s own.**
+It answers the same coverage question `check_access`'s `jurisdictions` argument
+would, off a request `check_access` spends either way, so asking both just repeats
+the answer. Neither order costs more.
 
 ```
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.15.3"
+  client_version="1.16.2"
 )
 ```
 
@@ -336,6 +347,15 @@ For every finding in the new run:
   `handled_by` is a triage decision, not a fact about the law, so the run has
   no opinion about it and must not clear it.
 - If its `id` is new, set `state: new`.
+- A finding whose `id` begins `topic:` is a **tool-coverage notice**, not a
+  finding about this app. It says LexLint holds law on a topic `run_lint`
+  cannot evaluate, it arrives on every run for every app, and no change to
+  this repository can make it stop. Track its `state` like any other finding,
+  so `acknowledged` records that somebody read it, but give it **no
+  `handled_by` and no work item**: there is nothing to assign it to. If the app
+  does do the thing the notice names, the response is to call `get_law` for the
+  topic it names and read the law yourself, and whatever that turns up is its
+  own work item on its own merits, not this notice's.
 
 For every acknowledged finding whose `id` did **not** appear in the new run,
 move the entry to `lint.vanished` with a `last_seen` date and tell the
@@ -369,7 +389,8 @@ Each work item takes one of exactly three lanes:
   real bucket, not a paywall, and nothing here is dressed as one.
 
 Write the plan to `lint.work_items` and point each finding at its item with
-`handled_by`. Then show the developer:
+`handled_by`, except the `topic:` tool-coverage notices, which answer to no
+work item. Then show the developer:
 
 31 findings across 22 jurisdictions, and 5 things to do.
 
@@ -505,9 +526,9 @@ making anyway, so there is no size at which checking costs more than not
 checking.
 
 Do **not** pass `jurisdictions` to `check_access` to get these dates. It answers
-the same question off the same upstream request, so asking both spends two
-requests for one answer, which is the cost the two-step split was arranged to
-avoid.
+the same question `set_profile` already answers, off a request `check_access`
+spends either way: asking both costs nothing extra, it just gives you the same
+dates twice. Read them from `set_profile`, so there is one place to look, not two.
 
 Re-fetch a jurisdiction when any of these holds:
 
@@ -538,7 +559,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.15.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -552,9 +573,13 @@ already records them, so a domain sitting there is not resolved a second time.
 
 | Severity | Meaning |
 |----------|---------|
-| `error` | The declared activity appears prohibited or presumptively unlawful there. Stop and get counsel. |
-| `warn` | An obligation applies to the declared profile, or LexLint lacks current data for a declared jurisdiction. Either way: go look. |
-| `info` | A disclosure, labeling, or registration duty worth knowing about, typically with a phase-in date. |
+| `warn` | Something to act on. Three different things arrive this way, and `kind` tells them apart: a live obligation applies to the declared profile (`obligation`); a jurisdiction-wide crawl-law attribute LexLint flags as worth acting on, such as an unsettled or restrictive posture (`posture`); or LexLint lacks current data for a declared jurisdiction (`coverage`). |
+| `info` | Context, not a live duty on you. Three different things arrive this way, and `kind` tells them apart: an instrument LexLint cannot say is currently binding (`pending`); a jurisdiction-wide statement of how the local law treats crawling as a whole (`posture`), which cites nothing and binds nobody on its own; and a note about what was not reported (`coverage`), such as instruments that exist but no longer bind. |
+
+LexLint never reports an `error` severity. A lint cannot be sure an activity is
+prohibited rather than merely regulated, and it will not assert unlawfulness on
+the strength of a matched instrument. Treat a live `warn` obligation as the
+thing to act on.
 
 Every finding carries `as_of_date` and `stale`, because laws change faster than
 corpora do. A stale finding is still worth acting on; it just may lag the law.
@@ -564,9 +589,9 @@ Findings also carry a `kind`:
 | `kind` | Meaning |
 |--------|---------|
 | `obligation` | A specific instrument binds the declared profile. |
-| `coverage` | LexLint could not read something, or holds no data. Never a pass. |
+| `coverage` | A note about what was not reported, never a pass: LexLint could not read something, holds no data, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. |
 | `posture` | How this jurisdiction's law treats crawling as a whole: whether browsewrap binds, what weight robots.txt carries, whether a public page is outside computer-crime law. Jurisdiction-wide attributes rather than instruments, so they bind nobody on their own and cite nothing. They appear only when `crawls_web` is declared. |
-| `pending` | An instrument that is not law yet: proposed, in committee, or enacted with a future effective date. Also covers an instrument that is enacted but whose enforcement a court has enjoined. An injunction can be lifted, so treat this as a duty to watch, not one to ignore. |
+| `pending` | An instrument LexLint cannot say is currently binding: proposed or in committee, enacted with a future effective date, enacted with no commencement date on record, enjoined by a court, or carrying a status LexLint has no policy for. An injunction can be lifted and a missing commencement date does not mean the law never took effect, so treat this as a duty to watch, not one to ignore. |
 
 A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
@@ -617,6 +642,6 @@ any system. It does not certify anything. A clean run means the basics were
 checked against the data LexLint holds today, in the jurisdictions you declared,
 for the activities you declared. It does not mean you are in the clear.
 
-Full documentation: https://mcp.lexlint.org/docs
+Full documentation: https://mcp.lexlint.org/
 
 A worked example, end to end: https://mcp.lexlint.org/example

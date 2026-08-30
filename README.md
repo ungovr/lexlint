@@ -5,7 +5,9 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. Declare what your app does
+A compliance lint for AI, scraping, and privacy law. LexLint's legal corpus spans AI, scraping,
+privacy, age-gating, and news-aggregation law; age-gating and news-aggregation are reference-only
+through get_law until run_lint can act on them too. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 
@@ -14,10 +16,10 @@ replaces neither QA nor legal review.
 
 <a href="https://lexlint.org/is-the-risk-real">
   <img src="https://lexlint.org/static/lexlint/need-lexlint.png" width="560"
-       alt="You need LexLint if your code or your AI agent fetches pages from sites you don't own, AI writes any content your users see, your app has users in more than one country, or your app holds personal data, voices, or faces. One checked box is enough.">
+       alt="You need LexLint if your code or your AI agent crawls, trains on, or republishes content from sites you don't own, AI writes any content your users see, your app holds personal data, voices, or faces, under-18s can reach your app or you check that they can't, or your app has users in more than one country. One checked box is enough.">
 </a>
 
-The law behind all four of those rows is readable without installing anything.
+The law behind every one of those rows is readable without installing anything.
 https://lexlint.org/law is what LexLint tracks, jurisdiction by jurisdiction,
 down to the individual instrument, and https://lexlint.org/news is the same law
 as it moves in the press. Both are the corpus the lint runs against, so they are
@@ -68,7 +70,7 @@ set `UNGOVR_API_KEY` as an environment variable there, which is where the
 bundle's server configuration reads the key from at session start.
 
 Full setup for every client, including Codex and the plain JSON block:
-https://mcp.lexlint.org/docs
+https://mcp.lexlint.org/#setup
 
 **Restart your session after installing.** Plugins load at process start. A
 `/clear` is not a restart. Until you restart, the status commands will report
@@ -139,10 +141,15 @@ LexLint stores no keys. Yours is passed straight through to the UnGovr Open
 Data API on every call, and the upstream free tier is the only meter:
 **50 requests per key per UTC day**, resetting at 00:00 UTC.
 
-A lint costs roughly one request per declared jurisdiction, so a six
-jurisdiction app runs several times a day well inside the free tier. A very
-large declaration is a different matter: budget it against the number above
-before you spend it.
+`check_access`, `set_profile`, and `run_lint` together cost five upstream
+requests, however many jurisdictions you declare: one for the preflight, one
+for `set_profile`, and three for `run_lint`'s read of the published corpus,
+which is filtered to your declaration in memory rather than fetched per
+jurisdiction. Narrowing a declaration to conserve quota buys nothing: six
+jurisdictions and sixty cost the same five requests. That total does not
+include resolving a domain the app talks to (`resolve_domain_jurisdiction`),
+which costs one to four more requests per domain not already recorded in
+`profile.domains`.
 
 ## Use
 
@@ -229,7 +236,7 @@ does not mean you are in the clear.
 - Product: https://lexlint.org
 - The law it tracks, jurisdiction by jurisdiction: https://lexlint.org/law
 - Relevant law in the press: https://lexlint.org/news
-- Docs and tool reference: https://mcp.lexlint.org/docs
+- Docs and tool reference: https://mcp.lexlint.org/#tools
 - A worked example, end to end: https://mcp.lexlint.org/example
 
 Powered by UnGovr. https://www.ungovr.org
