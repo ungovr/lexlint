@@ -3,6 +3,8 @@ name: lexlint
 description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need cited findings on AI, scraping, and privacy law, plus age-gating and news-aggregation law reference lookups, in the jurisdictions it will operate in, before release
 ---
 
+<!-- Generated file. Do not edit this copy: edit the LexLint procedure source and regenerate. -->
+
 # LexLint
 
 A lint for AI, scraping, and privacy law, backed by an AI, scraping, privacy, age-gating, and
@@ -29,17 +31,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.16.2"`.
-`jurisdictions` is not known yet at this point, and that costs nothing: `check_access`
-spends this one request either way, and `set_profile` answers the same coverage
-question later, off its own separate request. Show the
-developer the result as one line:
+**Run `check_access` before anything else**, pass `client_version: "1.16.3"`.
+Do not pass `jurisdictions`, even on a re-run whose manifest already declares
+them: `check_access` spends this one request either way, and `set_profile`
+answers the same coverage question later, off its own separate request, so that
+is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.16.2`.** State it, do not go looking
+**That version string is yours and it is `1.16.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -67,7 +69,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.16.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.16.3) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -210,7 +212,7 @@ Four rules keep the tables readable:
   nothing.
 - **The citation goes last**, because it is the widest cell and the only one
   that can be allowed to wrap.
-- **Keep the fences where they belong.** A `claude plugin update` line, the
+- **Keep the fences where they belong.** An install or update command, the
   `.lexlint/` tree, and the JSON cache envelope are all things to copy verbatim
   rather than read. Those stay fenced. The status line stays fenced too: it is
   one line, not a list.
@@ -286,6 +288,15 @@ label. A `null` result is not permission to guess either: a vanity TLD says
 nothing about who operates the site. Check the operator's terms page, find the
 establishment, and declare what you found.
 
+This is the one step whose cost scales: each domain not already recorded in
+`profile.domains` takes one to four upstream requests to resolve. Count the
+unrecorded domains against the quota line the preflight showed before
+resolving them, because an app that talks to many domains can spend the day's
+budget here before the lint itself runs. If the list is longer than the quota
+comfortably covers, resolve the domains the app actually fetches or writes to
+first, tell the developer which ones wait for tomorrow's allowance, and record
+the deferral rather than guessing a jurisdiction to fill the gap.
+
 ### 3. Set the profile, then run the lint
 
 Two calls. The first validates the declaration and tells you what the corpus
@@ -313,16 +324,17 @@ the answer before going on:
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send.
 
-**This step costs one upstream request, separate from `check_access`'s own.**
-It answers the same coverage question `check_access`'s `jurisdictions` argument
-would, off a request `check_access` spends either way, so asking both just repeats
-the answer. Neither order costs more.
+**The `set_profile` call costs one upstream request, separate from
+`check_access`'s own.** It answers the same coverage question that passing
+`jurisdictions` to `check_access` would have answered, and that argument rides
+a request `check_access` spends either way, so asking both just repeats the
+answer. Neither order costs more.
 
 ```
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.16.2"
+  client_version="1.16.3"
 )
 ```
 
@@ -350,18 +362,22 @@ For every finding in the new run:
 - A finding whose `id` begins `topic:` is a **tool-coverage notice**, not a
   finding about this app. It says LexLint holds law on a topic `run_lint`
   cannot evaluate, it arrives on every run for every app, and no change to
-  this repository can make it stop. Track its `state` like any other finding,
+  this repository can make it stop: it stops only when `run_lint` learns to
+  evaluate the topic. Track its `state` like any other finding,
   so `acknowledged` records that somebody read it, but give it **no
   `handled_by` and no work item**: there is nothing to assign it to. If the app
   does do the thing the notice names, the response is to call `get_law` for the
   topic it names and read the law yourself, and whatever that turns up is its
-  own work item on its own merits, not this notice's.
+  own work item on its own merits, not this notice's. And if a run no longer
+  carries it, that is what happened: drop the entry rather than moving it to
+  `lint.vanished`, and expect real findings on that topic in its place.
 
-For every acknowledged finding whose `id` did **not** appear in the new run,
-move the entry to `lint.vanished` with a `last_seen` date and tell the
-developer. Do not delete it. The instrument may have been repealed, or its
-citation may have been edited upstream so the derived id moved. Those have
-opposite implications and the lint cannot tell them apart.
+For every acknowledged finding whose `id` did **not** appear in the new run, a
+`topic:` notice excepted as above, move the entry to `lint.vanished` with a
+`last_seen` date and tell the developer. Do not delete it. The instrument may
+have been repealed, or its citation may have been edited upstream so the
+derived id moved. Those have opposite implications and the lint cannot tell
+them apart.
 
 `state` has exactly two values, `new` and `acknowledged`. There is deliberately
 no `resolved`, `fixed`, `waived`, or `ignored`. An obligation applies whether or
@@ -385,8 +401,12 @@ Each work item takes one of exactly three lanes:
 - `code`: a change to this repository. Ship a diff.
 - `doc`: an artifact this repository should carry: a usage statement, a crawl
   policy, a procedure note. Draft it into the repo.
-- `counsel`: not yours to act on alone. Record it and route it. This is a
-  real bucket, not a paywall, and nothing here is dressed as one.
+- `counsel`: not yours to act on alone. This lane is for findings that turn
+  on legal judgment rather than work: whether the declared activity is
+  permitted at all, whether a duty reaches this product, anything a
+  restrictive or unsettled posture leaves as a question a diff cannot answer.
+  Record it and route it. This is a real bucket, not a paywall, and nothing
+  here is dressed as one.
 
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`, except the `topic:` tool-coverage notices, which answer to no
@@ -559,7 +579,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

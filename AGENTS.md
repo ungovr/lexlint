@@ -1,14 +1,17 @@
+<!-- Generated file. Do not edit this copy: edit the LexLint procedure source and regenerate. -->
+
 # LexLint for agents
 
 LexLint is a lint for AI, scraping, and privacy law, backed by an AI, scraping, privacy, age-gating,
 and news-aggregation law corpus. Like a code linter, it
 catches basic issues early, it certifies nothing, and it replaces neither QA nor
 legal review.
-This file is the same procedure the `lexlint` skill carries, written for any
-agent that reads `AGENTS.md` instead. The tools are served over MCP at
-https://mcp.lexlint.org/mcp and the connection details are in `.mcp.json` beside
-this file. Follow the loop below in order, and do not paraphrase the reporting
-rules in section 7: they are what makes a lint worth trusting.
+This file and the `lexlint` skill are two renderings of one procedure, and this
+is the client-neutral one, for any agent that reads `AGENTS.md` instead. The
+tools are served over MCP at https://mcp.lexlint.org/mcp and the connection
+details are in `.mcp.json` beside this file. Follow the loop below in order, and
+do not paraphrase the reporting rules in section 7: they are what makes a lint
+worth trusting.
 
 **LexLint does not read your code to work out what your app does.** You declare
 that, in a committed `lexlint.yml`, and the declaration is what gets linted.
@@ -20,27 +23,32 @@ when the law changes underneath it.
 
 The tools need an UnGovr Open Data API key, passed as `X-API-Key` and read from
 `UNGOVR_API_KEY`. If the developer has no key, do not describe the problem and
-stop. Run the `/lexlint-key` flow: hand over
+stop. Run the key flow: hand over
 
 https://ungovr.org/settings/api-keys?cli=lexlint
 
 ask them to sign in, copy the key and paste it back, then persist it and tell
-them to restart. Signing in lands them on the page that mints, beside a Copy
-Key button. The value is read at process start, so a key set inside a running
-session is read by nothing, which is why the restart is a step rather than a
-footnote.
+them to restart the session. Signing in lands them on the page that mints,
+beside a Copy Key button. The value is read at process start, so a key set
+inside a running session is read by nothing, which is why the restart is a step
+rather than a footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.16.2"`.
-`jurisdictions` is not known yet at this point, and that costs nothing: `check_access`
-spends this one request either way, and `set_profile` answers the same coverage
-question later, off its own separate request. Show the
-developer the result as one line:
+Persisting means `UNGOVR_API_KEY` in the environment the client starts from.
+Where a step differs by client, "Client setup" at the end of this section
+gives it per client, and no command from another client's entry is worth
+offering: it is a dead end at the moment the developer is already stuck.
+
+**Run `check_access` before anything else**, pass `client_version: "1.16.3"`.
+Do not pass `jurisdictions`, even on a re-run whose manifest already declares
+them: `check_access` spends this one request either way, and `set_profile`
+answers the same coverage question later, off its own separate request, so that
+is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.16.2`.** State it, do not go looking
+**That version string is yours and it is `1.16.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -63,20 +71,17 @@ question at all.
 
 `update_available` is three-valued, and only `true` is an instruction:
 
-- **`true`**: say so once, plainly, in the run's opening lines, and give the
-  command. Do not make it the whole report and do not repeat it: it is a
-  footnote to their lint, not the reason they came.
+- **`true`**: say so once, plainly, in the run's opening lines. Do not make it
+  the whole report and do not repeat it: it is a footnote to their lint, not
+  the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.16.2) is available
-    claude plugin update lexlint@lexlint     (then restart Claude Code)
+  lexlint 1.4.0 · a newer LexLint (1.16.3) is available
   ```
 
-  Two things worth adding when they ask why it did not take: the update only
-  loads at session start, and `--scope` defaults to `user`, so a project that
-  installed LexLint locally needs
-  `claude plugin update lexlint@lexlint --scope local` run from that project's
-  directory or it keeps loading the old copy.
+  There is no installed client to update: the tools are served remotely and
+  are always current. What goes stale is this procedure itself. Re-read it
+  from the current bundle at https://github.com/ungovr/lexlint
 
 - **`false`**: nothing to say. Print the version on the status line and move
   on.
@@ -167,8 +172,8 @@ key**: minting silently revokes the one they hold.
 If `key_valid` is null, LexLint learned nothing about the key: the Open Data
 API did not answer. Report it as our outage, not their setup, and again **do
 not suggest minting**. Only `key_valid: false` means the key was actually
-rejected, and that is the one case where minting belongs: run `/lexlint-key`
-and follow the `rejected` steps.
+rejected, and that is the one case where minting belongs: run the key flow
+above and follow the `rejected` steps.
 
 `corpus_reachable` is three-valued for the same reason: true when the corpus
 was read, false when the read failed, and null when it was never attempted.
@@ -187,6 +192,93 @@ anything. That five does not cover step 2 of the loop below: resolving a
 domain the app talks to costs one to four more requests per domain not
 already recorded in `profile.domains`, so a run that resolves several domains
 costs more than five.
+
+### Client setup
+
+The tools are identical in every client. Registering the server, updating the
+bundle, and persisting the key are not. Use the entry for the client you are
+running, and never offer a command from another entry.
+
+**Claude Code**
+
+- **Install**
+  `claude plugin marketplace add ungovr/lexlint && claude plugin install lexlint@lexlint`
+
+  The bundle carries the skill, the three commands, and this server already
+  configured.
+- **Key** `/lexlint-key`, which persists it to the `env` block of
+  `~/.claude/settings.json`
+
+  The command hands over the sign-in link, takes the paste, and writes the
+  value where the next session reads it, never into a file that gets
+  committed.
+- **Update** `claude plugin update lexlint@lexlint`
+
+  `--scope` defaults to `user`, so a project that installed LexLint locally
+  needs `claude plugin update lexlint@lexlint --scope local` run from that
+  project's directory or it keeps loading the old copy.
+
+**Codex**
+
+- **Install** `codex mcp add lexlint --url https://mcp.lexlint.org/mcp`
+
+  That registers the transport and not the key: `mcp add` has no flag for a
+  custom header, and `--bearer-token-env-var` sends `Authorization`, which
+  this server does not read. Add
+  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }` by hand to the
+  `[mcp_servers.lexlint]` entry the command just wrote in
+  `~/.codex/config.toml`.
+- **Key** persisted to `UNGOVR_API_KEY` in the environment Codex starts from,
+  named by the `env_http_headers` line in `~/.codex/config.toml`
+
+  The value in that line is the variable's NAME, not the key itself. Codex
+  reads it at connect time, so a key exported into a running session is read
+  by nothing.
+- **Update** not available here.
+
+  There is no installed client to update: the tools are served remotely and
+  are always current. What goes stale is this procedure itself. Re-read it
+  from the current bundle at https://github.com/ungovr/lexlint
+
+**Codex in the browser**
+
+- **Install** not available here.
+
+  The Codex web app at https://chatgpt.com/codex is the one Codex surface with
+  nowhere to put this: it exposes no server configuration, so there is no
+  version of these steps that can be done there. Set LexLint up in the Codex
+  CLI, the IDE extension, or the desktop app, which share one
+  `~/.codex/config.toml`. That is a statement about this one surface and not
+  about ChatGPT's own connector settings, which are a different product
+  LexLint has not tested.
+- **Key** not available here.
+
+  There is nowhere on this surface to put a header or an environment variable.
+  Say that plainly rather than walking a developer through steps their surface
+  cannot take.
+- **Update** not available here.
+
+  Nothing is installed there to update.
+
+**Any other MCP client**
+
+- **Install** `https://mcp.lexlint.org/mcp`
+
+  Any client that speaks streamable HTTP works. Register that endpoint with an
+  `X-API-Key` header carrying the key; an `Authorization` header is ignored.
+  The server is stateless and holds no session of its own, so nothing has to
+  be kept between calls.
+- **Key** persisted to `UNGOVR_API_KEY` in the environment the client starts
+  from
+
+  Some clients expand `${UNGOVR_API_KEY}` inside a config file and some do
+  not. If yours does not, the key is written literally and the file is then
+  the secret it contains.
+- **Update** not available here.
+
+  There is no installed client to update: the tools are served remotely and
+  are always current. What goes stale is this procedure itself. Re-read it
+  from the current bundle at https://github.com/ungovr/lexlint
 
 ## The loop
 
@@ -211,7 +303,7 @@ Four rules keep the tables readable:
   nothing.
 - **The citation goes last**, because it is the widest cell and the only one
   that can be allowed to wrap.
-- **Keep the fences where they belong.** A `claude plugin update` line, the
+- **Keep the fences where they belong.** An install or update command, the
   `.lexlint/` tree, and the JSON cache envelope are all things to copy verbatim
   rather than read. Those stay fenced. The status line stays fenced too: it is
   one line, not a list.
@@ -287,6 +379,15 @@ label. A `null` result is not permission to guess either: a vanity TLD says
 nothing about who operates the site. Check the operator's terms page, find the
 establishment, and declare what you found.
 
+This is the one step whose cost scales: each domain not already recorded in
+`profile.domains` takes one to four upstream requests to resolve. Count the
+unrecorded domains against the quota line the preflight showed before
+resolving them, because an app that talks to many domains can spend the day's
+budget here before the lint itself runs. If the list is longer than the quota
+comfortably covers, resolve the domains the app actually fetches or writes to
+first, tell the developer which ones wait for tomorrow's allowance, and record
+the deferral rather than guessing a jurisdiction to fill the gap.
+
 ### 3. Set the profile, then run the lint
 
 Two calls. The first validates the declaration and tells you what the corpus
@@ -314,16 +415,17 @@ the answer before going on:
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send.
 
-**This step costs one upstream request, separate from `check_access`'s own.**
-It answers the same coverage question `check_access`'s `jurisdictions` argument
-would, off a request `check_access` spends either way, so asking both just repeats
-the answer. Neither order costs more.
+**The `set_profile` call costs one upstream request, separate from
+`check_access`'s own.** It answers the same coverage question that passing
+`jurisdictions` to `check_access` would have answered, and that argument rides
+a request `check_access` spends either way, so asking both just repeats the
+answer. Neither order costs more.
 
 ```
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.16.2"
+  client_version="1.16.3"
 )
 ```
 
@@ -351,18 +453,22 @@ For every finding in the new run:
 - A finding whose `id` begins `topic:` is a **tool-coverage notice**, not a
   finding about this app. It says LexLint holds law on a topic `run_lint`
   cannot evaluate, it arrives on every run for every app, and no change to
-  this repository can make it stop. Track its `state` like any other finding,
+  this repository can make it stop: it stops only when `run_lint` learns to
+  evaluate the topic. Track its `state` like any other finding,
   so `acknowledged` records that somebody read it, but give it **no
   `handled_by` and no work item**: there is nothing to assign it to. If the app
   does do the thing the notice names, the response is to call `get_law` for the
   topic it names and read the law yourself, and whatever that turns up is its
-  own work item on its own merits, not this notice's.
+  own work item on its own merits, not this notice's. And if a run no longer
+  carries it, that is what happened: drop the entry rather than moving it to
+  `lint.vanished`, and expect real findings on that topic in its place.
 
-For every acknowledged finding whose `id` did **not** appear in the new run,
-move the entry to `lint.vanished` with a `last_seen` date and tell the
-developer. Do not delete it. The instrument may have been repealed, or its
-citation may have been edited upstream so the derived id moved. Those have
-opposite implications and the lint cannot tell them apart.
+For every acknowledged finding whose `id` did **not** appear in the new run, a
+`topic:` notice excepted as above, move the entry to `lint.vanished` with a
+`last_seen` date and tell the developer. Do not delete it. The instrument may
+have been repealed, or its citation may have been edited upstream so the
+derived id moved. Those have opposite implications and the lint cannot tell
+them apart.
 
 `state` has exactly two values, `new` and `acknowledged`. There is deliberately
 no `resolved`, `fixed`, `waived`, or `ignored`. An obligation applies whether or
@@ -386,8 +492,12 @@ Each work item takes one of exactly three lanes:
 - `code`: a change to this repository. Ship a diff.
 - `doc`: an artifact this repository should carry: a usage statement, a crawl
   policy, a procedure note. Draft it into the repo.
-- `counsel`: not yours to act on alone. Record it and route it. This is a
-  real bucket, not a paywall, and nothing here is dressed as one.
+- `counsel`: not yours to act on alone. This lane is for findings that turn
+  on legal judgment rather than work: whether the declared activity is
+  permitted at all, whether a duty reaches this product, anything a
+  restrictive or unsettled posture leaves as a question a diff cannot answer.
+  Record it and route it. This is a real bucket, not a paywall, and nothing
+  here is dressed as one.
 
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`, except the `topic:` tool-coverage notices, which answer to no
@@ -560,7 +670,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.16.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

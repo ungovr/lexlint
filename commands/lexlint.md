@@ -1,5 +1,5 @@
 ---
-description: Lint this app against AI, scraping, and privacy law, drawn from LexLint's AI, scraping, privacy, age-gating, and news-aggregation law corpus, in the jurisdictions it operates in
+description: Lint this app against the AI, scraping, and privacy law of the jurisdictions it operates in, drawn from LexLint's AI, scraping, privacy, age-gating, and news-aggregation law corpus
 ---
 
 Run the LexLint loop against this repository.

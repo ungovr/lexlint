@@ -81,7 +81,7 @@
         "kind": {
           "type": "string",
           "enum": ["obligation", "coverage", "posture", "pending"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument that is not law yet, or is enacted but enjoined; a duty to watch rather than one to act on."
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is currently binding, whether proposed, enacted with a future effective date or no commencement date on record, enjoined by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "summary": { "type": "string" },
