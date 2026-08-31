@@ -31,17 +31,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.16.3"`.
+**Run `check_access` before anything else**, pass `client_version: "1.17.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.17.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.16.3`.** State it, do not go looking
+**That version string is yours and it is `1.17.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -69,7 +69,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.16.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.17.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -224,7 +224,17 @@ their answers down.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
 `generates_content`, `deploys_chatbot`, `processes_voice`,
-`processes_biometrics`, `automated_outreach`, `high_risk_decisions`.
+`processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
+`publishes_adult_content`, `operates_social_platform`, `serves_minors`,
+`operates_app_store`, `ships_mobile_app`, `aggregates_content`.
+
+Three of these are wider than they sound. `serves_minors` is not only for
+apps built for children: design codes bind a service that is merely **likely
+to be accessed** by them, which catches general-purpose apps that were never
+aimed at minors at all. `ships_mobile_app` is for distributing an app through
+somebody else's store, which is almost every mobile developer, while
+`operates_app_store` is for running the store or the operating system that
+carries it. Declare the one whose duties are yours to discharge.
 
 Read the code to inform your questions, never to answer them on the
 developer's behalf. Declaring `trains_models` because you saw a model import,
@@ -334,7 +344,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.16.3"
+  client_version="1.17.0"
 )
 ```
 
@@ -359,18 +369,14 @@ For every finding in the new run:
   `handled_by` is a triage decision, not a fact about the law, so the run has
   no opinion about it and must not clear it.
 - If its `id` is new, set `state: new`.
-- A finding whose `id` begins `topic:` is a **tool-coverage notice**, not a
-  finding about this app. It says LexLint holds law on a topic `run_lint`
-  cannot evaluate, it arrives on every run for every app, and no change to
-  this repository can make it stop: it stops only when `run_lint` learns to
-  evaluate the topic. Track its `state` like any other finding,
-  so `acknowledged` records that somebody read it, but give it **no
-  `handled_by` and no work item**: there is nothing to assign it to. If the app
-  does do the thing the notice names, the response is to call `get_law` for the
-  topic it names and read the law yourself, and whatever that turns up is its
-  own work item on its own merits, not this notice's. And if a run no longer
-  carries it, that is what happened: drop the entry rather than moving it to
-  `lint.vanished`, and expect real findings on that topic in its place.
+- A finding whose `id` begins `topic:` is a **tool-coverage notice** from an
+  older LexLint, not a finding about this app. It said LexLint held law on a
+  topic `run_lint` could not evaluate. Every topic in the corpus is evaluated
+  now, so no run raises one any more, and a manifest written before that can
+  still be carrying one. If your previous manifest has a `topic:` entry and this
+  run does not, that is what happened: **drop the entry** rather than moving it
+  to `lint.vanished`, and expect real findings on that topic in its place. It
+  never had a `handled_by` or a work item, so there is nothing to reassign.
 
 For every acknowledged finding whose `id` did **not** appear in the new run, a
 `topic:` notice excepted as above, move the entry to `lint.vanished` with a
@@ -579,7 +585,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.16.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.17.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

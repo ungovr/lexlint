@@ -5,9 +5,8 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, and privacy law. LexLint's legal corpus spans AI, scraping,
-privacy, age-gating, and news-aggregation law; age-gating and news-aggregation are reference-only
-through get_law until run_lint can act on them too. Declare what your app does
+A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law.
+All five topics are matched by run_lint, not reference-only. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 

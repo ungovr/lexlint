@@ -31,7 +31,10 @@
             "type": "string",
             "enum": ["crawls_web", "trains_models", "generates_content",
                      "deploys_chatbot", "processes_voice", "processes_biometrics",
-                     "automated_outreach", "high_risk_decisions"]
+                     "automated_outreach", "high_risk_decisions",
+                     "publishes_adult_content", "operates_social_platform",
+                     "serves_minors", "operates_app_store", "ships_mobile_app",
+                     "aggregates_content"]
           }
         },
         "jurisdictions": {

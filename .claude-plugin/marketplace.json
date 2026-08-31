@@ -1,12 +1,12 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "lexlint",
-  "description": "LexLint: a compliance lint for AI, scraping, and privacy law. LexLint's legal corpus spans AI, scraping, privacy, age-gating, and news-aggregation law; age-gating and news-aggregation are reference-only through get_law until run_lint can act on them too. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
+  "description": "LexLint: a compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. All five topics are matched by run_lint, not reference-only. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "owner": { "name": "UnGovr", "url": "https://www.ungovr.org" },
   "plugins": [
     {
       "name": "lexlint",
-      "description": "A compliance lint for AI, scraping, and privacy law. LexLint's legal corpus spans AI, scraping, privacy, age-gating, and news-aggregation law; age-gating and news-aggregation are reference-only through get_law until run_lint can act on them too. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
+      "description": "A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. All five topics are matched by run_lint, not reference-only. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
       "author": { "name": "UnGovr" },
       "category": "security",
       "source": "./",

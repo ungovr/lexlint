@@ -1,7 +1,7 @@
 {
   "name": "lexlint",
-  "version": "1.16.3",
-  "description": "A compliance lint for AI, scraping, and privacy law. LexLint's legal corpus spans AI, scraping, privacy, age-gating, and news-aggregation law; age-gating and news-aggregation are reference-only through get_law until run_lint can act on them too. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
+  "version": "1.17.0",
+  "description": "A compliance lint for AI, scraping, privacy, age-gating, and news-aggregation law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "author": { "name": "UnGovr", "url": "https://www.ungovr.org" },
   "homepage": "https://lexlint.org",
   "license": "MIT"
