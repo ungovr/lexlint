@@ -165,6 +165,11 @@ recorded against your UnGovr account so we can write back. It runs only when
 you ask for it, it shows you the exact text before it sends anything, and it
 sends nothing you have not approved.
 
+A lint run you upload deliberately works the same way: it reaches the LexLint
+portal only when you explicitly upload it from the CLI, after your agent has
+shown you exactly what it contains and you have said yes. From there it is
+kept against your UnGovr account, never against a session or a repository.
+
 One other thing is sent, automatically, and it is the whole of the rest of
 the list: **which plugin version you are running**. It rides the preflight
 LexLint already makes, and we store it on its own, in a place that holds

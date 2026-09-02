@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.17.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.18.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.17.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.18.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.17.0`.** State it, do not go looking
+**That version string is yours and it is `1.18.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.17.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.18.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -435,7 +435,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.17.0"
+  client_version="1.18.0"
 )
 ```
 
@@ -676,7 +676,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.17.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.18.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -714,18 +714,31 @@ A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
 crawler author can be told.
 
-## Sending feedback
+## Sending feedback and uploading runs
 
-There is one tool that writes rather than reads: `submit_feedback`. It sends
-the developer's feedback on LexLint to the people who build it, recorded
-against their UnGovr account so we can write back.
+Two tools write rather than read. `submit_feedback` sends the developer's own
+words about LexLint to the people who build it. `upload_lint_run` stores one
+completed run on the LexLint portal, against the account the key belongs to.
+Both follow the same consent rule: run only on an explicit yes from the
+developer, given this session, never assumed and never inferred from the
+plugin being installed or from what a previous session agreed to. Never
+volunteer either one. Never offer either as a next step after a lint. Never
+run either in a headless or CI session, where there is nobody to approve
+anything.
 
-**It runs only when the developer asks for it, and sends only what they have
-explicitly approved.** Never volunteer it. Never offer it as a next step after
-a lint. Never run it in a headless or CI session, where there is nobody to
-approve anything. And never read the session transcript to build the summary: a
-key pasted into a session is recorded there, and a summary built from one would
-carry the developer's own key to us.
+A run reaches the portal only on the developer's own explicit upload, this
+session, and from then on it is kept against their UnGovr account. Uploading
+is no part of `/lexlint` itself: a plain lint run never leaves the
+repository, and nothing below changes that.
+
+### Sending feedback
+
+`submit_feedback` sends the developer's feedback on LexLint to the people who
+build it, recorded against their UnGovr account so we can write back.
+
+**Never read the session transcript to build the summary**: a key pasted into
+a session is recorded there, and a summary built from one would carry the
+developer's own key to us.
 
 The shape:
 
@@ -751,6 +764,99 @@ an UnGovr Open Data key, and that API keeps a request log of its own, set out
 at https://www.ungovr.org/open-data/api-keys and holding which collection was
 asked for and a one-way hash of the key, never which jurisdiction was looked
 up.
+
+### Uploading a run
+
+`upload_lint_run` stores one complete lint run on the LexLint portal, against
+the account the key belongs to, and hands back the portal URL. It is the only
+way a run ever leaves the repository: nothing else in this procedure sends
+findings, work items, or the manifest anywhere. A run is stored only on the
+developer's own explicit upload, this session, and only against their own
+UnGovr account.
+
+**Preconditions.** A completed `/lexlint` run has to already be in this
+session, with the `run_lint` response it produced, and `lexlint.yml` has to
+exist on disk. Missing either one, do not build a partial payload: say so, run
+`/lexlint` first, and stop.
+
+**Build the payload.** It is the versioned object `schema:
+"ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
+(`1.18.0`), `payload_hash`, and `record`:
+
+- `record.app`: the manifest's `app` block, verbatim.
+- `record.profile`: the manifest's `profile` block, verbatim.
+- `record.lint`: the manifest's `lint` block, findings, work items, and
+  vanished acknowledgments, exactly as merged and triaged in the loop above.
+- `record.envelope`: the run's own metadata, at minimum `corpus_built_at`
+  from the `run_lint` response that produced this manifest, so the portal can
+  show how current the corpus was when the run happened.
+
+Never put into the payload: the API key or any other credential, source
+files, prompts or transcripts, or git usernames, emails, or remote URLs. None
+of those are part of the record schema, and none belong on a page anyone but
+the developer can see.
+
+**Compute `payload_hash` exactly.** It is the sha256 hex digest of the
+canonical JSON encoding of `record`, and the server recomputes that same
+digest from the `record` you send and refuses the upload on any mismatch, so
+"close" does not pass. Canonical means three things together: object keys
+sorted, the two JSON separators tightened to `,` and `:` with no space after
+either, and every non-ASCII character left as raw UTF-8 rather than
+backslash-escaped. That is exactly what Python's `json.dumps` returns when
+called with `record`, `sort_keys=True`, `separators=(",", ":")` and
+`ensure_ascii=False`, hashed with `hashlib.sha256` and hex-encoded:
+
+```python
+hashlib.sha256 (json.dumps (record, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode ()).hexdigest ()
+```
+
+That is the reference for any language, not only Python: reproduce the three
+properties above exactly, not "compact JSON" in general, because a library's
+own default separators or its own escaping of non-ASCII characters will not
+match the server's and the upload will 400.
+
+**Show the consent preview, then wait.** Before calling the tool, print
+exactly what is about to leave the repository:
+
+| Field | Value |
+|---|---|
+| Findings | 31 |
+| Jurisdictions | `us` `us/ca` `eu` +3 more |
+| Work items | 5 |
+| Size | 14.2 KB |
+| Destination | the account of key `ung_live_<prefix>...` |
+| Payload hash | the sha256 hex digest just computed |
+
+Give the jurisdictions cell the same three-and-a-count treatment as
+everywhere else in this procedure, and name the full list in a line under the
+table when there are more than three. For the destination, read the key from
+wherever it persists for this client, the same place the setup steps above
+read it from, and show only its first sixteen characters (`ung_live_` plus
+seven more) followed by `...`, the same truncation the settings page itself
+uses. Never show more of the key than that, and if you cannot find where it
+persists, say the destination is unknown rather than guessing at it.
+
+Then ask for an explicit yes. **No yes, no call.** Not because the plugin is
+installed, not because a previous session said yes, and never in a headless
+or CI session, where there is nobody to give one.
+
+**Call `upload_lint_run(payload)`.** On success, print the returned `run_url`
+and say the run is stored. If `duplicate` came back true, say the run was
+already stored under that URL rather than uploaded again: the portal keys on
+the account and the payload hash together, so re-sending the same run is
+always safe and never files a second copy.
+
+If the call fails outright, say plainly that nothing was stored, give the
+reason, and offer to try again. If the connection drops after the request was
+sent, the state is unknown rather than failed: say that plainly too, and offer
+to retry rather than assuming either outcome, because the upload is
+idempotent per payload hash and a retry never creates a duplicate.
+
+**Record nothing about the upload in the repo.** No run URL, run code, or
+receipt goes into `lexlint.yml` or anywhere else in the working tree. The
+portal resolves which project a run belongs to from `app.name` alone, on its
+own side, so there is no local identifier to track and nothing here for
+`.lexlint/` or any other cache to hold.
 
 ## What this is not
 
