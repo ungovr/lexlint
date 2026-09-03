@@ -31,17 +31,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.19.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.20.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.19.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.20.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.19.0`.** State it, do not go looking
+**That version string is yours and it is `1.20.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -69,7 +69,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.19.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.20.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -209,9 +209,9 @@ rather than the layout:
   belongs in `lexlint.yml` rather than on screen.
 - **A cell never carries an unbounded list.** Bounding the columns bounds
   nothing if one cell can eat the terminal by itself. When a cell would hold
-  more than three items, show three and a count, `eu` `de` `fr` +17 more,
-  and name the full set in a line under the table, where a wrap costs
-  nothing.
+  more than three items, show three and a count, European Union, Germany,
+  France +17 more, and name the full set in a line under the table, where a
+  wrap costs nothing.
 - **The citation goes last**, because it is the widest cell and the only one
   that can be allowed to wrap.
 - **Keep the fences where they belong.** An install or update command, the
@@ -223,6 +223,19 @@ rather than the layout:
   both where the finding has both: never drop the citation to save width,
   and never drop the summary to look precise. The developer acts on the
   sentence; the lawyer checks the citation, exactly as the lint gave it.
+
+Two more rules are about the words in the cells rather than the layout:
+
+- **A jurisdiction is shown by name, never by slug.** Every finding carries
+  `jurisdiction_name`: "Ireland", "European Union", "California (US)". That
+  is the word in every table and every sentence; the slug (`us/ca`) belongs in
+  `lexlint.yml` and nowhere a person reads. A finding without a name (a slug
+  the corpus does not name) shows its slug, which is the gap it marks.
+- **`summary` is one sentence; the paragraph is `detail`.** The lint writes
+  the instrument's name, a colon, and one sentence, and puts the whole
+  research summary in `detail`. Show the sentence in every list. Read
+  `detail` before acting on a warn, and show it when the developer asks for
+  a finding, never in place of the sentence.
 
 ### 1. Read or create `lexlint.yml`
 
@@ -256,7 +269,7 @@ undeclared for that reason. Declared, they return biometric statutes with their
 own consent, retention and destruction duties, and in Illinois a private right
 of action the person whose voiceprint you took can bring directly.
 
-**Where will it operate?** This question has three plausible readings and
+**Where will it operate?** This question has four plausible readings and
 developers pick the wrong one. It is not where the users are, and it is not
 where the servers are. **Server location is noise. What matters is the
 jurisdiction of each operator whose content or systems the app touches, plus
@@ -265,6 +278,23 @@ the jurisdiction of each site it fetches, which step 2 resolves.
 
 List every one of them. A jurisdiction left off is not passed, it is unlinted,
 and unlinted is not clean.
+
+**Ask the fourth reading as its own question, because nobody volunteers it:
+where are the people and the property the app acts on?** A small number of city
+ordinances bind the software itself rather than whoever buys it, and each one
+keys off a location the readings above never reach. Where the job candidate
+sits decides whether New York City's automated employment decision rules apply.
+Where the rental unit sits decides whether San Francisco's and San Jose's bans
+on supplying rent-setting software apply, and those reach the vendor selling
+it, not only the landlord using it. Where the premises sit decides whether
+Portland's ban on private face recognition applies. A team offering a hiring
+tool nationwide from Austin names none of those cities when asked about
+operators or offering, and is bound by all three.
+
+Name the city when one is in play, not just the state: `us/ca/san-francisco`
+rather than `us/ca`. A city LexLint holds nothing for answers from its state
+parent and reports that in `resolved_from_parent`, so naming one is never worse
+than leaving it off, and leaving it off is what hides the finding.
 
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.
@@ -276,12 +306,12 @@ You declared 6 jurisdictions. LexLint holds data for all 6.
 
 | Jurisdiction | Instruments | Reviewed |
 |---|---:|---|
-| `us` | 19 | 2026-08-12 |
-| `us/ca` | 14 | 2026-08-12 |
-| `eu` | 12 | 2026-08-12 |
-| `de` | 8 | 2026-08-12 |
-| `gb` | 6 | 2026-08-12 |
-| `kr` | 3 | 2026-08-12 |
+| United States (federal) | 19 | 2026-08-12 |
+| California (US) | 14 | 2026-08-12 |
+| European Union | 12 | 2026-08-12 |
+| Germany | 8 | 2026-08-12 |
+| United Kingdom | 6 | 2026-08-12 |
+| South Korea | 3 | 2026-08-12 |
 
 Depth varies. A low count is coverage LexLint has, not coverage the
 jurisdiction lacks.
@@ -351,7 +381,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.19.0"
+  client_version="1.20.0"
 )
 ```
 
@@ -429,18 +459,19 @@ work item. Then show the developer:
 
 | Lane | What to do | Jurisdictions |
 |---|---|---|
-| CODE | Honor machine-readable TDM reservations before fetch | `eu` `de` `fr` +17 more |
-| CODE | Label synthetic content on generated output | `eu` `kr` `us/ca` |
-| DOC | AI-usage statement in the product README | `eu` `kr` |
+| CODE | Honor machine-readable TDM reservations before fetch | European Union, Germany, France +17 more |
+| CODE | Label synthetic content on generated output | European Union, South Korea, California (US) |
+| DOC | AI-usage statement in the product README | European Union, South Korea |
 
-The TDM item spans `eu` and its declared national implementations: `de` `fr`
-`it` `es` `nl` `pl` `se` `dk` `fi` `at` `be` `cz` `ie` `pt` `ro` `hu` `bg`
-`hr` `sk`.
+The TDM item spans the European Union and its declared national
+implementations: Germany, France, Italy, Spain, Netherlands, Poland, Sweden,
+Denmark, Finland, Austria, Belgium, Czechia, Ireland, Portugal, Romania,
+Hungary, Bulgaria, Croatia, Slovakia.
 
 2 findings are routed to counsel, listed below with their citations linked.
 
-A work item that spans many jurisdictions keeps its one row: three slugs, a
-count, and a line under the table naming the span in full. Twenty slugs in
+A work item that spans many jurisdictions keeps its one row: three names, a
+count, and a line under the table naming the span in full. Twenty names in
 the cell wrap the row until `What to do`, the one column the developer acts
 on, is unreadable. Splitting the item into one row per jurisdiction is worse:
 it quietly rebuilds the per-jurisdiction list this step exists to collapse,
@@ -483,10 +514,17 @@ their repository beside the doc-lane drafts. It carries, in this order:
 2. **What the app does.** The declared activities in words, and the
    jurisdictions the question spans. This is the declaration restated, never
    a description of the code.
-3. **The instruments.** One row per finding: jurisdiction, status, as-of
-   date, then the citation last, linked where `note_url` exists and plain
-   where it does not. The finding's one-sentence summary goes under the
-   table, one line per row, so the table keeps its four columns. A
+3. **The instruments.** One row per finding: the jurisdiction by
+   `jurisdiction_name`, status, as-of date, then the citation last, linked
+   where `note_url` exists and plain where it does not. Under the table, one
+   line per finding, so the table keeps its four columns: the finding's
+   `summary` exactly as the lint gave it (the instrument's name and one
+   sentence), the name linked to the LexLint page where `note_url` exists,
+   then **where in the code** the question arises: the `where` the developer
+   recorded on the finding (a path and line, an issue, a document), as a
+   link into the repository when the manifest declares one and plain
+   otherwise. A lawyer who can see where the question comes from reads it
+   differently from one handed a statute. A
    `posture` or `coverage` finding routed here is not an instrument and
    arrives with `citation: null` and no status: its row carries the kind in
    the status column and its `basis` (the field and value the lint read,
@@ -494,8 +532,9 @@ their repository beside the doc-lane drafts. It carries, in this order:
    citation for a row the lint gave none; a lawyer handed an invented
    reference has been handed something worse than a blank.
 4. **What is already handled.** The code and doc work items that answer the
-   neighboring findings, by title, so counsel sees what the team has done
-   and what is left to decide.
+   neighboring findings, by title and with each item's `where` (the file, the
+   issue or the document it lives in), so counsel sees what the team has
+   done, where it lives, and what is left to decide.
 5. **The standing line.** That the brief was produced by a lint from a
    research summary of published law, that it is not legal advice, that the
    passing state is "no basic issues found", and that nothing in it
@@ -521,7 +560,7 @@ the research was read from.
 
 | Lane | What to do | Where | Citation |
 |---|---|---|---|
-| COUNSEL | Confirm whether the labeling duty reaches this product | `eu` | [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50) |
+| COUNSEL | Confirm whether the labeling duty reaches this product | European Union | [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50) |
 
 **Never construct that URL.** `note_url` is a short code stored with the
 record, not something derivable from the citation, and an instrument the
@@ -626,7 +665,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.19.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.20.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -731,7 +770,7 @@ exist on disk. Missing either one, do not build a partial payload: say so, run
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.19.0`), `payload_hash`, and `record`:
+(`1.20.0`), `payload_hash`, and `record`:
 
 - `record.app`: the manifest's `app` block, verbatim.
 - `record.profile`: the manifest's `profile` block, verbatim.

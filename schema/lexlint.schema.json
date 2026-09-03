@@ -87,7 +87,15 @@
           "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is currently binding, whether proposed, enacted with a future effective date or no commencement date on record, enjoined by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on."
         },
         "jurisdiction": { "type": ["string", "null"] },
+        "jurisdiction_name": {
+          "type": "string",
+          "description": "How the jurisdiction reads to a person, from the engine since bundle 1.20.0: Ireland, European Union, California (US). Absent when the corpus did not name the slug, or when the slug answered from a parent."
+        },
         "summary": { "type": "string" },
+        "detail": {
+          "type": "string",
+          "description": "The whole research summary the one sentence in summary was cut from, from the engine since bundle 1.20.0. Present on instrument findings that have one."
+        },
         "posture": {
           "type": "object",
           "description": "Only on kind: posture. The jurisdiction-wide crawl-law attributes this finding summarises, carried verbatim from the corpus so the manifest records what was read rather than only what was concluded. crawl_policy and access_legality are open string maps: a new axis added to the corpus must land in a manifest without a schema change, because the alternative is a lint that refuses to write its own result.",
