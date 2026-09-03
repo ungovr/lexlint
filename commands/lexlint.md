@@ -22,7 +22,8 @@ Run the LexLint loop against this repository.
 6. Triage the findings into `lint.work_items`, one per thing to actually do,
    and get the developer's approval before touching a file.
 7. Work the plan: ship the code diffs, draft the doc artifacts into the repo,
-   and route what belongs to counsel.
+   and route what belongs to counsel with a brief the developer can hand to a
+   lawyer.
 
 The passing state is "no basic issues found". Never restate it as clearance or
 certification, and never report a jurisdiction with no data as a pass.

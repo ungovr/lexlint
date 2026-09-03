@@ -11,30 +11,31 @@ that is not a key as an empty argument and start at step 1.
 
 Say this, with the URL on its own line so it stays clickable:
 
-> LexLint runs on your own UnGovr Open Data key. Sign in here, copy your key,
-> and paste it back to me.
+> LexLint runs on your own UnGovr Open Data key. Sign in here, select
+> "Create a key", copy it, and paste it back to me.
 >
-> https://ungovr.org/settings/api-keys?cli=lexlint
+> https://ungovr.org/cli-login?client=lexlint
 
 Then stop and wait. Do not open a browser, do not run a login command, and do
 not offer to generate a key: minting happens on that page, under the account
 holder's own sign-in, and nowhere else.
 
-Two things to say alongside the link, because a developer cannot work them out
+One thing to say alongside the link, because a developer cannot work it out
 from the page alone:
 
-- An account holds one key at a time, so generating a new one revokes the old
-  one. If they already have a key somewhere, that one is the one to use.
 - A key pasted into a session is recorded in that session's transcript. It is
   worth saying before they paste it, not after.
+
+Creating a key no longer revokes the account's other keys, so there is nothing
+to warn about there and nothing to talk them out of: if they cannot find the key
+they had, the answer is to make another one.
 
 ## 2. Check the shape before spending a request on it
 
 A key looks like `ung_live_` followed by a long random string. If what came
-back ends in `...`, it is the display stub the settings page shows beside an
-existing key, not the key: the full value appears once, in the box that comes
-up when it is created. That is the likeliest wrong turn on this page, so name
-it rather than sending them back to look again.
+back ends in `...`, it is a display stub from the settings list rather than a
+key: the full value appears once, in the box on the page above. Name that
+rather than sending them back to look again.
 
 ## 3. Verify it against the live API
 

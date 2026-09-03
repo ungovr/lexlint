@@ -114,7 +114,7 @@ LexLint runs on your own UnGovr Open Data key. Run `/lexlint-key` and it will
 hand you a link, take the key you paste back, and put it where your next
 session will read it. If you would rather do it by hand:
 
-1. Sign in at https://ungovr.org/settings/api-keys?cli=lexlint
+1. Sign in at https://ungovr.org/cli-login?client=lexlint
 2. Copy the key. The full value is shown once, when it is created.
 3. Put it in your shell profile as `UNGOVR_API_KEY`. That is
    `export UNGOVR_API_KEY=<your-key>` in bash and zsh,
@@ -123,9 +123,11 @@ session will read it. If you would rather do it by hand:
 4. Start a new session. The value is read at process start, so a key exported
    into a running session is read by nothing.
 
-**An account holds one key at a time, so generating a new one revokes the old
-one** and anything still using it stops working. If a key is already in use
-somewhere, that is the one to use here.
+**An account can hold several keys**, so creating one here leaves any key you
+already have on another machine working. They share one daily allowance between
+them: a second key is not a second free tier. Revoke the ones you no longer
+recognise at https://ungovr.org/settings/api-keys (each row says which client
+asked for it).
 
 A key you paste into a session is recorded in that session's transcript. Treat
 it the way you would any other secret in a log.

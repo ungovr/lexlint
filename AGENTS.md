@@ -25,7 +25,7 @@ The tools need an UnGovr Open Data API key, passed as `X-API-Key` and read from
 `UNGOVR_API_KEY`. If the developer has no key, do not describe the problem and
 stop. Run the key flow: hand over
 
-https://ungovr.org/settings/api-keys?cli=lexlint
+https://ungovr.org/cli-login?client=lexlint
 
 ask them to sign in, copy the key and paste it back, then persist it and tell
 them to restart the session. Signing in lands them on the page that mints,
@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.18.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.19.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.18.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.19.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.18.0`.** State it, do not go looking
+**That version string is yours and it is `1.19.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.18.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.19.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -284,13 +284,15 @@ running, and never offer a command from another entry.
 
 ### How to show a list
 
-Three of the things below are lists with a repeating shape: the coverage
-preview, the triage plan, the counsel list. **Show each of those as a markdown
+Four of the things below are lists with a repeating shape: the coverage
+preview, the triage plan, the counsel list, the instruments table in a brief
+for counsel. **Show each of those as a markdown
 table**, the way the examples do. Every surface that runs LexLint renders GFM
 tables, and a fenced code block is the one construct none of them prettifies:
 fencing a table opts out of the rendering on purpose, for no gain.
 
-Four rules keep the tables readable:
+Five rules keep the tables readable, and the last one is about the reader
+rather than the layout:
 
 - **Three or four columns, never more.** A terminal is roughly 80 to 100
   columns wide, and a six-column table with a citation in it wraps into mush.
@@ -307,6 +309,11 @@ Four rules keep the tables readable:
   `.lexlint/` tree, and the JSON cache envelope are all things to copy verbatim
   rather than read. Those stay fenced. The status line stays fenced too: it is
   one line, not a list.
+- **The summary is for the developer; the citation is for the lawyer.** A
+  finding carries both because it has two readers, and every list keeps
+  both where the finding has both: never drop the citation to save width,
+  and never drop the summary to look precise. The developer acts on the
+  sentence; the lawyer checks the citation, exactly as the lint gave it.
 
 ### 1. Read or create `lexlint.yml`
 
@@ -435,7 +442,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.18.0"
+  client_version="1.19.0"
 )
 ```
 
@@ -554,9 +561,42 @@ it as a draft for the developer to own and edit, and stating plainly that it is
 not legal advice and that its existence discharges nothing.
 
 **Counsel lane.** Do not draft user-facing legal text or advise on it. Record
-the finding with `handled_by: counsel` and list it with its citation, linked as
-below, so the developer can hand a lawyer something specific rather than a
-warning.
+the finding with `handled_by: counsel`, then write the one artifact this lane
+produces: a **brief for counsel**, one per counsel-lane work item, so the
+developer hands a lawyer a file rather than a warning. A lawyer wants the
+facts and the question, not a list of statutes, and a citation on its own is
+a string most developers cannot read and most lawyers cannot act on without
+the facts around it. The brief is the developer's document and lives in
+their repository beside the doc-lane drafts. It carries, in this order:
+
+1. **The question.** The work item's title, phrased as a question a lawyer
+   can answer: "Does the labeling duty in AI Act Art. 50 reach this product?"
+2. **What the app does.** The declared activities in words, and the
+   jurisdictions the question spans. This is the declaration restated, never
+   a description of the code.
+3. **The instruments.** One row per finding: jurisdiction, status, as-of
+   date, then the citation last, linked where `note_url` exists and plain
+   where it does not. The finding's one-sentence summary goes under the
+   table, one line per row, so the table keeps its four columns. A
+   `posture` or `coverage` finding routed here is not an instrument and
+   arrives with `citation: null` and no status: its row carries the kind in
+   the status column and its `basis` (the field and value the lint read,
+   `crawl_policy = unsettled`) in the citation column. Never supply a
+   citation for a row the lint gave none; a lawyer handed an invented
+   reference has been handed something worse than a blank.
+4. **What is already handled.** The code and doc work items that answer the
+   neighboring findings, by title, so counsel sees what the team has done
+   and what is left to decide.
+5. **The standing line.** That the brief was produced by a lint from a
+   research summary of published law, that it is not legal advice, that the
+   passing state is "no basic issues found", and that nothing in it
+   discharges an obligation.
+
+The summary on each finding is written for the developer; the citation is
+written for the lawyer. The brief keeps both, so each reader has their half.
+Do not add analysis, a recommendation, or a proposed answer: those are the
+lawyer's, and a brief that argues for one is the user-facing legal text the
+first sentence of this lane forbids.
 
 Every lane sets `state: acknowledged`. There is no `resolved`.
 
@@ -564,7 +604,8 @@ Every lane sets `state: acknowledged`. There is no `resolved`.
 
 A finding whose instrument has a LexLint page carries `note_url`. Everywhere
 you show that finding, show its citation as a link to that page: in the triage
-list, in the work item, in the counsel list, in `lexlint.yml`. A citation alone
+list, in the work item, in the counsel list, in the brief for counsel, in
+`lexlint.yml`. A citation alone
 is a string to go and search for. The page behind it holds the summary, the
 status, the effective date, what the instrument asks of an app, and the source
 the research was read from.
@@ -676,7 +717,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.18.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.19.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -781,7 +822,7 @@ exist on disk. Missing either one, do not build a partial payload: say so, run
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.18.0`), `payload_hash`, and `record`:
+(`1.19.0`), `payload_hash`, and `record`:
 
 - `record.app`: the manifest's `app` block, verbatim.
 - `record.profile`: the manifest's `profile` block, verbatim.
