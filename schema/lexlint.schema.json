@@ -96,6 +96,20 @@
           "type": "string",
           "description": "The whole research summary the one sentence in summary was cut from, from the engine since bundle 1.20.0. Present on instrument findings that have one."
         },
+        "why": {
+          "type": "string",
+          "description": "Why this instrument was pulled in, in basic language, from the engine since bundle 1.21.0: which declared activity reached it and what the corpus tags it for. Shown above the finding wherever it appears."
+        },
+        "matched_by": {
+          "type": "object",
+          "description": "The match why was written from, from the engine since bundle 1.21.0.",
+          "additionalProperties": false,
+          "properties": {
+            "activities": { "type": "array", "items": { "type": "string" } },
+            "flags": { "type": "array", "items": { "type": "string" } },
+            "categories": { "type": "array", "items": { "type": "string" } }
+          }
+        },
         "posture": {
           "type": "object",
           "description": "Only on kind: posture. The jurisdiction-wide crawl-law attributes this finding summarises, carried verbatim from the corpus so the manifest records what was read rather than only what was concluded. crawl_policy and access_legality are open string maps: a new axis added to the corpus must land in a manifest without a schema change, because the alternative is a lint that refuses to write its own result.",

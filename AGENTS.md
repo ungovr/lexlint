@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.20.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.21.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.20.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.21.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.20.0`.** State it, do not go looking
+**That version string is yours and it is `1.21.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.20.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.21.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -327,6 +327,14 @@ Two more rules are about the words in the cells rather than the layout:
   research summary in `detail`. Show the sentence in every list. Read
   `detail` before acting on a warn, and show it when the developer asks for
   a finding, never in place of the sentence.
+- **`why` comes before the law.** Every instrument finding carries `why`, one
+  sentence in basic language saying which declared activity reached it and
+  what the corpus tags it for ("Pulled in because the app records and
+  processes voices, and the corpus tags this instrument for exactly that.").
+  Wherever a finding is shown on its own (a triage entry, a work item's
+  findings, a brief for counsel), that sentence goes first, above `summary`,
+  so the reader knows why before they meet the statute. In a table it is the
+  line under the row, never a fifth column.
 
 ### 1. Read or create `lexlint.yml`
 
@@ -472,7 +480,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.20.0"
+  client_version="1.21.0"
 )
 ```
 
@@ -608,9 +616,11 @@ their repository beside the doc-lane drafts. It carries, in this order:
 3. **The instruments.** One row per finding: the jurisdiction by
    `jurisdiction_name`, status, as-of date, then the citation last, linked
    where `note_url` exists and plain where it does not. Under the table, one
-   line per finding, so the table keeps its four columns: the finding's
-   `summary` exactly as the lint gave it (the instrument's name and one
-   sentence), the name linked to the LexLint page where `note_url` exists,
+   line per finding, so the table keeps its four columns: first the finding's
+   `why`, in the lint's words, so counsel reads the reason before the law;
+   then the finding's `summary` exactly as the lint gave it (the instrument's
+   name and one sentence), the name linked to the LexLint page where
+   `note_url` exists,
    then **where in the code** the question arises: the `where` the developer
    recorded on the finding (a path and line, an issue, a document), as a
    link into the repository when the manifest declares one and plain
@@ -756,7 +766,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.20.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.21.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -861,7 +871,7 @@ exist on disk. Missing either one, do not build a partial payload: say so, run
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.20.0`), `payload_hash`, and `record`:
+(`1.21.0`), `payload_hash`, and `record`:
 
 - `record.app`: the manifest's `app` block, verbatim.
 - `record.profile`: the manifest's `profile` block, verbatim.
