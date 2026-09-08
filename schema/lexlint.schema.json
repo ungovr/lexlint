@@ -153,6 +153,22 @@
           "required": ["band", "label", "tone", "detail", "commencement_established"],
           "additionalProperties": false
         },
+        "settledness": {
+          "type": "object",
+          "description": "How much interpretation this duty needs, and the field the counsel lane routes on. Derived in the corpus, not at the call. Present only where the corpus has a verdict; ABSENT is not \"settled\", it means no rule fires and the lane is a judgment call as before.",
+          "properties": {
+            "band": { "type": "string" },
+            "guidance_url": { "type": "string" },
+            "guidance_body": { "type": "string" },
+            "case_citation": { "type": "string" },
+            "case_url": { "type": "string" },
+            "under_challenge": { "type": "boolean" },
+            "open_questions": { "type": "array", "items": { "type": "string" } },
+            "as_of": { "type": "string", "description": "When the guidance and docket landscape was read. Distinct from the finding's own as_of_date." }
+          },
+          "required": ["band"],
+          "additionalProperties": false
+        },
         "as_of_date": { "type": ["string", "null"] },
         "stale": { "type": ["boolean", "null"] },
         "confidence": { "type": ["string", "null"] },

@@ -1,14 +1,14 @@
 ---
 name: lexlint
-description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need cited findings on AI, scraping, and privacy law, plus age-gating and news-aggregation law reference lookups, in the jurisdictions it will operate in, before release
+description: Use when shipping an app that crawls the web, trains models, generates content, deploys a chatbot, records voices or faces, or makes automated decisions, and you need cited findings on AI, scraping, privacy, cybersecurity, age-gating, and news-aggregation law in the jurisdictions it will operate in, before release
 ---
 
 <!-- Generated file. Do not edit this copy: edit the LexLint procedure source and regenerate. -->
 
 # LexLint
 
-A lint for AI, scraping, and privacy law, backed by an AI, scraping, privacy, age-gating, and
-news-aggregation law corpus. Like a code linter, it catches basic
+A lint for AI, scraping, privacy, cybersecurity, age-gating, and news-aggregation law,
+backed by a corpus researched jurisdiction by jurisdiction. Like a code linter, it catches basic
 issues early, it certifies nothing, and it replaces neither QA nor legal review.
 
 **LexLint does not read your code to work out what your app does.** You declare
@@ -31,17 +31,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.21.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.23.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.21.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.23.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.21.0`.** State it, do not go looking
+**That version string is yours and it is `1.23.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -69,7 +69,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.21.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.23.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -389,7 +389,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.21.0"
+  client_version="1.23.0"
 )
 ```
 
@@ -459,6 +459,26 @@ Each work item takes one of exactly three lanes:
   Record it and route it. This is a real bucket, not a paywall, and nothing
   here is dressed as one.
 
+**A finding whose `settledness.band` is `unsettled` goes to the counsel lane.
+This is not a judgment you make: the corpus made it, and the fields beside
+the band say why.** The band is derived in the research corpus from whether a
+regulator or a court has construed the duty, whether the instrument is under
+challenge, and what questions the research left open. Route it even when the
+finding also looks answerable with a diff, and say so in the plan: a
+mitigation you can ship does not settle whether the duty reaches this
+product.
+
+- `developing` is a signal to weigh, not a rule. Someone with authority has
+  read the duty and questions remain.
+- `settled` routes nothing on its own. Your own reading still can, and should.
+- **Absent is not `settled`.** Most instruments carry no band yet. There the
+  lane is your judgment, exactly as it was before this field existed.
+
+`settledness.open_questions` is what the brief for counsel opens with. Show
+those questions verbatim wherever you show the finding, and never rewrite one
+into a recommendation: the question is the research's, and the answer is the
+lawyer's.
+
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`, except the `topic:` tool-coverage notices, which answer to no
 work item. Then show the developer:
@@ -519,6 +539,11 @@ their repository beside the doc-lane drafts. It carries, in this order:
 
 1. **The question.** The work item's title, phrased as a question a lawyer
    can answer: "Does the labeling duty in AI Act Art. 50 reach this product?"
+   **Where any finding in the item carries `settledness.open_questions`,
+   those questions come first, verbatim and each attributed to its
+   instrument**, and your title follows them. They were written by a
+   researcher against the primary source and reviewed; your phrasing was
+   not. Never merge two of them into one, and never answer one.
 2. **What the app does.** The declared activities in words, and the
    jurisdictions the question spans. This is the declaration restated, never
    a description of the code.
@@ -540,7 +565,11 @@ their repository beside the doc-lane drafts. It carries, in this order:
    the status column and its `basis` (the field and value the lint read,
    `crawl_policy = unsettled`) in the citation column. Never supply a
    citation for a row the lint gave none; a lawyer handed an invented
-   reference has been handed something worse than a blank.
+   reference has been handed something worse than a blank. Last on the line,
+   where the finding carries `settledness`: its band, then the guidance link
+   and the case citation the corpus recorded. A lawyer reading "unsettled"
+   wants to know what has already been said about the duty, and a band with
+   no evidence under it is the same non-answer a bare citation is.
 4. **What is already handled.** The code and doc work items that answer the
    neighboring findings, by title and with each item's `where` (the file, the
    issue or the document it lives in), so counsel sees what the team has
@@ -675,7 +704,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.21.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.23.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -780,7 +809,7 @@ exist on disk. Missing either one, do not build a partial payload: say so, run
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.21.0`), `payload_hash`, and `record`:
+(`1.23.0`), `payload_hash`, and `record`:
 
 - `record.app`: the manifest's `app` block, verbatim.
 - `record.profile`: the manifest's `profile` block, verbatim.
