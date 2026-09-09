@@ -9,10 +9,20 @@ Run the LexLint loop against this repository.
    models this procedure is tested against: if your own is not one of them, show
    `model_notice` and let the developer decide whether to continue. It is an
    advisory, so the lint runs either way.
-2. Read `lexlint.yml` at the repo root, or the path given in `$ARGUMENTS` if
-   one was provided. If no manifest exists, create one by asking what the app
-   does and where it will operate, quoting every jurisdiction slug. Never
-   infer the declaration from the code.
+2. Read `lexlint.yml` at the repo root. If no manifest exists, create one by
+   asking what the app does and where it will operate, quoting every
+   jurisdiction slug. Never infer the declaration from the code.
+
+   `$ARGUMENTS`, when given, is one path, and which of two things it means is
+   read off the path itself: a `.yml` or `.yaml` file is the manifest to use
+   instead of the repo-root one, and anything else is the **scope** for this
+   run, narrowing which files you read to that subtree. Both at once is two
+   arguments, manifest first. A path that is neither an existing file nor an
+   existing directory is a typo worth stopping on, because the alternative is
+   linting the whole repository while reporting a scope.
+
+   A scope from the command is not written to the manifest. Say in the report
+   that it came from the command, and say what it was.
 3. Resolve any domains named in the manifest with `resolve_domain_jurisdiction`.
 4. Call `run_lint` with the declared activities and jurisdictions.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and

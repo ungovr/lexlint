@@ -4,9 +4,11 @@ description: Send feedback on LexLint to the people who build it, from this sess
 
 Collect the developer's feedback on LexLint and submit it.
 
-**Run this only when the developer asks for it.** Never offer it, never suggest
-it as a next step after a lint, and never run it in a headless or CI session:
-with nobody there to approve the payload, there is nothing to send.
+**Run this only on the developer's explicit yes.** A lint run whose upload
+offer was declined closes by inviting feedback once, and that is the only
+place it may be raised unprompted. Never volunteer it anywhere else, and never
+run it in a headless or CI session, where with nobody there to approve the
+payload there is nothing to send.
 
 ## 1. Draft the usage summary yourself
 

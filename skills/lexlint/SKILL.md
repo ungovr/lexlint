@@ -31,17 +31,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.23.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.24.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.23.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.24.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.23.0`.** State it, do not go looking
+**That version string is yours and it is `1.24.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -69,7 +69,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.23.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.24.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -329,6 +329,51 @@ here, not after the run, and give it a row of its own rather than dropping it
 from the table: a jurisdiction missing from the preview reads as one nobody
 declared.
 
+**Scope: which files you read, never which law applies.** By default the lint
+reads the whole repository. A manifest narrows that with `app.scope`:
+
+```yaml
+app:
+  name: crawl4ai
+  repo: https://github.com/unclecode/crawl4ai
+  scope:
+    include:
+      - crawl4ai/
+    exclude:
+      - crawl4ai/js_snippet/
+```
+
+- No `scope` means the whole repository, which is what every existing manifest
+  says by saying nothing.
+- `include` present means those paths only. Paths are relative to the
+  manifest's own directory. An absolute path, or one that climbs out with
+  `..`, is a manifest error: say so and stop.
+- `exclude` subtracts, with or without an `include`.
+- A trailing `/` is a directory and everything under it. Anything else is a
+  glob.
+- **An `include` that matches no file stops the run.** Falling back to the
+  whole repository there would read everything while reporting that it read
+  one directory, and the report is what the developer trusts.
+
+Scope is a reading instruction. It does not narrow the declaration, and this
+is the mistake to expect: a crawler scoped to its fetch layer still operates
+in every jurisdiction it was declared in, and it draws exactly the findings it
+drew before. Narrowing the read never narrows a duty. If the developer means
+that a subtree is a different app with a different profile, that is a second
+manifest with its own `app.name`, not a scope.
+
+State the scope in the run header and again in the report, so a scoped run is
+never read as a whole-repo one:
+
+Scope: `crawl4ai/`, minus `crawl4ai/js_snippet/`. 118 files.
+
+Carry it into the uploaded record too, under `app.scope`, for the same reason.
+
+For one run without editing the manifest, `/lexlint <path>` sets the scope to
+that path. It is the same narrowing under the same rules, and it is not
+written to the manifest, so say in the report that the scope came from the
+command rather than from the file.
+
 ### 2. Resolve any domains the app talks to
 
 ```
@@ -389,7 +434,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.23.0"
+  client_version="1.24.0"
 )
 ```
 
@@ -617,6 +662,32 @@ certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
 warning, never a silent pass, and unlinted is not the same as clean.
 
+**Then close the run.** A terminal summary is the short version of what just
+happened: it collapses findings to fit, and it is gone when the session is. A
+run that produced findings therefore ends with one offer to store it, said
+plainly and in a line, never as a pitch:
+
+> Want me to upload this run? It keeps the full findings with their citations
+> where you can read them again and compare against your next run. I will show
+> you exactly what leaves the repository first, and nothing goes without your
+> say-so.
+
+A yes goes to "Uploading a run" below, and that section is unchanged: build the
+payload, print the consent preview in full, and wait. **The offer is not the
+consent.**
+
+On a no, ask once for feedback instead, and take that second answer as final
+whatever it is:
+
+> Understood, nothing leaves the repository. If you have a minute, anything you
+> would change about this run is worth more to the people who build LexLint
+> than the run itself.
+
+Then stop. One offer, one fallback, no third ask, and silence is a no. Skip the
+sequence entirely when the run found nothing, when the manifest did not end up
+written, and in any headless or CI session, where there is nobody to ask and an
+unanswered question reads as a prompt to act.
+
 ## Cache what you fetched
 
 A jurisdiction payload is roughly 10 KB and costs one upstream request every
@@ -704,7 +775,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.23.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.24.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -750,14 +821,20 @@ completed run on the LexLint portal, against the account the key belongs to.
 Both follow the same consent rule: run only on an explicit yes from the
 developer, given this session, never assumed and never inferred from the
 plugin being installed or from what a previous session agreed to. Never
-volunteer either one. Never offer either as a next step after a lint. Never
 run either in a headless or CI session, where there is nobody to approve
 anything.
 
+**Step 7 is the one place either tool may be raised unprompted**, and it is
+written out in full there: one offer of the upload, and one invitation to
+send feedback if that offer is declined. Everywhere else, never volunteer
+either one. Raising a tool is not running it, and step 7 changes nothing
+below this line: the payload preview and the explicit yes still stand
+between an offer and a call.
+
 A run reaches the portal only on the developer's own explicit upload, this
-session, and from then on it is kept against their UnGovr account. Uploading
-is no part of `/lexlint` itself: a plain lint run never leaves the
-repository, and nothing below changes that.
+session, and from then on it is kept against their UnGovr account. A plain
+lint run never leaves the repository, and the offer that ends step 7 is an
+offer: nothing below sends anything without the yes it asks for.
 
 ### Sending feedback
 
@@ -802,22 +879,47 @@ findings, work items, or the manifest anywhere. A run is stored only on the
 developer's own explicit upload, this session, and only against their own
 UnGovr account.
 
-**Preconditions.** A completed `/lexlint` run has to already be in this
-session, with the `run_lint` response it produced, and `lexlint.yml` has to
-exist on disk. Missing either one, do not build a partial payload: say so, run
-`/lexlint` first, and stop.
+**Preconditions.** Two things, and they are the two the payload is built out
+of: the `run_lint` response from a completed `/lexlint` run in this session,
+and a `lexlint.yml` on disk carrying `app` and `profile`. Missing either one,
+do not build a partial payload: say so, run `/lexlint` first, and stop.
+
+**A manifest with no `lint:` block is not a missing precondition.** The run
+being uploaded is the `run_lint` response, which you have; the `lint:` block is
+written by step 4 and step 5, and step 5 waits on an approval that may not have
+come yet. Upload the run and say the work items are empty. Stopping here
+instead strands a completed run behind an unrelated approval gate, which is the
+defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.23.0`), `payload_hash`, and `record`:
+(`1.24.0`), `payload_hash`, and `record`. Take each part from whatever
+owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, verbatim.
 - `record.profile`: the manifest's `profile` block, verbatim.
-- `record.lint`: the manifest's `lint` block, findings, work items, and
-  vanished acknowledgments, exactly as merged and triaged in the loop above.
+- `record.lint.findings`: **this session's `run_lint` response**, which is the
+  run being uploaded. Where the manifest's merged block covers this same run,
+  carry `state`, `where`, `note` and `handled_by` across per finding id, the
+  same four fields step 4 carries: they are the developer's, and the run has no
+  opinion about them. The set of findings is always the run's.
+- `record.lint.work_items` and `record.lint.vanished`: the manifest's,
+  verbatim, when its `lint:` block is from this run. Otherwise `work_items` is
+  empty. **Triage that lives only in this conversation never uploads**: a plan
+  the developer has not approved and the repo does not hold is not part of the
+  record, and sending it files their name to work items they never agreed to.
 - `record.envelope`: the run's own metadata, at minimum `corpus_built_at`
-  from the `run_lint` response that produced this manifest, so the portal can
-  show how current the corpus was when the run happened.
+  from that same `run_lint` response, so the portal can show how current the
+  corpus was when the run happened.
+
+**Never pair one run's findings with another run's envelope.** A committed
+manifest normally holds the *previous* run's `lint:` block, so copying it
+wholesale while `corpus_built_at` comes from today's run files a run that never
+happened: older findings stamped with a newer corpus date. Nothing downstream
+catches it. The hash is computed over whatever you assembled, so it matches,
+and the server accepts it. Compare the manifest's `lint.run_at` and its finding
+ids against the response in hand, and on any disagreement treat the block as
+the previous run's and take only the four overlay fields from it.
 
 Never put into the payload: the API key or any other credential, source
 files, prompts or transcripts, or git usernames, emails, or remote URLs. None
@@ -857,7 +959,11 @@ exactly what is about to leave the repository:
 
 Give the jurisdictions cell the same three-and-a-count treatment as
 everywhere else in this procedure, and name the full list in a line under the
-table when there are more than three. For the destination, read the key from
+table when there are more than three. **When the work items are empty because
+the manifest holds no merged block, say so in that cell** ("0, the manifest
+holds no merged run yet") rather than printing a bare zero: the developer is
+approving what leaves, and an unexplained zero next to 31 findings reads as a
+bug in the preview. For the destination, read the key from
 wherever it persists for this client, the same place the setup steps above
 read it from, and show only its first sixteen characters (`ung_live_` plus
 seven more) followed by `...`, the same truncation the settings page itself

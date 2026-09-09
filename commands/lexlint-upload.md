@@ -5,27 +5,49 @@ description: Upload this session's completed lint run to the LexLint portal, wit
 Store the run this session already produced on the LexLint portal, and show
 you its URL once it lands.
 
-**Run this only when the developer asks for it.** Never offer it, never
-suggest it as a next step after a lint, and never run it in a headless or CI
-session: with nobody there to approve the payload, there is nothing to
-upload. A plain `/lexlint` run never does this on its own.
+**Run this only on the developer's explicit yes.** A lint run that produced
+findings closes by offering it once, and that is the only place it may be
+raised unprompted: an offer is not a yes, and nothing is built or sent until
+they give one. Never volunteer it anywhere else, and never run it in a
+headless or CI session, where with nobody there to approve the payload there
+is nothing to upload. A `/lexlint` run never uploads on its own.
 
 ## 1. Check the preconditions
 
-There has to be a completed `/lexlint` run already in this session, with the
-`run_lint` response it produced, and `lexlint.yml` has to exist on disk. If
-either is missing, say so, run `/lexlint` first, and stop here rather than
-building a partial payload.
+Two things, and they are the two the payload is built out of: a completed
+`/lexlint` run in this session, with the `run_lint` response it produced, and
+a `lexlint.yml` on disk carrying `app` and `profile`. If either is missing,
+say so, run `/lexlint` first, and stop here rather than building a partial
+payload.
+
+A manifest with **no `lint:` block is not a missing precondition**. The run
+being uploaded is the `run_lint` response, which you have; the `lint:` block is
+written by the loop's merge and triage steps, and triage waits on an approval
+that may not have come yet. Upload the run and say the work items are empty.
 
 ## 2. Build the payload and its hash
 
-Assemble the `ungovr.lexlint-upload/1` object from the manifest:
-`record.app`, `record.profile`, and `record.lint` (`findings`, `work_items`,
-`vanished`) copied verbatim from `lexlint.yml`, plus `record.envelope`
-carrying the run's own metadata, at minimum `corpus_built_at` from the
-`run_lint` response. Never include the API key or any other credential,
-source files, prompts or transcripts, or git usernames, emails, or remote
-URLs.
+Assemble the `ungovr.lexlint-upload/1` object, taking each part from whatever
+owns it rather than all from one file:
+
+- `record.app` and `record.profile`: the manifest's, verbatim.
+- `record.lint.findings`: this session's `run_lint` response, which is the run
+  being uploaded. Where the manifest's merged block covers this same run, carry
+  `state`, `where`, `note` and `handled_by` across per finding id. The set of
+  findings is always the run's.
+- `record.lint.work_items` and `record.lint.vanished`: the manifest's, verbatim,
+  when its `lint:` block is from this run, and otherwise empty. Triage held only
+  in this conversation never uploads.
+- `record.envelope`: the run's own metadata, at minimum `corpus_built_at` from
+  that same `run_lint` response.
+
+**Never pair one run's findings with another run's envelope.** A committed
+manifest normally holds the previous run's `lint:` block, and copying it
+wholesale under today's `corpus_built_at` files a run that never happened. The
+hash is computed over whatever you assembled, so nothing downstream catches it.
+
+Never include the API key or any other credential, source files, prompts or
+transcripts, or git usernames, emails, or remote URLs.
 
 Compute `payload_hash` as the sha256 hex digest of the canonical JSON
 encoding of `record`: keys sorted, `,` and `:` separators with no space after
@@ -43,7 +65,7 @@ LexLint will upload exactly this:
 
   findings:      <count>
   jurisdictions: <three slugs, plus a count if there are more>
-  work items:    <count>
+  work items:    <count, or "0, the manifest holds no merged run yet">
   size:          <payload size>
   destination:   the account of key ung_live_<prefix>...
   payload hash:  <the sha256 hex digest just computed>
