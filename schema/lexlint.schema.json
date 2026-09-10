@@ -87,7 +87,7 @@
           "description": "Triage output: one entry per thing to actually do, each carrying the findings it answers.",
           "items": { "$ref": "#/$defs/work_item" }
         },
-        "vanished": { "type": "array", "items": { "$ref": "#/$defs/vanished" } }
+        "vanished": { "type": "array", "description": "Sorted by id. Each entry keeps the four triage fields it had as a finding, because an id that comes back brings its acknowledgment with it: a citation edited upstream and edited back is the same duty, and making the developer acknowledge it twice is the silent deletion this block exists to prevent.", "items": { "$ref": "#/$defs/vanished" } }
       }
     }
   },
@@ -100,6 +100,7 @@
     },
     "finding": {
       "type": "object",
+      "description": "One finding as the run returned it, plus the four fields triage writes. Closed on purpose: keeping this property map exhaustive is what makes a field LexLint emits and never documented a build failure rather than a surprise in your manifest. The consequence for an installed bundle is deliberate rather than overlooked. A bundle's schema cannot know a field added to the corpus after it shipped, so the lint writes only the keys named here and reports which ones it left out; updating LexLint picks them up on the next run.",
       "required": ["id", "severity", "state"],
       "additionalProperties": false,
       "properties": {
@@ -226,7 +227,11 @@
           "type": ["string", "null"],
           "format": "date",
           "description": "The date this finding was last confirmed present. Null means the prior manifest recorded no run_at to report: the lint declines to invent a sighting date that did not happen."
-        }
+        },
+        "state": { "type": "string", "enum": ["new", "acknowledged"] },
+        "where": { "type": "string" },
+        "note": { "type": "string" },
+        "handled_by": { "type": "string", "minLength": 1 }
       }
     },
     "work_item": {

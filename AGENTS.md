@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.27.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.28.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.27.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.28.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.27.0`.** State it, do not go looking
+**That version string is yours and it is `1.28.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.27.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.28.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -280,23 +280,30 @@ running, and never offer a command from another entry.
   are always current. What goes stale is this procedure itself. Re-read it
   from the current bundle at https://github.com/ungovr/lexlint
 
-## Three tools that make this cheaper, and none of them required
+## Four tools that make this cheaper, and none of them required
 
-Everything below works with no shell at all. Three ordinary tools make it
+Everything below works with no shell at all. Four ordinary tools make it
 cheaper, and it is worth knowing which you have before you need them:
 
 | Tool | What it saves | Where |
 |---|---|---|
 | `jq` | keeps a `run_lint` response out of your context entirely | step 3, and the hash below |
+| `python3` with PyYAML | writes the merged `lint:` block without it passing through your output | step 4 |
 | `curl` | keeps the upload payload out of your own output | "Uploading a run" |
 | `sha256sum` | computes `payload_hash` without the bytes reaching you | "Uploading a run" |
 
 **Check once, lazily, and remember the answer.** The first time you want one of
-them, ask for all three in a single command rather than probing per call:
+them, ask in a single command rather than probing per call:
 
 ```bash
-command -v jq curl sha256sum shasum
+command -v jq curl sha256sum shasum python3
+python3 -c 'import yaml'
 ```
+
+**PyYAML is the thing being asked about in the second line, not `python3`.**
+It is not in the standard library, so an interpreter on the PATH is not an
+answer on its own, and the second line exits non-zero on the machines where
+they part. Nothing else in this procedure needs it.
 
 **`shasum` is in that list on purpose**: macOS ships it and does not ship
 `sha256sum`, so probing only the GNU name reports the hash tool missing on a
@@ -320,6 +327,8 @@ then not again:
 - The response went past the tool-result limit and you had no `jq`, so you
   split the declaration across calls and spent three upstream requests per
   call.
+- You wrote the manifest and had no `python3` with PyYAML, so the whole
+  `lint:` block came out through your own output.
 - An upload happened and you had no `curl`, so the payload went through your
   own output to reach the tool.
 
@@ -585,7 +594,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.27.0"
+  client_version="1.28.0"
 )
 ```
 
@@ -658,6 +667,12 @@ alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
 declarations rather than exotic ones, so expect the case rather than treating
 it as a corner. Say in the report that the run was split and that these were
 intersected, so a reader can tell this run from a single-call one.
+
+**Where the calls landed in files, keep one file per call** and unwrap each
+one separately: `lint-1.json`, `lint-2.json`, and so on. Step 4's merge does
+the intersection itself, and it can only do it while the calls are still told
+apart. Union them into a single file first and the rule above has already been
+broken, invisibly, by the tidying.
 
 **This is not narrowing the declaration**, which the paragraph below forbids.
 Every declared slug is still linted; only the calls are divided. The two look
@@ -806,10 +821,365 @@ have been repealed, or its citation may have been edited upstream so the
 derived id moved. Those have opposite implications and the lint cannot tell
 them apart.
 
+**A vanished finding that comes back brings its triage with it.** Read the four
+fields off the `lint.vanished` entry exactly as you would off a finding, and
+take the entry out of `vanished`. An id that reappears is usually a citation
+that moved and moved back, or an instrument restored, and either way the
+acknowledgment is about the same duty it was always about. Asking the developer
+to make it again because the id took a round trip is the same silent deletion
+in slower motion. This is why a vanished entry carries the four fields and why
+the schema leaves it open to them: `id` and `last_seen` are what it is *for*,
+not all it may hold.
+
 `state` has exactly two values, `new` and `acknowledged`. There is deliberately
 no `resolved`, `fixed`, `waived`, or `ignored`. An obligation applies whether or
 not you have met it, so a finding never goes away. `acknowledged` means "we have
 seen this and here is where we handled it", which is true and stays true.
+
+**Everything above is a join, and a join is the wrong thing to spend your own
+output on.** A three-jurisdiction run wrote a 110 KB `lexlint.yml`, every byte
+of it through the model. That is larger than the upload payload, and output
+tokens are the expensive kind. None of it is authored prose: `lint.findings`
+is the `run_lint` response reshaped into YAML with four fields carried across
+by id, which is a join and a format conversion, and both are things a script
+does better than you do.
+
+**With `python3` and PyYAML, do it on disk.** The script below applies every
+rule in this step: it reads the run out of the files step 3 left on disk,
+reads the previous triage out of the manifest, rewrites **only** the `lint:`
+block, and prints the numbers your report needs so that counting them never
+costs you a finding read into context. Write it to `/tmp/lexlint_merge.py`,
+run it, delete it. **Never into the repository**, which is a working tree you
+are about to ask the developer to commit.
+
+```python
+#!/usr/bin/env python3
+"""Merge a LexLint run into lexlint.yml. Needs python3 with PyYAML."""
+import argparse, json, os, re, sys
+import yaml
+
+CARRY = ("state", "where", "note", "handled_by")
+KEYS = {
+    "lint": ("run_at", "tool", "summary", "findings", "work_items", "vanished"),
+    "findings": (
+        "id", "severity", "kind", "jurisdiction", "jurisdiction_name",
+        "summary", "detail", "why", "matched_by", "posture", "basis",
+        "citation", "url", "note_url", "status", "requires", "applies_to",
+        "effective_date", "lifecycle", "settledness", "as_of_date", "stale",
+        "confidence", "resolved_from") + CARRY,
+    "work_items": ("id", "lane", "title", "findings", "jurisdictions"),
+    "vanished": ("id", "last_seen") + CARRY,
+}
+
+def die(msg):
+    sys.stderr.write("lexlint merge: %s\n" % msg)
+    raise SystemExit(1)
+
+def scalar(v):
+    """One shape per value, so a client with no python3 can match it by hand."""
+    if v is None:
+        return "null"
+    if v is True:
+        return "true"
+    if v is False:
+        return "false"
+    if isinstance(v, int):
+        return str(v)
+    if isinstance(v, float):
+        return repr(v)
+    s = str(v)
+    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in s):
+        s = s.replace("\\", "\\\\").replace('"', '\\"')
+        s = s.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+        s = "".join(c if 0x20 <= ord(c) != 0x7F else "\\x%02X" % ord(c) for c in s)
+        return '"%s"' % s
+    return "'%s'" % s.replace("'", "''")
+
+def emit_map(d, ind, out, prefer=()):
+    for k in [k for k in prefer if k in d] + sorted(set(d) - set(prefer)):
+        v, pad = d[k], " " * ind
+        if isinstance(v, dict) and v:
+            out.append("%s%s:" % (pad, k))
+            emit_map(v, ind + 2, out, KEYS.get(k, ()))
+        elif isinstance(v, list) and v:
+            out.append("%s%s:" % (pad, k))
+            emit_seq(v, ind + 2, out, KEYS.get(k, ()))
+        elif isinstance(v, (dict, list)):
+            out.append("%s%s: %s" % (pad, k, "{}" if isinstance(v, dict) else "[]"))
+        else:
+            out.append("%s%s: %s" % (pad, k, scalar(v)))
+
+def emit_seq(items, ind, out, prefer=()):
+    pad = " " * ind
+    for it in items:
+        if isinstance(it, (dict, list)) and it:
+            sub = []
+            (emit_map if isinstance(it, dict) else emit_seq)(it, ind + 2, sub, prefer)
+            out.append(pad + "- " + sub[0][ind + 2:])
+            out.extend(sub[1:])
+        elif isinstance(it, dict):
+            out.append(pad + "- {}")
+        elif isinstance(it, list):
+            out.append(pad + "- []")
+        else:
+            out.append(pad + "- " + scalar(it))
+
+def split(text):
+    """The manifest either side of the top-level lint: block, kept verbatim."""
+    lines = text.split("\n")
+    at = next((i for i, l in enumerate(lines) if re.match(r"^lint[ \t]*:", l)), None)
+    if at is None:
+        return text, ""
+    end = next((j for j in range(at + 1, len(lines))
+                if re.match(r"""^[A-Za-z_'"]""", lines[j])), len(lines))
+    # `lint:` is the last top-level key the schema allows, so a run of blank
+    # lines and column-0 comments at the end of that span is the developer's
+    # footer rather than the block. Walk it back out, or the first merge eats
+    # a file header nobody will notice is gone.
+    while end > at + 1 and (not lines[end - 1].strip()
+                            or lines[end - 1].startswith("#")):
+        end -= 1
+    return "\n".join(lines[:at]), "\n".join(lines[end:])
+
+def load_run(paths):
+    """Union every call, INTERSECT the per-run activity: findings."""
+    calls = []
+    for p in paths:
+        try:
+            with open(p, encoding="utf-8") as fh:
+                calls.append(json.load(fh))
+        except Exception as exc:
+            die("%s is not readable JSON: %s" % (p, exc))
+    stamps = sorted({str(c.get("corpus_built_at")) for c in calls})
+    if len(stamps) > 1:
+        die("the calls report different corpus_built_at (%s): the corpus rebuilt "
+            "mid-run, so start again from the first call" % ", ".join(stamps))
+    merged, per_call = {}, []
+    for c in calls:
+        if not isinstance(c.get("findings"), list):
+            die("a run file carries no findings list; unwrap it first")
+        acts = set()
+        for f in c["findings"]:
+            fid = f.get("id") if isinstance(f, dict) else None
+            if not isinstance(fid, str) or not fid:
+                die("a finding carries no usable id: %r" % (fid,))
+            if fid.startswith("activity:"):
+                acts.add(fid)
+            merged.setdefault(fid, f)
+        per_call.append(acts)
+    keep = set.intersection(*per_call)
+    return ([f for i, f in merged.items() if not i.startswith("activity:") or i in keep],
+            sorted(set.union(*per_call) - keep), stamps[0], len(calls))
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("runs", nargs="+")
+    ap.add_argument("--manifest", required=True)
+    ap.add_argument("--previous", help="manifest to take triage from, if not --manifest")
+    ap.add_argument("--run-at", required=True)
+    ap.add_argument("--tool", required=True)
+    ap.add_argument("--summary")
+    ap.add_argument("-o", "--output", required=True)
+    ap.add_argument("--allow-empty", action="store_true")
+    a = ap.parse_args()
+
+    findings, act_gone, corpus, calls = load_run(a.runs)
+    if not findings and not a.allow_empty:
+        die("this run has no findings: refusing to overwrite a manifest with an "
+            "empty lint block (--allow-empty if that is really the run)")
+    try:
+        text = open(a.manifest, encoding="utf-8").read()
+    except OSError as exc:
+        die("cannot read %s: %s" % (a.manifest, exc))
+    doc = yaml.safe_load(text) or {}
+    if not isinstance(doc, dict) or not isinstance(doc.get("profile"), dict):
+        die("%s carries no profile block" % a.manifest)
+    prev_text = open(a.previous, encoding="utf-8").read() if a.previous else text
+    prev = (yaml.safe_load(prev_text) or {}).get("lint") or {}
+    # A hand-edited manifest can hold anything. An entry with no string id is
+    # skipped rather than crashing the merge or matching something by accident.
+    prev_f = {f["id"]: f for f in prev.get("findings") or []
+              if isinstance(f, dict) and isinstance(f.get("id"), str)}
+    prev_v = {v["id"]: v for v in prev.get("vanished") or []
+              if isinstance(v, dict) and isinstance(v.get("id"), str)}
+
+    out_f, carried, restored, first, unknown = [], 0, 0, 0, set()
+    for f in findings:
+        # The run has no opinion about the four: drop them, then take the
+        # developer's, matched on id and on nothing else. A key the schema
+        # does not name is dropped too, and named in the summary: `finding`
+        # is closed, so writing it out lands a manifest that fails the schema
+        # this bundle ships with.
+        new = {k: v for k, v in f.items()
+               if k in KEYS["findings"] and k not in CARRY}
+        unknown |= set(f) - set(KEYS["findings"])
+        was = prev_f.get(f["id"]) or prev_v.get(f["id"])
+        new.update({k: was[k] for k in CARRY if was and was.get(k) not in (None, "")})
+        new.setdefault("state", "new")
+        if not was:
+            first += 1
+        elif new["state"] == "acknowledged" or any(new.get(k) for k in CARRY[1:]):
+            carried += f["id"] in prev_f
+            restored += f["id"] not in prev_f
+        out_f.append(new)
+
+    live = {f["id"] for f in out_f}
+    vanished, topics, forgotten = [], 0, 0
+    for pid, pf in prev_f.items():
+        if pid in live:
+            continue
+        if pid.startswith("topic:"):
+            topics += 1                       # dropped, never moved to vanished
+        elif pf.get("state") != "acknowledged":
+            forgotten += 1
+        else:
+            e = {"id": pid, "last_seen": prev.get("run_at")}
+            e.update({k: pf[k] for k in CARRY if pf.get(k) not in (None, "")})
+            vanished.append(e)
+    added = {e["id"] for e in vanished}
+    for vid, ve in prev_v.items():
+        if vid not in live and vid not in added and not vid.startswith("topic:"):
+            vanished.append(dict(ve))
+    vanished.sort(key=lambda e: e["id"])
+
+    lint = {"run_at": a.run_at, "tool": a.tool}
+    if a.summary:
+        lint["summary"] = a.summary
+    lint["findings"] = out_f
+    if prev.get("work_items") is not None:
+        lint["work_items"] = prev["work_items"]
+    if vanished:
+        lint["vanished"] = vanished
+
+    body = []
+    emit_map({"lint": lint}, 0, body, ("lint",))
+    head, tail = split(text)
+    head = head.rstrip("\n")
+    doc_out = (head + "\n\n" if head else "") + "\n".join(body) + "\n"
+    if tail.strip():
+        doc_out += "\n" + tail.strip("\n") + "\n"
+    with open(a.output + ".lexlint-tmp", "w", encoding="utf-8") as fh:
+        fh.write(doc_out)
+    os.replace(a.output + ".lexlint-tmp", a.output)
+
+    cited = {(f.get("jurisdiction"), f.get("citation")) for f in out_f if f.get("citation")}
+    mirrors = 0
+    for f in out_f:
+        rf = f.get("resolved_from")
+        parents = [rf] if isinstance(rf, str) else (rf or [])
+        mirrors += bool(f.get("citation")) and any((p, f["citation"]) in cited for p in parents)
+    seen = {f.get("jurisdiction") for f in out_f}
+    json.dump({
+        "calls": calls, "corpus_built_at": corpus, "findings": len(out_f),
+        "distinct_instruments": len(out_f) - mirrors, "mirrors": mirrors,
+        "triage_carried": carried, "triage_restored": restored,
+        "first_seen": first, "vanished_added": len(added),
+        "vanished_total": len(vanished), "topic_notices_dropped": topics,
+        "unacknowledged_gone": forgotten,
+        "finding_fields_this_bundle_does_not_know": sorted(unknown),
+        "activities_unlinted": sorted(i for i in live if i.startswith("activity:")),
+        "activity_findings_intersected_away": act_gone,
+        "work_items": len(lint.get("work_items") or []),
+        "jurisdictions_missing": [j for j in doc["profile"].get("jurisdictions") or []
+                                  if j not in seen],
+    }, sys.stdout, indent=2, sort_keys=True)
+    sys.stdout.write("\n")
+
+main()
+```
+
+Run it against the manifest in place, then remove the script:
+
+```bash
+python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
+    --run-at 2026-09-10 --tool 'lexlint 1.28.0' \
+    --summary 'Six findings, five instruments, across three jurisdictions.'
+rm /tmp/lexlint_merge.py
+```
+
+**One file per `run_lint` call, and hand it every one of them.** A split run
+(step 3) is several calls, and the intersection rule that makes it safe cannot
+be applied to a union that has already happened: pass `lint-1.json
+lint-2.json lint-3.json` and let the script intersect. Handing it a
+pre-unioned file is not a smaller version of the same thing, it is the run
+with a coverage warning in it that the declaration as a whole does not have.
+
+Four flags carry the run's own facts, because a script must not read them off
+a clock or invent them: `--run-at` is today's date, `--tool` is your own
+`lexlint 1.28.0`, and `--summary` is the one sentence you author.
+`--previous <path>` takes the triage from somewhere other than the manifest,
+which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
+
+**It stops rather than guesses, in three places**, each of them a way the
+merge could otherwise delete triage without saying so:
+
+- The calls disagree about `corpus_built_at`. That is the rebuild straddle
+  from step 3, and the answer is to run again, not to merge.
+- The run has no findings at all. A manifest holding acknowledgments is not
+  overwritten with an empty block on a response that may simply have failed.
+  `--allow-empty` says you looked and the run is genuinely empty.
+- The manifest has no `profile`, so it is not a manifest.
+
+**Read the JSON summary it prints, and put its numbers in the report.** They
+are the ones step 7 asks for and the ones that make a mishandled merge visible
+the same day: `findings` and `distinct_instruments` with `mirrors` between
+them, `triage_carried` and `triage_restored`, `vanished_added` and
+`vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
+for a split run, and `jurisdictions_missing`, which answers step 3's closing
+question about a declared slug that never came back. A `triage_carried` of 0
+against a manifest that had acknowledgments is the failure this whole section
+is written against, and it is a number rather than a silence.
+
+`finding_fields_this_bundle_does_not_know` is the one to read even when it is
+the only thing that changed. A name in it means the corpus is ahead of your
+installed schema, which is the ordinary shape of an additive change and not a
+fault: say which fields were left out and that an update picks them up. It is
+also the most direct evidence there is that an update is worth taking, so
+pair it with the newer-version notice if you saw one.
+
+**Without `python3` and PyYAML, write the block yourself**, to the same rules,
+which the script only mechanises. They fix the shape completely, and following
+them gets you the same bytes:
+
+- Two-space indent, block style throughout, one item per line, no wrapping and
+  no flow style. A list item's first key sits on its `-`.
+- **Every string value is single-quoted**, with an interior `'` doubled. Yes,
+  including `state: 'new'`. Uniform quoting is what stops YAML from reading
+  the Norway slug `no` as boolean false, and it means no value ever needs the
+  judgment call.
+- A string containing a newline or a control character is double-quoted on one
+  line instead, with `\n`, `\r`, `\t` and `\xNN` escapes, because a
+  single-quoted scalar folds newlines into spaces and would lose them.
+- `null`, `true`, `false` and numbers are bare. An empty list is `[]` and an
+  empty mapping is `{}`.
+- Keys go in the order `lexlint.schema.json` declares them, for the four
+  mappings it names: the `lint:` block, a finding, a work item and a vanished
+  entry. Every other mapping, a finding's own `matched_by` or `posture`
+  included, is sorted, and a key the schema does not name goes after the ones
+  it does.
+- **On a finding, a key the schema does not name is left out**, and named in
+  the report instead. `finding` is `additionalProperties: false`, so writing
+  one through lands a manifest that fails the schema this bundle ships with,
+  on the lint's own output, where the developer cannot fix it. Your schema is
+  frozen at install and the corpus is not, so this is the ordinary way a
+  newer field arrives: say which fields you left out, say that upgrading
+  picks them up on the next run, and do not invent a place to keep them.
+- `lint.vanished` is sorted by `id`. Findings stay in the order the run
+  returned them.
+
+**And leave everything outside the `lint:` block exactly as you found it**,
+byte for byte, comments included. `version`, `app` and `profile` are the
+developer's declaration, and a footer under the `lint:` block is theirs too:
+`lint:` is the last top-level key the schema allows, so anything trailing it
+is a comment somebody wrote, never leftover output. The script splices for
+that reason rather than reformatting.
+
+**Inside the block, a comment does not survive**, at any indent, because the
+block is regenerated from the run every time rather than edited in place.
+That is equally true of writing it by hand and is not new here, but it is
+worth saying once: a note that has to last belongs above `lint:`, or in
+`note` on the finding it is about, which is a field and does survive.
+
 
 **Then commit the manifest.** Everything above rests on it: the committed file
 is what the next run diffs against, what carries this triage into the next
@@ -1210,7 +1580,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.27.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.28.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1336,7 +1706,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.27.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.28.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, verbatim.
