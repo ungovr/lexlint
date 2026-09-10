@@ -74,9 +74,34 @@ LexLint will upload exactly this:
 Then stop. Only on an explicit yes do you call the tool. If they say no, say
 that nothing was sent, and stop.
 
-## 4. Upload
+## 4. Upload, from disk
 
-Call `upload_lint_run(payload)`. On success, report the returned `run_url`
+A real payload is around 100 KB of legal text, and passing it as a tool
+argument means reproducing every byte of it in your own output, where the
+server's hash check turns the smallest slip into a refused upload. Send the
+file instead. Write the JSON-RPC request out with the payload nested inside
+it, `{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name":
+"upload_lint_run", "arguments": {"payload": <the object>}}}`, then post it:
+
+```bash
+curl -sS https://mcp.lexlint.org/mcp \
+  -H 'Content-Type: application/json' \
+  -H "X-API-Key: $UNGOVR_API_KEY" \
+  --data-binary @upload-request.json
+```
+
+No `initialize` first and no session to carry: the server is stateless and
+answers a plain JSON POST with plain JSON. Delete the request file afterwards,
+because it holds the whole record.
+
+**`curl` works and Python's `urllib` does not**: the same request from
+`urllib.request` returns `403` with Cloudflare error `1010`, "browser signature
+banned". That is our edge, not your machine. **Never forge a `User-Agent` to
+get past a block** anywhere, ours included: it circumvents an access control
+the operator chose. If no ordinary HTTP client is available, call
+`upload_lint_run(payload)` as a tool and accept the relay.
+
+On success, report the returned `run_url`
 and say the run is stored. If `duplicate` came back true, say the run was
 already stored under that URL rather than uploaded again.
 

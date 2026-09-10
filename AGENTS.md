@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.24.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.25.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.24.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.25.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.24.0`.** State it, do not go looking
+**That version string is yours and it is `1.25.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.24.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.25.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -525,7 +525,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.24.0"
+  client_version="1.25.0"
 )
 ```
 
@@ -533,6 +533,73 @@ The same declaration, from the profile you just had blessed, plus your own
 `client_version`. The version is not part of the profile and never goes into
 `lexlint.yml`: it describes the plugin making the call, not the app being
 linted.
+
+**The response can be larger than your client will hand you.** A
+three-jurisdiction declaration returning 57 findings came back at 147 KB,
+roughly 2.5 KB a finding, and it went past the tool-result limit of the
+harness that asked for it: the call succeeded, the server sent all of it, and
+none of it reached the model. Nothing has gone wrong when this happens, and
+the declarations that reach it are not unusual ones. Expect it somewhere above
+forty findings, and remember that a parent-resolved child inflates that count
+without adding any law (step 4).
+
+**A truncated tool result is not the run.** Reporting the findings from the top
+of a cut response as though they were the whole lint is the failure this
+paragraph exists to prevent, and it is invisible in the report unless you put
+it there. Take whichever of these two routes your client leaves open, and say
+in the report which one you took:
+
+1. **Read the full response from wherever your client put it.** Some clients
+   write an oversized tool result to a file and name the path.
+2. **Make the same call over plain HTTPS and write the body to disk
+   yourself.** These tools are JSON-RPC over HTTPS, so an ordinary HTTP client
+   can make any call they make. The recipe, the headers, and the one common
+   client that does not work are in "Uploading a run" below. This spends the
+   upstream requests a second time, which is the real price of the route, so
+   say so on the quota line.
+
+**Unwrap the file before reading anything out of it, because the two routes
+hand you different shapes.** A client's tool-result file usually holds the lint
+itself. A file written by an HTTP client holds the JSON-RPC envelope around it,
+and the lint is a JSON *string* inside `result.content[0].text`. Normalize
+once, and work only from what comes out:
+
+```bash
+jq -e '
+  if .error then
+    "the server returned an error, not a lint: "
+      + (.error.message // "no message") | error
+  elif (.result.content[0].text? // null) != null then
+    .result.content[0].text | fromjson
+  elif has("findings") then .
+  else "this file is neither a lint nor a reply carrying one" | error
+  end' response.json > lint.json
+```
+
+**Every branch of that is load-bearing, and the two that raise an error are
+the ones worth understanding.** Skipping the unwrap fails silently: `jq
+'.findings | length'` against an un-unwrapped envelope does not error, it
+prints `0`, because an envelope genuinely has no `findings` key. And an
+envelope carrying `error` instead of `result` fails the same way for the same
+reason, which is why it is caught by name and not left to a fallback. **An
+auth failure, a spent quota or a malformed hand-built request all arrive as
+that shape**, and a fallback that treated it as an already-unwrapped lint
+would report a failed call as a clean run. A run of 57 findings reported as a
+clean lint, or a refused call reported as one, is the exact failure this
+section exists to prevent, and on the way past each looks like a command that
+worked. So `lint.json` is written only where there is a lint to write, and
+anything else stops with a reason in it.
+
+Then read `lint.json` in slices rather than whole: the count with `jq
+'.findings | length'`, the list with `jq -r '.findings[] | [.id, .severity,
+.summary] | @tsv'`, and one finding's full body only when you are about to act
+on that finding. Check the count against the coverage table `set_profile`
+returned before you report it: a count you were not expecting means something
+was truncated, or never unwrapped, or never a lint in the first place.
+
+**Never narrow the declaration to make a response fit.** A jurisdiction dropped
+to shrink a payload goes unlinted while the report says the run covered it,
+which is the trade this whole procedure is written against.
 
 ### 4. Merge the findings into the manifest
 
@@ -542,6 +609,52 @@ those are the developer's declaration, not yours. And **carry
 developer approved in the last run's triage, the run does not produce it, and a
 rewrite that drops it deletes their work silently. A work item whose findings
 have all vanished stays: deciding it is finished is the developer's call.
+
+**A missing `lint:` block is not proof there was no previous run.** A manifest
+gets rewritten between runs, by hand or by an older tool, and a rewrite that
+drops the block deletes triage the developer did rather than output the run
+produced. The manifest is committed, so the previous block is one command
+away:
+
+```
+git show HEAD:lexlint.yml
+```
+
+Recover `work_items` and the four per-finding fields from there, carry them
+forward as below, and say in the report that you did and where they came from.
+If the file is not tracked, or the last commit holds no `lint:` block either,
+say that too and start clean. An acknowledgment nobody can find is not one to
+invent.
+
+**A child jurisdiction that answered from a parent mirrors the parent's
+findings, and both sets arrive.** Declare `us/ca` and `us/ca/santa-barbara`
+and the city's findings are the state's a second time under city ids, because
+`id` is keyed on the slug that was declared while the answer came from one
+rung up. Every finding read from a parent carries `resolved_from` naming that
+parent. This is the declaration reported as it was made rather than a
+duplicate to clean up, and both entries stay in the manifest: the developer
+declared the city, and the record should say what the city returned.
+
+Three rules stop the mirror from inflating everything downstream:
+
+- **A finding carrying `resolved_from` mirrors the finding with the same
+  citation under the slug `resolved_from` names.** Match on that pair, never
+  by comparing summaries.
+- **Report distinct instruments, with the mirror count beside it**, never a
+  bare total: "57 findings, 40 distinct instruments; the 17 under
+  `us/ca/santa-barbara` are the `us/ca` ones again, which is where that city
+  answered from." A bare 57 tells the developer they face more law than they
+  do.
+- **One obligation, one work item.** A mirror and its parent share a
+  `handled_by`. Two rows for one duty quietly rebuilds the per-jurisdiction
+  list step 5 exists to collapse.
+
+**A mirror is not interchangeable with its parent, though**, and this is the
+case to expect: triage is carried per finding id and the ids differ, so a
+parent holding the last run's `state: acknowledged`, `where` and `note` has a
+mirror that is correctly `state: new` with none of them. Carry the four fields
+by id exactly as below, and never copy a parent's triage onto its mirror to
+make the two look alike. The developer acknowledged one entry, not two.
 
 For every finding in the new run:
 
@@ -571,11 +684,81 @@ no `resolved`, `fixed`, `waived`, or `ignored`. An obligation applies whether or
 not you have met it, so a finding never goes away. `acknowledged` means "we have
 seen this and here is where we handled it", which is true and stays true.
 
+**Then commit the manifest.** Everything above rests on it: the committed file
+is what the next run diffs against, what carries this triage into the next
+session, and what turns a change in the law into a diff a reviewer can read. A
+manifest left sitting in the working tree is none of those, and it is the
+ordinary way a session's triage gets lost. So write it, then commit it, on its
+own, with a message that names the run:
+
+```
+lexlint: 40 instruments across 3 jurisdictions, 9 work items
+```
+
+That commit is the manifest and nothing else. The lanes' own diffs and drafts
+are separate commits in step 6, because a reviewer asking what changed in the
+law should not be reading a feature at the same time.
+
+**Where that commit goes next is the repository's business, not LexLint's.**
+Do not push it, do not open a pull request, and do not merge anything: branch
+rules, review gates and release process belong to whoever owns the repo, and a
+lint that pushes to satisfy its own design is doing something nobody asked it
+for. If the repository's contribution rules mean you cannot commit at all,
+follow them, leave the file written, and say in the report that the manifest is
+uncommitted and why. An uncommitted manifest that the report names is a
+result; one nobody mentions is how the next run starts from nothing.
+
 ### 5. Triage: turn findings into a short plan
 
-Findings arrive per jurisdiction, per instrument. Eight jurisdictions produce a
-list nobody reads. Collapse it into **work items**: one per thing to actually
-do, each carrying the findings it answers and the jurisdictions it spans.
+**First, separate what binds this app from what does not.** One field on the
+finding answers most of it, and reading the statute yourself answers none of
+it.
+
+**`applies_to` says whom the instrument binds**, as the corpus records it, and
+it takes three values: `government`, `private`, `both`. A `government` finding
+does not bind a private app. Read it that way, and read it that way every run:
+the LexLint portal already renders such a finding as "applies to government
+bodies, not this app", so a run that presents it as a live duty disagrees with
+the stored copy of itself. `private` and `both` bind. **Absent is not
+`private`.** Most instruments carry no value at all, and there the field
+decides nothing and your own reading is what is left, exactly as before the
+field existed.
+
+`run_lint` reports `applies_to` and does not filter on it, deliberately.
+Deciding that a government-only duty misses this caller means knowing what
+kind of body the caller is, which the profile does not collect and no tool
+here asks for. So the field comes to you and the reading lives here, which is
+the reason it is written down: a session that does not think to look reports
+duties binding state agencies to a private studio as work to do.
+
+**A threshold in the instrument's own text is a different thing, and it is not
+`applies_to`.** A duty reaching providers of generative AI above a revenue,
+user-count or compute threshold binds on a fact about the developer that
+LexLint does not hold and never asks for. Those stay live obligations. Do not
+decide one either way on the developer's behalf: put the threshold into the
+work item's own title, in the instrument's words ("if we pass one million
+monthly users in California"), so it is answered inside the plan approval they
+are already giving rather than as a question of its own.
+
+**A finding that does not bind is not a work item, and it is not a document to
+write.** It keeps `state: new`, takes no `handled_by`, and stays in the
+manifest exactly as the run returned it, `applies_to` and all. The manifest is
+already the register of what came back and why, and a second file restating it
+is a copy that starts going stale the day it is written. Report the set as a
+counted line rather than as rows:
+
+6 findings bind government bodies rather than this app, and 5 bind providers
+of generative AI above thresholds this app is nowhere near. Both sets stay in
+`lexlint.yml` with their citations, and neither is a work item.
+
+Never drop such a finding from the report to tidy it. A duty that does not
+reach this app today reaches it the day the app changes, and the developer is
+the one who knows which change that would be.
+
+**Then collapse what is left.** Findings arrive per jurisdiction, per
+instrument. Eight jurisdictions produce a list nobody reads. Collapse them
+into **work items**: one per thing to actually do, each carrying the findings
+it answers and the jurisdictions it spans.
 
 The same mitigation usually answers several findings at once. Honoring
 machine-readable TDM reservations answers the EU DSM article and its national
@@ -753,6 +936,36 @@ certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
 warning, never a silent pass, and unlinted is not the same as clean.
 
+**Say what this run did not reach, every run, as its own section.** "Unlinted
+is not clean" is the rule above; this is the part that makes it operational,
+and it is the one thing in the report nobody can reconstruct afterwards. It is
+a fixed section, it appears whether or not the run found anything, and it is
+never empty, because its last line is always there:
+
+**What this run did not reach**
+
+- **Jurisdictions declared that LexLint holds nothing for**, by name, or that
+  there were none. This is the coverage warning above, restated where a reader
+  looking for gaps will find it.
+- **Activities this app does that were not declared**, or that you found none.
+  You read the code in step 1 to inform the questions; this is where that
+  reading earns its keep, and an activity you noticed and did not declare is a
+  gap you already know about.
+- **Topics outside the six LexLint covers.** Name the ones a reader of this
+  particular app would expect to see and LexLint does not hold. A studio that
+  records identifiable people gets no right-of-publicity law out of a lint
+  whose corpus does not cover it, and a report that does not say so reads as
+  though the question was asked and answered.
+- **The standing line.** LexLint covers AI, scraping, privacy, cybersecurity,
+  age-gating and news-aggregation law, in the jurisdictions declared, for the
+  activities declared. Everything else is unlinted, and unlinted is not clean.
+
+Name the instrument where you can ("California's right of publicity, Cal. Civ.
+Code section 3344") and say plainly that it did not come back under the
+declared activities. Then stop: do not research it, do not summarize it, and
+do not advise on it. Naming the gap is the whole job, and it is the most
+useful thing a lint can say about law it does not hold.
+
 **Then close the run.** A terminal summary is the short version of what just
 happened: it collapses findings to fit, and it is gone when the session is. A
 run that produced findings therefore ends with one offer to store it, said
@@ -866,7 +1079,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.24.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.25.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -927,6 +1140,14 @@ session, and from then on it is kept against their UnGovr account. A plain
 lint run never leaves the repository, and the offer that ends step 7 is an
 offer: nothing below sends anything without the yes it asks for.
 
+The developer can delete a run or delete a project at any time from the
+portal. Deleting a run removes it immediately and its stored payload is
+purged within 30 days; deleting a project removes it, and everything under
+it, right away. The developer can also export a project's own runs as
+JSON. A run can be shared by an unguessable, expiring link that works
+without signing in, and revoking it deletes the link immediately, not
+merely marks it inactive.
+
 ### Sending feedback
 
 `submit_feedback` sends the developer's feedback on LexLint to the people who
@@ -984,7 +1205,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.24.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.25.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, verbatim.
@@ -1065,8 +1286,63 @@ Then ask for an explicit yes. **No yes, no call.** Not because the plugin is
 installed, not because a previous session said yes, and never in a headless
 or CI session, where there is nobody to give one.
 
-**Call `upload_lint_run(payload)`.** On success, print the returned `run_url`
-and say the run is stored. If `duplicate` came back true, say the run was
+**Send the payload from disk rather than through your own output.** A real
+payload is around 100 KB of legal text, and passing it as a tool argument means
+reproducing every one of those bytes in your own output, where the server's
+hash check turns the smallest slip into a refused upload. The relay buys
+nothing: these tools are ordinary JSON-RPC over HTTPS, and the key you already
+hold authenticates a direct call. Write the request to a file, with the payload
+nested where the tool call expects it:
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+ "params": {"name": "upload_lint_run",
+            "arguments": {"payload": {"schema": "ungovr.lexlint-upload/1"}}}}
+```
+
+then post that file:
+
+```bash
+curl -sS https://mcp.lexlint.org/mcp \
+  -H 'Content-Type: application/json' \
+  -H "X-API-Key: $UNGOVR_API_KEY" \
+  --data-binary @upload-request.json
+```
+
+No `initialize` call first, no session to carry, and no `Accept:
+text/event-stream`: the server keeps no state and answers a plain JSON POST
+with plain JSON. Read `run_url` and `duplicate` out of the reply exactly as you
+would out of a tool result, then delete the request file, which holds the whole
+record. On a machine other people can read, keep the key out of the process
+list by handing curl its configuration on standard input instead of passing
+`-H`:
+
+```bash
+curl -sS --config - <<CFG
+url = "https://mcp.lexlint.org/mcp"
+header = "Content-Type: application/json"
+header = "X-API-Key: $UNGOVR_API_KEY"
+data-binary = "@upload-request.json"
+CFG
+```
+
+**`curl` works against this endpoint and Python's `urllib` does not.** The
+identical request from `urllib.request` comes back `403` with Cloudflare error
+`1010`, "browser signature banned", because the edge in front of this endpoint
+refuses that client's signature. That is a fact about our edge rather than
+about your machine, so try a second ordinary client before concluding the route
+is closed. Not doing that is what cost the first session to try this several
+steps.
+
+**A blocked client is never a reason to forge an identity.** Do not set a
+`User-Agent` to look like a browser or like some other tool, here or anywhere
+else: it circumvents an access control the operator chose, and the operator
+being us changes nothing about that. Where no ordinary HTTP client is
+available, call `upload_lint_run(payload)` as a tool and accept the relay. That
+path works, and it is not going away.
+
+**Report what came back, by whichever route sent it.** On success, print the
+returned `run_url` and say the run is stored. If `duplicate` came back true, say the run was
 already stored under that URL rather than uploaded again: the portal keys on
 the account and the payload hash together, so re-sending the same run is
 always safe and never files a second copy.

@@ -172,6 +172,13 @@ portal only when you explicitly upload it from the CLI, after your agent has
 shown you exactly what it contains and you have said yes. From there it is
 kept against your UnGovr account, never against a session or a repository.
 
+You can delete a run or delete a project at any time from the portal.
+Deleting a run removes it immediately and its stored payload is purged
+within 30 days; deleting a project removes it, and everything under it,
+right away. You can also export a project's own runs as JSON. A run can be
+shared by an unguessable, expiring link that works without signing in, and
+revoking it deletes the link immediately, not merely marks it inactive.
+
 One other thing is sent, automatically, and it is the whole of the rest of
 the list: **which plugin version you are running**. It rides the preflight
 LexLint already makes, and we store it on its own, in a place that holds
