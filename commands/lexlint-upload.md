@@ -55,6 +55,51 @@ either, and non-ASCII characters left as raw UTF-8 rather than
 backslash-escaped. The server recomputes this same digest from the `record`
 you send and refuses the upload on any mismatch, so "close" does not pass.
 
+**With `jq` and a hash tool, do it on disk and the bytes never reach you.**
+Write `record` to a file, then:
+
+```bash
+jq -cS . record.json | tr -d '\n' | sha256sum | cut -d' ' -f1
+```
+
+`-S` sorts keys at every level, `-c` gives the two tight separators, and jq
+emits raw UTF-8, so this is byte-identical to the definition above. `tr` drops
+the newline jq adds, which is not part of the digest; on macOS use `shasum -a
+256`.
+
+Numbers are the one place the two can part, so check rather than assume.
+Nothing in the upload schema declares a numeric field and a `run_lint` response
+carries none, but `app` and `profile` are copied out of the developer's
+`lexlint.yml` verbatim and are open to extra fields. So run two counts first,
+both of which should answer `0`:
+
+```bash
+jq '[.. | numbers] | length' record.json
+jq -r '.. | strings' record.json | grep -c $'\x7f'
+```
+
+The second is for DEL, U+007F, the only non-number character the two encoders
+disagree about: the definition writes it raw and jq writes `\u007f`, so the
+number count alone would pass a record that hashes two ways. Either count
+non-zero, hash with the definition above instead.
+
+The rule behind it: jq passes the literal through as written while the
+definition re-renders whatever it parsed, so they differ for any literal that
+is not already what the definition would print. `1e3` against `1E+3`,
+`0.1234567890123456789` against `0.12345678901234568`, `1.79e309` against
+`Infinity` which is not JSON, `-0` against `0`. Illustrations, not a checklist.
+
+**On mentioning a tool you do not have:** the same restraint as the skill.
+Say it once, in this session, and only if its absence actually cost something
+here (the payload went through your own output because there was no `curl`).
+Never because a tool is merely missing, never twice, never before the result,
+and not at all in a headless or CI session or on a client with no shell,
+where nobody can act on it and installing the tool would change nothing.
+
+Without those tools, use the definition above in whatever language you have.
+That works, and the only cost is that the payload passes through your own
+output.
+
 ## 3. Show the exact preview and wait
 
 Print what is about to leave the repository, in full, before calling
@@ -91,8 +136,11 @@ curl -sS https://mcp.lexlint.org/mcp \
 ```
 
 No `initialize` first and no session to carry: the server is stateless and
-answers a plain JSON POST with plain JSON. Delete the request file afterwards,
-because it holds the whole record.
+answers a plain JSON POST with plain JSON. Write both files, the request and
+the `record.json` the hash counts read, outside the repository, and delete
+both once the reply is read: each holds the complete findings and the
+developer's triage, and a file left in the tree gets committed by the next
+`git add .`
 
 **`curl` works and Python's `urllib` does not**: the same request from
 `urllib.request` returns `403` with Cloudflare error `1010`, "browser signature

@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.26.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.27.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.26.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.27.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.26.0`.** State it, do not go looking
+**That version string is yours and it is `1.27.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.26.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.27.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -279,6 +279,66 @@ running, and never offer a command from another entry.
   There is no installed client to update: the tools are served remotely and
   are always current. What goes stale is this procedure itself. Re-read it
   from the current bundle at https://github.com/ungovr/lexlint
+
+## Three tools that make this cheaper, and none of them required
+
+Everything below works with no shell at all. Three ordinary tools make it
+cheaper, and it is worth knowing which you have before you need them:
+
+| Tool | What it saves | Where |
+|---|---|---|
+| `jq` | keeps a `run_lint` response out of your context entirely | step 3, and the hash below |
+| `curl` | keeps the upload payload out of your own output | "Uploading a run" |
+| `sha256sum` | computes `payload_hash` without the bytes reaching you | "Uploading a run" |
+
+**Check once, lazily, and remember the answer.** The first time you want one of
+them, ask for all three in a single command rather than probing per call:
+
+```bash
+command -v jq curl sha256sum shasum
+```
+
+**`shasum` is in that list on purpose**: macOS ships it and does not ship
+`sha256sum`, so probing only the GNU name reports the hash tool missing on a
+Mac that has one. Either name counts as present, and where you use it, it is
+`shasum -a 256`. **If the command itself cannot run, you have no shell**, which
+is a different situation from a missing tool and is answered in step 3 by a
+route that needs neither.
+
+**When one is missing, the flows still work.** Every place these appear names
+the route to take without them, and none of those routes is a degraded lint:
+they cost more tokens or more upstream requests, never accuracy. Take the route
+you have and say which one you took.
+
+### Say so once, and only when it actually cost something
+
+A developer who would never notice the difference should never be told about
+it. So **do not report a missing tool because it is missing.** Report it in the
+run where its absence had a measurable cost, with the number from that run, and
+then not again:
+
+- The response went past the tool-result limit and you had no `jq`, so you
+  split the declaration across calls and spent three upstream requests per
+  call.
+- An upload happened and you had no `curl`, so the payload went through your
+  own output to reach the tool.
+
+One line, in the report, phrased as the fact it is:
+
+    This run's response was 147 KB and had to come back through my own
+    context. `jq` would have kept it out of it. Not required, and nothing
+    here failed.
+
+**Once per session, never repeated**, on the same reasoning as the
+newer-version notice: it is a footnote to their lint, not the reason they came.
+Never make it a recommendation to act on before the findings, never list tools
+they already have, and never say a run was degraded, because it was not.
+
+**Two cases get no line at all.** A headless or CI session, where nobody is
+there to install anything. And a client with no shell, where installing `jq`
+changes nothing, because an agent that cannot run a command cannot run that
+one either: telling someone to install a tool their client cannot invoke is
+noise wearing the clothes of advice.
 
 ## The loop
 
@@ -525,7 +585,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.26.0"
+  client_version="1.27.0"
 )
 ```
 
@@ -1150,7 +1210,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.26.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.27.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1276,7 +1336,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.26.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.27.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, verbatim.
@@ -1327,6 +1387,72 @@ That is the reference for any language, not only Python: reproduce the three
 properties above exactly, not "compact JSON" in general, because a library's
 own default separators or its own escaping of non-ASCII characters will not
 match the server's and the upload will 400.
+
+**With `jq` and a hash tool you never need the bytes at all.** Write `record`
+to a file and canonicalize and hash it on disk. This is byte-identical to the
+reference above, because `-S` sorts keys at every level, `-c` gives exactly the
+two tight separators, and jq emits raw UTF-8 rather than escaping it:
+
+```bash
+jq -cS . record.json | tr -d '\n' | sha256sum | cut -d' ' -f1
+```
+
+`tr` removes the newline jq adds, which is not part of the digest. On macOS use
+`shasum -a 256` in place of `sha256sum`. Together with posting the file
+directly, this means the payload is built, hashed and sent without one byte of
+it passing through you, so a 100 KB record costs what a small one does.
+
+**Numbers are the one place the two can part, so check for them rather than
+assuming.** No part of a record is *supposed* to hold one: nothing in the
+upload schema declares a numeric field, and a `run_lint` response carries no
+numbers at any path. But `app`, `profile`, `lint` and each finding are all
+deliberately open to fields a newer client might add, and `app` and `profile`
+are copied out of the developer's own `lexlint.yml` verbatim, so "supposed to"
+is not the same as "cannot". Two commands settle it, on the same file you are about to hash. Both should
+answer `0`:
+
+```bash
+jq '[.. | numbers] | length' record.json
+jq -r '.. | strings' record.json | grep -c $'\x7f'
+```
+
+The first counts numbers. **The second is for one character, and it is the
+only non-number case where the two encoders part: DEL, U+007F.** The reference
+writes it as a raw byte and jq writes the six-character escape `\u007f`, so a
+record carrying one hashes two different ways while the number count still
+answers zero. It is checked at the value level rather than by grepping the
+file, because the character can arrive either as a raw byte or as a `\u007f`
+escape in the manifest and only the parsed value shows both. Every other
+control character, every C1 byte, U+2028 and U+FEFF all agree.
+
+**Both zero, and the pipeline is exact.** Either one non-zero, and something
+arrived from the manifest rather than from LexLint: look at it, and hash the
+record with the reference implementation instead of the pipeline, saying in
+the report that you did.
+
+The reason to know the rule anyway is that it is not a short list of
+exceptions you can check off. jq passes the number literal through as you
+wrote it; the reference re-renders whatever it parsed. So they differ for any
+literal that is not already exactly what the reference would print, and that
+is more shapes than it sounds:
+
+- `1e3` and `1E3` both become `1000.0` through the reference, and `1E+3` to jq.
+- `0.1234567890123456789` keeps its digits in jq and rounds to
+  `0.12345678901234568` through the reference, which holds it as a double.
+- `1.7976931348623157e309` becomes `Infinity` through the reference, which is
+  not JSON at all.
+- `-0` becomes `0` through the reference, which reads it as an integer and
+  drops the sign, while jq keeps `-0`.
+
+Those are illustrations, not a checklist: treat any number you type as
+suspect. If a record ever genuinely needs one, compute the digest with the
+reference implementation rather than the pipeline, and note in the report that
+you did.
+
+Without both tools, use the reference implementation in whatever language you
+have, and if that means the payload passes through your own output, that is the
+cost rather than a fault: say so once at the end, as "Three tools that make
+this cheaper" describes, and upload normally.
 
 **Show the consent preview, then wait.** Before calling the tool, print
 exactly what is about to leave the repository:
@@ -1383,8 +1509,17 @@ curl -sS https://mcp.lexlint.org/mcp \
 No `initialize` call first, no session to carry, and no `Accept:
 text/event-stream`: the server keeps no state and answers a plain JSON POST
 with plain JSON. Read `run_url` and `duplicate` out of the reply exactly as you
-would out of a tool result, then delete the request file, which holds the whole
-record. On a machine other people can read, keep the key out of the process
+would out of a tool result.
+
+**Then delete both files, and write them outside the repository in the first
+place.** There are two: the request, and the `record.json` the hash pipeline
+above reads. Each holds the complete findings and the developer's own triage,
+and a file left in the working tree is a file that gets committed by the next
+`git add .` This procedure says elsewhere that nothing about an upload is
+recorded in the repo, and a stray `record.json` in the project root is exactly
+that record. Put both in a temporary directory, delete both when the reply is
+read, and if a write outside the repository is not possible, delete them
+immediately and say in the report that they existed. On a machine other people can read, keep the key out of the process
 list by handing curl its configuration on standard input instead of passing
 `-H`:
 
