@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.25.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.26.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.25.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.26.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.25.0`.** State it, do not go looking
+**That version string is yours and it is `1.26.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -76,7 +76,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.25.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.26.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -525,7 +525,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.25.0"
+  client_version="1.26.0"
 )
 ```
 
@@ -546,17 +546,78 @@ without adding any law (step 4).
 **A truncated tool result is not the run.** Reporting the findings from the top
 of a cut response as though they were the whole lint is the failure this
 paragraph exists to prevent, and it is invisible in the report unless you put
-it there. Take whichever of these two routes your client leaves open, and say
-in the report which one you took:
+it there.
+
+There are three routes to the whole response, and **they do not need the same
+things from you.** The first two need a shell, and one of them needs `jq`
+specifically; the third needs nothing you do not already have. **Say which of
+these you can actually do before picking one**, and say in the report which
+one you took:
 
 1. **Read the full response from wherever your client put it.** Some clients
-   write an oversized tool result to a file and name the path.
+   write an oversized tool result to a file and name the path. Needs a shell,
+   and the slicing below needs `jq`.
 2. **Make the same call over plain HTTPS and write the body to disk
    yourself.** These tools are JSON-RPC over HTTPS, so an ordinary HTTP client
    can make any call they make. The recipe, the headers, and the one common
-   client that does not work are in "Uploading a run" below. This spends the
-   upstream requests a second time, which is the real price of the route, so
-   say so on the quota line.
+   client that does not work are in "Uploading a run" below. Needs a shell and
+   an HTTP client. This also spends the upstream requests a second time, which
+   is the real price of the route, so say so on the quota line.
+3. **Split the declaration across several `run_lint` calls and union the
+   results.** Needs no shell and no tools beyond the ones already in front of
+   you, so this is the route when you cannot run a command at all.
+
+**Route 3, in full, because it is the one with no fallback behind it.**
+Nearly every finding is per jurisdiction and per instrument, and those do not
+depend on what was declared beside them: a slug returns the same findings
+called alone as it does called with five others, with the same ids. So call
+`run_lint` with one jurisdiction, or a few, until every declared slug has been
+covered exactly once, and treat the union as the run.
+
+**One finding is not per jurisdiction, and it is the reason this route needs a
+rule rather than just an instruction.** A finding whose `id` begins
+`activity:` says the corpus tags no instrument anywhere for a declared
+activity, so that activity is unlinted rather than clean. It carries
+`jurisdiction: null` because it is about the run, not about a place, and the
+run that answers it is the call: `run_lint` reports it when nothing in **that
+call's** jurisdictions carried the tag. Split the calls and each one answers a
+smaller question than you asked.
+
+So **`activity:` findings are intersected across the calls, while everything
+else is unioned.** An activity is genuinely unlinted only when **every** call
+reported it; a single call omitting it means some jurisdiction did carry the
+tag, and the warning is wrong for the declaration as a whole. Getting this
+backwards produces a coverage warning about law the corpus actually holds,
+which is the one kind of false alarm that teaches a developer to skim the
+coverage section.
+
+Eight activities can raise it, because the corpus maps them on the flag axis
+alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
+`ships_mobile_app`, `operates_app_store`, `publishes_adult_content`,
+`operates_social_platform` and `aggregates_content`. Those are ordinary
+declarations rather than exotic ones, so expect the case rather than treating
+it as a corner. Say in the report that the run was split and that these were
+intersected, so a reader can tell this run from a single-call one.
+
+**This is not narrowing the declaration**, which the paragraph below forbids.
+Every declared slug is still linted; only the calls are divided. The two look
+alike and are told apart by one question, asked at the end: **is any declared
+jurisdiction missing from the union?** If one is, that is the forbidden thing,
+whatever the intention was.
+
+Two costs come with it, and one rule that is not optional:
+
+- **Requests.** `run_lint` spends three upstream requests per call however many
+  jurisdictions the call carries, so four calls cost twelve rather than three.
+  Count that against the quota line before starting, exactly as with resolving
+  domains.
+- **`corpus_built_at` has to be the same on every call.** If it moves between
+  them, the corpus was rebuilt underneath you and the union is two runs wearing
+  one date, which this procedure forbids everywhere else it can happen (see
+  "Never pair one run's findings with another run's envelope"). Start again from
+  the first call. Expect this rather than treating it as bad luck: the corpus
+  rebuilds daily, and a split run is the one shape that can straddle the
+  rebuild.
 
 **Unwrap the file before reading anything out of it, because the two routes
 hand you different shapes.** A client's tool-result file usually holds the lint
@@ -625,6 +686,12 @@ forward as below, and say in the report that you did and where they came from.
 If the file is not tracked, or the last commit holds no `lint:` block either,
 say that too and start clean. An acknowledgment nobody can find is not one to
 invent.
+
+**That command assumes a git repository and a way to run it, and neither is
+guaranteed.** Where you cannot run it, say the previous block could not be
+recovered and treat the triage as unknown rather than absent. The two are not
+the same thing to report: absent invites starting clean, unknown says a
+developer may have work here that this run cannot see.
 
 **A child jurisdiction that answered from a parent mirrors the parent's
 findings, and both sets arrive.** Declare `us/ca` and `us/ca/santa-barbara`
@@ -705,7 +772,11 @@ rules, review gates and release process belong to whoever owns the repo, and a
 lint that pushes to satisfy its own design is doing something nobody asked it
 for. If the repository's contribution rules mean you cannot commit at all,
 follow them, leave the file written, and say in the report that the manifest is
-uncommitted and why. An uncommitted manifest that the report names is a
+uncommitted and why. The same goes for having no way to run git at all. Be
+accurate about what that costs, because it is less than it sounds: the next run
+reads `lexlint.yml` off disk whether or not it was committed, so the triage is
+not lost. What is lost is the recovery route above, and the diff a reviewer
+reads when the law changes. An uncommitted manifest that the report names is a
 result; one nobody mentions is how the next run starts from nothing.
 
 ### 5. Triage: turn findings into a short plan
@@ -1079,7 +1150,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.25.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.26.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1205,7 +1276,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.25.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.26.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, verbatim.
