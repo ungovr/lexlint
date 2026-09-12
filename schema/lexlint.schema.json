@@ -56,7 +56,7 @@
                      "automated_outreach", "high_risk_decisions",
                      "publishes_adult_content", "operates_social_platform",
                      "serves_minors", "operates_app_store", "ships_mobile_app",
-                     "aggregates_content"]
+                     "aggregates_content", "distributes_software_product"]
           }
         },
         "jurisdictions": {
@@ -180,6 +180,19 @@
             "commencement_established": { "type": "boolean" }
           },
           "required": ["band", "label", "tone", "detail", "commencement_established"],
+          "additionalProperties": false
+        },
+        "certainty": {
+          "type": "object",
+          "description": "Which resultset this instrument belongs in, and for forward-looking law how much of it is pinned to primary text rather than predicted. Derived at the call, not stored. A second axis over `kind`, never a replacement: an enjoined instrument stays kind \"pending\" and is resultset \"present\", because a court pausing enforcement is a present fact about a live risk. NOTHING IN THE \"forward\" RESULTSET MAY GATE A BUILD.",
+          "properties": {
+            "resultset": { "type": ["string", "null"], "enum": ["present", "forward", "historical", null], "description": "present: law as it stands. forward: law that may be coming, informational and never gating. historical: spent, and neither. null: LexLint has no rule for this status, which is a coverage gap and never a default placement." },
+            "rung": { "type": ["integer", "null"], "enum": [1, 2, 3, 4, 5, null], "description": "Orders the forward resultset by how much is PINNED, never by a probability; 1 is the most certain. null means the corpus holds no stage to rank by, which is NOT the lowest rung." },
+            "label": { "type": ["string", "null"], "description": "The rung's state in words, or null where there is no rung." },
+            "prediction": { "type": ["string", "null"], "description": "How much of this rung is predicted rather than pinned. Rung 1 reports \"none\"." },
+            "detail": { "type": ["string", "null"], "description": "Why this placement was reached, in words." }
+          },
+          "required": ["resultset", "rung", "label", "prediction", "detail"],
           "additionalProperties": false
         },
         "settledness": {

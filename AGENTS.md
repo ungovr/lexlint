@@ -38,17 +38,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.28.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.30.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.28.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.30.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.28.0`.** State it, do not go looking
+**That version string is yours and it is `1.30.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -59,6 +59,49 @@ only compare a version it was sent.
 
 If `key_present` is false, stop and run the setup flow above. Do not ask what
 the app does first: they cannot act on the answer.
+
+### When you cannot reach the server
+
+**Every LexLint finding comes from a payload the server sent you in this
+session. When no payload arrived, there is no lint, and there is nothing to
+report.**
+
+**The line is whether the server answered.** A connection refused, a host that
+does not resolve, a request that times out, a sandbox that denies egress, a
+tool call that comes back with no response at all, a 5xx: nothing answered, so
+stop at that point. Say which call failed and quote the error you actually got,
+and **report no findings at all**. No table, no severities, no instrument
+names, no coverage section, no list of law that is "likely" to apply.
+
+**A refusal is an answer, and it is not this case.** A slug `set_profile` sends
+back as malformed, a key the server rejects, a spent quota, a declaration
+returned with the allowed values: the server read what you sent and told you
+what is wrong with it. Every one of those is recoverable, each has its own
+instruction elsewhere in this document, and stopping on one turns a typo into a
+dead end.
+
+Name the declaration you were about to send, so the developer can re-run once
+the network is there. **If the preflight is what failed, you do not have one
+yet: say that instead of guessing one to fill the line.** `check_access` runs
+before you have read the repository, and a declaration invented to round out a
+failure report is the same defect as an invented finding, one field over.
+
+**Do not fill the gap.** Not from your own memory of what these laws say, not
+from training data, not from a web search, not from any other copy of a corpus
+you find on disk. Asked for a lint it cannot run, a model will reach for
+whichever route still produces an answer, and every one of those routes returns
+something that looks exactly like a lint result and is not one: plausible
+instrument names, plausible severities, nothing behind any of them. A developer
+reading the report cannot tell the two apart, which is why this is a rule and
+not a matter of judgment.
+
+This is the sibling of "a truncated tool result is not the run" in step 3 of
+the loop. **A call that did not return is not the run either**, and neither one
+is visible in the report unless you put it there.
+
+Name what it looks like from where you are sitting, because the developer can
+act on the difference: a refusal that names LexLint is ours to fix, and a
+network your client is not allowed to use is theirs. Then stop.
 
 ### When the response says a newer LexLint exists
 
@@ -76,7 +119,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.28.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.30.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -414,15 +457,22 @@ their answers down.
 `generates_content`, `deploys_chatbot`, `processes_voice`,
 `processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
-`operates_app_store`, `ships_mobile_app`, `aggregates_content`.
+`operates_app_store`, `ships_mobile_app`, `aggregates_content`,
+`distributes_software_product`.
 
-Three of these are wider than they sound. `serves_minors` is not only for
+Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
 to be accessed** by them, which catches general-purpose apps that were never
 aimed at minors at all. `ships_mobile_app` is for distributing an app through
 somebody else's store, which is almost every mobile developer, while
 `operates_app_store` is for running the store or the operating system that
 carries it. Declare the one whose duties are yours to discharge.
+`distributes_software_product` is for making software available to others in
+any form at all: a desktop application, a library, a package, a CLI, firmware,
+or a server somebody else self-hosts. Product-security law binds the
+manufacturer of a product with digital elements, which is close to every
+shipped piece of software, so declare it alongside `ships_mobile_app` rather
+than instead of it where you ship both.
 
 Read the code to inform your questions, never to answer them on the
 developer's behalf. Declaring `trains_models` because you saw a model import,
@@ -527,7 +577,11 @@ never read as a whole-repo one:
 
 Scope: `crawl4ai/`, minus `crawl4ai/js_snippet/`. 118 files.
 
-Carry it into the uploaded record too, under `app.scope`, for the same reason.
+Carry it into the uploaded record too, under `app.scope`, for the same reason,
+**whichever place it came from**. The portal renders that field as the run's
+coverage claim and says `whole repository` when it is absent, so a scoped run
+uploaded without it is not an omission, it is a false claim about what was
+read.
 
 The developer may also narrow one run without editing the manifest, by naming
 a path when they ask for the lint. It is the same narrowing under the same
@@ -594,7 +648,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.28.0"
+  client_version="1.30.0"
 )
 ```
 
@@ -660,10 +714,11 @@ backwards produces a coverage warning about law the corpus actually holds,
 which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
-Eight activities can raise it, because the corpus maps them on the flag axis
+Nine activities can raise it, because the corpus maps them on the flag axis
 alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
 `ships_mobile_app`, `operates_app_store`, `publishes_adult_content`,
-`operates_social_platform` and `aggregates_content`. Those are ordinary
+`operates_social_platform`, `aggregates_content` and
+`distributes_software_product`. Those are ordinary
 declarations rather than exotic ones, so expect the case rather than treating
 it as a corner. Say in the report that the run was split and that these were
 intersected, so a reader can tell this run from a single-call one.
@@ -1092,7 +1147,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.28.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.30.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1106,7 +1161,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.28.0`, and `--summary` is the one sentence you author.
+`lexlint 1.30.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1432,6 +1487,11 @@ stays readable in six months.
 
 ### 7. Report only what the lint can claim
 
+**A report requires a run.** Everything below is about findings the server
+actually sent. If the calls in step 3 never returned a payload, there is no
+report to write: see "When you cannot reach the server" in Setup, which is
+where that case is answered in full.
+
 The passing state is **"no basic issues found"**. Never restate it as clearance,
 certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
@@ -1580,7 +1640,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.28.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.30.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1706,10 +1766,16 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.28.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.30.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
-- `record.app`: the manifest's `app` block, verbatim.
+- `record.app`: the manifest's `app` block, with `scope` set to what this run
+  actually read. Verbatim is right for every other key, and wrong for this one
+  whenever the scope came from the request rather than the file: a one-off
+  scope is deliberately never written to the manifest, so copying `app`
+  wholesale uploads a run over one directory with no scope at all, and the
+  portal captions it `whole repository`. Nothing downstream catches it. When
+  the run read the whole repository, leave `scope` off.
 - `record.profile`: the manifest's `profile` block, verbatim.
 - `record.lint.findings`: **this session's `run_lint` response**, which is the
   run being uploaded. Where the manifest's merged block covers this same run,

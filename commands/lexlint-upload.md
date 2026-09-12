@@ -30,7 +30,12 @@ that may not have come yet. Upload the run and say the work items are empty.
 Assemble the `ungovr.lexlint-upload/1` object, taking each part from whatever
 owns it rather than all from one file:
 
-- `record.app` and `record.profile`: the manifest's, verbatim.
+- `record.app` and `record.profile`: the manifest's, verbatim, with one
+  exception: `app.scope` is what this run actually read. A `/lexlint <path>`
+  scope is deliberately never written to the manifest, so copying `app`
+  wholesale uploads a run over one directory carrying no scope, and the portal
+  captions it `whole repository` on the run page, in the run list and on the
+  counsel cover. Leave `scope` off only when the run read the whole repository.
 - `record.lint.findings`: this session's `run_lint` response, which is the run
   being uploaded. Where the manifest's merged block covers this same run, carry
   `state`, `where`, `note` and `handled_by` across per finding id. The set of
