@@ -132,6 +132,12 @@ asked for it).
 A key you paste into a session is recorded in that session's transcript. Treat
 it the way you would any other secret in a log.
 
+**There is a second route that needs no account at all.** Ask your session to
+call `claim_trial_key`; it mints a 30-day key good for 50 requests over its
+whole life and returns it in the result, recorded in the transcript the same
+way a pasted key is. An account key never expires and has no lifetime total,
+so pick that route if you plan to keep using LexLint past the trial.
+
 Then run `/lexlint` and read the preflight line. It reports whether the key
 reached LexLint, whether it is valid, and how much of today's allowance is
 left, which is the check the next three steps depend on.

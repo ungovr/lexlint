@@ -5,10 +5,14 @@ description: Lint this app against the AI, scraping, privacy, and cybersecurity 
 Run the LexLint loop against this repository.
 
 1. Run `check_access` first and show the result. A missing or spent key needs
-   handling before any question is worth asking. The same response says which
-   models this procedure is tested against: if your own is not one of them, show
-   `model_notice` and let the developer decide whether to continue. It is an
-   advisory, so the lint runs either way.
+   handling before any question is worth asking. When `key_present` is false,
+   read `setup.steps`: it names both routes to a key, the no-account trial
+   (`claim_trial_key`, run only after the developer picks it) and the account
+   sign-in, and offer the trial first since it needs nothing from the
+   developer but a yes. The same response says which models this procedure is
+   tested against: if your own is not one of them, show `model_notice` and let
+   the developer decide whether to continue. It is an advisory, so the lint
+   runs either way.
 2. Read `lexlint.yml` at the repo root. If no manifest exists, create one by
    asking what the app does and where it will operate, quoting every
    jurisdiction slug. Never infer the declaration from the code.

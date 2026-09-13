@@ -7,32 +7,46 @@ Get an UnGovr Open Data key into place so the LexLint tools can run.
 `$ARGUMENTS` is the key, if the developer already pasted one. Treat anything
 that is not a key as an empty argument and start at step 1.
 
-## 1. If no key was pasted, hand over the link
+## 1. If no key was pasted, offer both routes and let the developer pick
 
-Say this, with the URL on its own line so it stays clickable:
+There are two ways to a key, and neither is the fallback for the other:
 
-> LexLint runs on your own UnGovr Open Data key. Sign in here, select
-> "Create a key", copy it, and paste it back to me.
+> LexLint runs on your own UnGovr Open Data key. There are two ways to get
+> one: sign in and create an account key, which is free and never expires, or
+> take a 30-day trial with no account at all.
+>
+> For an account key, sign in here, select "Create a key", copy it, and paste
+> it back to me:
 >
 > https://ungovr.org/cli-login?client=lexlint
+>
+> For a trial key, just say so and I will mint one for you here, no sign-in
+> needed.
 
-Then stop and wait. Do not open a browser, do not run a login command, and do
-not offer to generate a key: minting happens on that page, under the account
-holder's own sign-in, and nowhere else.
+Then stop and wait for the developer's choice. Do not open a browser, do not
+run a login command, and do not offer to generate an account key yourself:
+minting one happens on that page, under the account holder's own sign-in, and
+nowhere else. If they choose the trial instead, call `claim_trial_key` only
+after they choose it: never run it because no key was found, and never run it
+twice. Say before running it that the key it returns will be recorded in this
+session's transcript, the same as a pasted key.
 
-One thing to say alongside the link, because a developer cannot work it out
-from the page alone:
+One thing to say alongside the account-key link, because a developer cannot
+work it out from the page alone:
 
 - A key pasted into a session is recorded in that session's transcript. It is
   worth saying before they paste it, not after.
 
 Creating a key no longer revokes the account's other keys, so there is nothing
 to warn about there and nothing to talk them out of: if they cannot find the key
-they had, the answer is to make another one.
+they had, the answer is to make another one. An account key has no expiry and
+no lifetime total, which the trial does not: say that if they ask which to
+pick.
 
 ## 2. Check the shape before spending a request on it
 
-A key looks like `ung_live_` followed by a long random string. If what came
+A key pasted back, or a key that arrived in `claim_trial_key`'s result, looks
+the same from here: `ung_live_` followed by a long random string. If what came
 back ends in `...`, it is a display stub from the settings list rather than a
 key: the full value appears once, in the box on the page above. Name that
 rather than sending them back to look again.
