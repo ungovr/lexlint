@@ -47,17 +47,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.31.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.32.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.31.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.32.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.31.0`.** State it, do not go looking
+**That version string is yours and it is `1.32.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -128,7 +128,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.31.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.32.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -573,7 +573,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.31.0"
+  client_version="1.32.0"
 )
 ```
 
@@ -1072,7 +1072,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.31.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.32.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1086,7 +1086,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.31.0`, and `--summary` is the one sentence you author.
+`lexlint 1.32.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1452,31 +1452,24 @@ declared activities. Then stop: do not research it, do not summarize it, and
 do not advise on it. Naming the gap is the whole job, and it is the most
 useful thing a lint can say about law it does not hold.
 
-**Then close the run.** A terminal summary is the short version of what just
-happened: it collapses findings to fit, and it is gone when the session is. A
-run that produced findings therefore ends with one offer to store it, said
-plainly and in a line, never as a pitch:
-
-> Want me to upload this run? It keeps the full findings with their citations
-> where you can read them again and compare against your next run. I will show
-> you exactly what leaves the repository first, and nothing goes without your
-> say-so.
-
-A yes goes to "Uploading a run" below, and that section is unchanged: build the
-payload, print the consent preview in full, and wait. **The offer is not the
-consent.**
-
-On a no, ask once for feedback instead, and take that second answer as final
-whatever it is:
+**Then close the run by uploading it.** A terminal summary is the short version
+of what just happened: it collapses findings to fit, and it is gone when the
+session is. A run that produced findings therefore ends with the upload, as a
+step and not as a pitch: build the payload ("Uploading a run" below), show the
+developer exactly what leaves the repository, and run `upload_lint_run`. The
+approval your client asks for before that call is the developer's yes, and
+where your client will not ask (a pre-approved shell, a skip-permissions or
+full-auto session) you ask once yourself, in one line, and wait; a declined
+approval is a no: say plainly that nothing left the repository, ask
+once for feedback instead, and take that answer as final whatever it is:
 
 > Understood, nothing leaves the repository. If you have a minute, anything you
 > would change about this run is worth more to the people who build LexLint
 > than the run itself.
 
-Then stop. One offer, one fallback, no third ask, and silence is a no. Skip the
-sequence entirely when the run found nothing, when the manifest did not end up
-written, and in any headless or CI session, where there is nobody to ask and an
-unanswered question reads as a prompt to act.
+Then stop. One upload, one fallback, no third ask. Skip the sequence entirely
+when the run found nothing, and in any headless or CI session, where there is
+nobody to approve the payload and an unanswered prompt reads as a yes.
 
 ## Cache what you fetched
 
@@ -1565,7 +1558,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.31.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.32.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1608,23 +1601,25 @@ crawler author can be told.
 Two tools write rather than read. `submit_feedback` sends the developer's own
 words about LexLint to the people who build it. `upload_lint_run` stores one
 completed run on the LexLint portal, against the account the key belongs to.
-Both follow the same consent rule: run only on an explicit yes from the
-developer, given this session, never assumed and never inferred from the
-plugin being installed or from what a previous session agreed to. Never
-run either in a headless or CI session, where there is nobody to approve
+Both are gated on the developer, this session: the upload is the closing step
+of every run that produced findings, and the approval asked for before that
+call is the yes; feedback is invited once, when that approval is declined.
+Neither runs in a headless or CI session, where there is nobody to approve
 anything.
 
-**Step 7 is the one place either tool may be raised unprompted**, and it is
-written out in full there: one offer of the upload, and one invitation to
-send feedback if that offer is declined. Everywhere else, never volunteer
-either one. Raising a tool is not running it, and step 7 changes nothing
-below this line: the payload preview and the explicit yes still stand
-between an offer and a call.
+**Step 7 is the one place either tool is raised unprompted**, and it is
+written out in full there: the upload as the run's closing step, and one
+invitation to send feedback if the upload is declined. Everywhere else, never
+volunteer either one. The payload preview still stands between building the
+upload and sending it: what leaves is shown before it goes.
 
-A run reaches the portal only on the developer's own explicit upload, this
-session, and from then on it is kept against their UnGovr account. A plain
-lint run never leaves the repository, and the offer that ends step 7 is an
-offer: nothing below sends anything without the yes it asks for.
+A run reaches the portal only at the close of the run that produced it, shown
+first, and from then on it is kept against their UnGovr account. A trial key's
+account cannot be signed in to, so its upload also returns `share_url`, a link
+that opens the run with no sign-in for 30 days; report it. Source, schema,
+data, prompts and git history never leave the repository; what goes is the
+lint's own output, the two lists the developer declared and the repository's
+name.
 
 The developer can delete a run or delete a project at any time from the
 portal. Deleting a run removes it immediately and its stored payload is
@@ -1632,7 +1627,9 @@ purged within 30 days; deleting a project removes it, and everything under
 it, right away. The developer can also export a project's own runs as
 JSON. A run can be shared by an unguessable, expiring link that works
 without signing in, and revoking it deletes the link immediately, not
-merely marks it inactive.
+merely marks it inactive. A trial key's account has no sign-in yet, so until
+it is claimed the developer writes to hello@ungovr.org quoting the share link
+and we delete the run, or the link alone, within one working day.
 
 ### Sending feedback
 
@@ -1671,16 +1668,21 @@ up.
 ### Uploading a run
 
 `upload_lint_run` stores one complete lint run on the LexLint portal, against
-the account the key belongs to, and hands back the portal URL. It is the only
-way a run ever leaves the repository: nothing else in this procedure sends
-findings, work items, or the manifest anywhere. A run is stored only on the
-developer's own explicit upload, this session, and only against their own
-UnGovr account.
+the account the key belongs to, and hands back the portal URL and, for a trial
+key, a share URL that needs no sign-in. It is the only way a run ever leaves
+the repository: nothing else in this procedure sends findings, work items, or
+the manifest anywhere. It runs at the close of the run that produced it, after
+the developer has seen the payload and approved the call, at your client's
+prompt or, where it asks nothing, at yours.
 
-**Preconditions.** Two things, and they are the two the payload is built out
-of: the `run_lint` response from a completed `/lexlint` run in this session,
-and a `lexlint.yml` on disk carrying `app` and `profile`. Missing either one,
-do not build a partial payload: say so, run `/lexlint` first, and stop.
+**Preconditions.** The `run_lint` response from a completed `/lexlint` run in
+this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
+`app` and `profile` supplies `record.app` and `record.profile` when it exists.
+On a first run with no manifest yet, `record.app` is `{"name": ...}` with the
+repository's own name (its package manifest's name, else its directory), and
+`record.profile` is the declaration the run was made with, `activities` and
+`jurisdictions` exactly as sent. Missing the `run_lint` response, do not build
+a partial payload: say so, run `/lexlint` first, and stop.
 
 **A manifest with no `lint:` block is not a missing precondition.** The run
 being uploaded is the `run_lint` response, which you have; the `lint:` block is
@@ -1691,17 +1693,19 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.31.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.32.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
-- `record.app`: the manifest's `app` block, with `scope` set to what this run
-  actually read. Verbatim is right for every other key, and wrong for this one
-  whenever the scope came from the request rather than the file: a one-off
-  scope is deliberately never written to the manifest, so copying `app`
-  wholesale uploads a run over one directory with no scope at all, and the
-  portal captions it `whole repository`. Nothing downstream catches it. When
-  the run read the whole repository, leave `scope` off.
-- `record.profile`: the manifest's `profile` block, verbatim.
+- `record.app`: the manifest's `app` block, or the first-run name above when
+  there is no manifest, with `scope` set to what this run actually read.
+  Verbatim is right for every other key, and wrong for this one whenever the
+  scope came from the request rather than the file: a one-off scope is
+  deliberately never written to the manifest, so copying `app` wholesale
+  uploads a run over one directory with no scope at all, and the portal
+  captions it `whole repository`. Nothing downstream catches it. When the run
+  read the whole repository, leave `scope` off.
+- `record.profile`: the manifest's `profile` block, verbatim, or the first-run
+  declaration above.
 - `record.lint.findings`: **this session's `run_lint` response**, which is the
   run being uploaded. Where the manifest's merged block covers this same run,
   carry `state`, `where`, `note` and `handled_by` across per finding id, the
@@ -1849,8 +1853,9 @@ payload is around 100 KB of legal text, and passing it as a tool argument means
 reproducing every one of those bytes in your own output, where the server's
 hash check turns the smallest slip into a refused upload. The relay buys
 nothing: these tools are ordinary JSON-RPC over HTTPS, and the key you already
-hold authenticates a direct call. Write the request to a file, with the payload
-nested where the tool call expects it:
+hold authenticates a direct call. The approval rule above applies to this curl
+exactly as it would to the tool call. Write the request to a file, with the
+payload nested where the tool call expects it:
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
@@ -1869,8 +1874,8 @@ curl -sS https://mcp.lexlint.org/mcp \
 
 No `initialize` call first, no session to carry, and no `Accept:
 text/event-stream`: the server keeps no state and answers a plain JSON POST
-with plain JSON. Read `run_url` and `duplicate` out of the reply exactly as you
-would out of a tool result.
+with plain JSON. Read `run_url`, `share_url` and `duplicate` out of the reply
+exactly as you would out of a tool result.
 
 **Then delete both files, and write them outside the repository in the first
 place.** There are two: the request, and the `record.json` the hash pipeline
@@ -1909,7 +1914,9 @@ available, call `upload_lint_run(payload)` as a tool and accept the relay. That
 path works, and it is not going away.
 
 **Report what came back, by whichever route sent it.** On success, print the
-returned `run_url` and say the run is stored. If `duplicate` came back true, say the run was
+returned `run_url` and say the run is stored. Print `share_url` too when it
+came back: that is a trial key's own way in, since its account has no email to
+sign in with, and the link works for 30 days. If `duplicate` came back true, say the run was
 already stored under that URL rather than uploaded again: the portal keys on
 the account and the payload hash together, so re-sending the same run is
 always safe and never files a second copy.

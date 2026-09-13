@@ -5,7 +5,7 @@ description: Send feedback on LexLint to the people who build it, from this sess
 Collect the developer's feedback on LexLint and submit it.
 
 **Run this only on the developer's explicit yes.** A lint run whose upload
-offer was declined closes by inviting feedback once, and that is the only
+approval was declined closes by inviting feedback once, and that is the only
 place it may be raised unprompted. Never volunteer it anywhere else, and never
 run it in a headless or CI session, where with nobody there to approve the
 payload there is nothing to send.
@@ -47,8 +47,9 @@ LexLint will send exactly this:
   version:  <from .claude-plugin/plugin.json>
 ```
 
-Then stop. Editing is expected, not exceptional. Only on an explicit yes do you
-call the tool. If they say no, say that nothing was sent, and stop.
+Then stop and wait for the developer's approval. Editing is expected, not
+exceptional. Only on an explicit yes do you call the tool. If they say no, say
+that nothing was sent, and stop.
 
 ## 4. Submit
 

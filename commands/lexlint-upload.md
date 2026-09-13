@@ -1,24 +1,28 @@
 ---
-description: Upload this session's completed lint run to the LexLint portal, with your explicit approval of exactly what leaves the repository
+description: Upload this session's completed lint run to the LexLint portal, after showing you exactly what leaves the repository
 ---
 
 Store the run this session already produced on the LexLint portal, and show
 you its URL once it lands.
 
-**Run this only on the developer's explicit yes.** A lint run that produced
-findings closes by offering it once, and that is the only place it may be
-raised unprompted: an offer is not a yes, and nothing is built or sent until
-they give one. Never volunteer it anywhere else, and never run it in a
-headless or CI session, where with nobody there to approve the payload there
-is nothing to upload. A `/lexlint` run never uploads on its own.
+**This is the closing step of a lint run that produced findings, and the
+approval you give to the call is the yes.** A run closes by uploading itself,
+and that is the only place it is raised unprompted: the payload is shown first,
+exactly what leaves the repository, and a declined approval means nothing was
+sent. Never volunteer it anywhere else, and never run it in a headless or CI
+session, where with nobody there to approve the payload there is nothing to
+upload.
 
 ## 1. Check the preconditions
 
-Two things, and they are the two the payload is built out of: a completed
-`/lexlint` run in this session, with the `run_lint` response it produced, and
-a `lexlint.yml` on disk carrying `app` and `profile`. If either is missing,
-say so, run `/lexlint` first, and stop here rather than building a partial
-payload.
+The `run_lint` response from a completed `/lexlint` run in this session, which
+is the run being uploaded. A `lexlint.yml` on disk carrying `app` and `profile`
+supplies `record.app` and `record.profile` when it exists. On a first run with
+no manifest yet, `record.app` is `{"name": ...}` with the repository's own name
+(its package manifest's name, else its directory), and `record.profile` is the
+declaration the run was made with, `activities` and `jurisdictions` exactly as
+sent. Missing the `run_lint` response, say so, run `/lexlint` first, and stop
+here rather than building a partial payload.
 
 A manifest with **no `lint:` block is not a missing precondition**. The run
 being uploaded is the `run_lint` response, which you have; the `lint:` block is
@@ -30,12 +34,13 @@ that may not have come yet. Upload the run and say the work items are empty.
 Assemble the `ungovr.lexlint-upload/1` object, taking each part from whatever
 owns it rather than all from one file:
 
-- `record.app` and `record.profile`: the manifest's, verbatim, with one
-  exception: `app.scope` is what this run actually read. A `/lexlint <path>`
-  scope is deliberately never written to the manifest, so copying `app`
-  wholesale uploads a run over one directory carrying no scope, and the portal
-  captions it `whole repository` on the run page, in the run list and on the
-  counsel cover. Leave `scope` off only when the run read the whole repository.
+- `record.app` and `record.profile`: the manifest's, verbatim, or the first-run
+  name and declaration above when there is no manifest, with one exception:
+  `app.scope` is what this run actually read. A `/lexlint <path>` scope is
+  deliberately never written to the manifest, so copying `app` wholesale
+  uploads a run over one directory carrying no scope, and the portal captions
+  it `whole repository` on the run page, in the run list and on the counsel
+  cover. Leave `scope` off only when the run read the whole repository.
 - `record.lint.findings`: this session's `run_lint` response, which is the run
   being uploaded. Where the manifest's merged block covers this same run, carry
   `state`, `where`, `note` and `handled_by` across per finding id. The set of
@@ -105,7 +110,7 @@ Without those tools, use the definition above in whatever language you have.
 That works, and the only cost is that the payload passes through your own
 output.
 
-## 3. Show the exact preview and wait
+## 3. Show the exact payload and wait
 
 Print what is about to leave the repository, in full, before calling
 anything:
@@ -121,10 +126,18 @@ LexLint will upload exactly this:
   payload hash:  <the sha256 hex digest just computed>
 ```
 
-Then stop. Only on an explicit yes do you call the tool. If they say no, say
-that nothing was sent, and stop.
+Then send it. If your client asks before it runs the command or the tool
+call, that prompt is the developer's yes and there is no second question to
+ask. If it will not ask (a pre-approved shell, a skip-permissions or full-auto
+session, any client that runs commands without a prompt), ask the developer
+yourself, in one line, and wait: "Send this run to the LexLint portal?" A no
+means nothing leaves the repository. Either way, the payload above is what was
+approved; do not change it after the yes.
 
 ## 4. Upload, from disk
+
+The approval rule in section 3 applies to this command exactly as it would to
+the tool call.
 
 A real payload is around 100 KB of legal text, and passing it as a tool
 argument means reproducing every byte of it in your own output, where the
@@ -155,14 +168,17 @@ the operator chose. If no ordinary HTTP client is available, call
 `upload_lint_run(payload)` as a tool and accept the relay.
 
 On success, report the returned `run_url`
-and say the run is stored. If `duplicate` came back true, say the run was
-already stored under that URL rather than uploaded again.
+and say the run is stored, and report `share_url` too when it came back: a
+trial key's account has no email to sign in with, so that link is its way back
+into the run, and it works for 30 days. If `duplicate` came back true, say the
+run was already stored under that URL rather than uploaded again.
 
 If the call fails outright, say plainly that **nothing was stored**, give the
 reason, and offer to try again. If the connection drops after the request was
 sent, the state is unknown rather than failed: say that too, and offer to
 retry rather than assuming either outcome. The upload is idempotent per
-payload hash, so a retry never creates a duplicate.
+payload hash, so a retry never creates a duplicate. For a trial key the retry
+replaces the share link, so read the newest reply's `share_url`.
 
 ## Nothing is written back to the repo
 
