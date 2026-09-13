@@ -54,17 +54,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.32.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.33.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.32.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.33.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.32.0`.** State it, do not go looking
+**That version string is yours and it is `1.33.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -135,7 +135,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.32.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.33.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -665,7 +665,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.32.0"
+  client_version="1.33.0"
 )
 ```
 
@@ -766,17 +766,23 @@ Two costs come with it, and one rule that is not optional:
   rebuilds daily, and a split run is the one shape that can straddle the
   rebuild.
 
-**Unwrap the file before reading anything out of it, because the two routes
-hand you different shapes.** A client's tool-result file usually holds the lint
+**Unwrap the file before reading anything out of it, because the routes hand
+you different shapes.** A client's tool-result file usually holds the lint
 itself. A file written by an HTTP client holds the JSON-RPC envelope around it,
-and the lint is a JSON *string* inside `result.content[0].text`. Normalize
-once, and work only from what comes out:
+and the lint sits inside that in one of two places: as `result.structuredContent`
+(always on `https://mcp.lexlint.org/rpc`, and on `/mcp` when the call carried
+the `MCP-Protocol-Version: 2025-06-18` header), or only as a JSON *string*
+inside `result.content[0].text`. On `/rpc` the text block is a one-line pointer
+and not the lint, which is why the typed copy is tried first. Normalize once,
+and work only from what comes out:
 
 ```bash
 jq -e '
   if .error then
     "the server returned an error, not a lint: "
       + (.error.message // "no message") | error
+  elif (.result.structuredContent? // null) != null then
+    .result.structuredContent
   elif (.result.content[0].text? // null) != null then
     .result.content[0].text | fromjson
   elif has("findings") then .
@@ -1164,7 +1170,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.32.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.33.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1178,7 +1184,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.32.0`, and `--summary` is the one sentence you author.
+`lexlint 1.33.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1650,7 +1656,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.32.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.33.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1785,7 +1791,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.32.0`), `payload_hash`, and `record`. Take each part from whatever
+(`1.33.0`), `payload_hash`, and `record`. Take each part from whatever
 owns it, which is not all one file:
 
 - `record.app`: the manifest's `app` block, or the first-run name above when
