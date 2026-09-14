@@ -114,11 +114,19 @@ it, `{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name":
 "upload_lint_run", "arguments": {"payload": <the object>}}}`, then post it:
 
 ```bash
-curl -sS https://mcp.lexlint.org/mcp \
+curl -sS --fail-with-body https://mcp.lexlint.org/mcp \
   -H 'Content-Type: application/json' \
   -H "X-API-Key: $UNGOVR_API_KEY" \
   --data-binary @upload-request.json
 ```
+
+**Check the reply for an error before reading anything else out of it.** Two
+ways it can carry one and neither is a failed command: `curl -sS` alone exits 0
+on a 500 and prints the edge's error page as though it were the answer, which
+is what `--fail-with-body` stops, and a call the server read and refused comes
+back HTTP 200 with an `error` member instead of a `result`, which no exit code
+will ever report. A reply carrying `error` stored nothing and has no
+`run_url`; `error.message` says what to fix.
 
 No `initialize` first and no session to carry: the server is stateless and
 answers a plain JSON POST with plain JSON. Write both files, the request and

@@ -54,17 +54,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.35.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.35.2"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.35.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.35.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.35.1`.** State it, do not go looking
+**That version string is yours and it is `1.35.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -96,8 +96,26 @@ what is wrong with it. Every one of those is recoverable, each has its own
 instruction elsewhere in this document, and stopping on one turns a typo into a
 dead end.
 
+**Your own client declining to make a call is a third case, and it is the one
+somebody can fix from this session.** A tool call the developer did not
+approve, a shell you were not granted, a command your client would not run:
+the request never left the machine, so nothing about the server is known, and
+reporting it as an outage sends the developer to look at a host that is fine.
+Say plainly that your client would not make the call and **not** that the
+server was down, print the exact call or command, and offer the developer the
+two things that actually move it: approve it and you retry, or they run it
+themselves and paste the reply back. A host that does not resolve cannot be
+fixed from here. A permission prompt can. This covers the upload `curl` and the
+shell routes for an oversized response in step 3 of the loop as much as it
+covers a `run_lint` the client would not call, and it is the same rule the
+first-run procedure carries for the same wall.
+
 Name the declaration you were about to send, so the developer can re-run once
-the network is there. **If the preflight is what failed, you do not have one
+the network is there. **Give it as a plain list, one value per line, and never
+as a table.** A bordered table with an evidence column is the shape a developer
+reads as a result, whatever the caption above it says, and this document asks
+for exactly that table on the path where the lint did run, so the two are one
+glance apart. **If the preflight is what failed, you do not have one
 yet: say that instead of guessing one to fill the line.** `check_access` runs
 before you have read the repository, and a declaration invented to round out a
 failure report is the same defect as an invented finding, one field over.
@@ -116,8 +134,10 @@ the loop. **A call that did not return is not the run either**, and neither one
 is visible in the report unless you put it there.
 
 Name what it looks like from where you are sitting, because the developer can
-act on the difference: a refusal that names LexLint is ours to fix, and a
-network your client is not allowed to use is theirs. Then stop.
+act on the difference: a refusal that names LexLint is ours to fix, a network
+your client is not allowed to use is theirs, and a call your own client would
+not make is the one paragraph above, where there is something to offer them.
+Then stop.
 
 ### When the response says a newer LexLint exists
 
@@ -135,7 +155,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.35.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.35.2) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -665,7 +685,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.35.1"
+  client_version="1.35.2"
 )
 ```
 
@@ -1170,7 +1190,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.35.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.35.2' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1184,7 +1204,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.35.1`, and `--summary` is the one sentence you author.
+`lexlint 1.35.2`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1656,7 +1676,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.35.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.35.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1795,7 +1815,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.35.1`) and `record`. Leave `payload_hash` out: the server derives
+(`1.35.2`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 
@@ -1974,7 +1994,7 @@ payload nested where the tool call expects it:
 then post that file:
 
 ```bash
-curl -sS https://mcp.lexlint.org/mcp \
+curl -sS --fail-with-body https://mcp.lexlint.org/mcp \
   -H 'Content-Type: application/json' \
   -H "X-API-Key: $UNGOVR_API_KEY" \
   --data-binary @upload-request.json
@@ -1984,6 +2004,17 @@ No `initialize` call first, no session to carry, and no `Accept:
 text/event-stream`: the server keeps no state and answers a plain JSON POST
 with plain JSON. Read `run_url`, `share_url` and `duplicate` out of the reply
 exactly as you would out of a tool result.
+
+**Check the reply for an error before you read anything else out of it**, on
+this route and on every other `curl` in this document. There are two ways it
+can carry one and neither one shows up as a failed command. `curl -sS` on its
+own exits 0 on a 500 and prints the edge's error page as though it were the
+answer, which is what `--fail-with-body` is there to stop: it prints the body
+and exits non-zero. And a call the server read and refused comes back HTTP
+200 with an `error` member instead of a `result`, so no exit code will ever
+say so. A reply carrying `error` has no `run_url` and no findings, and
+`error.message` says what to fix. Report the refusal; never read a result out
+of it.
 
 **Then delete both files, and write them outside the repository in the first
 place.** There are two: the request, and the `record.json` the hash pipeline
@@ -2000,6 +2031,7 @@ list by handing curl its configuration on standard input instead of passing
 ```bash
 curl -sS --config - <<CFG
 url = "https://mcp.lexlint.org/mcp"
+fail-with-body
 header = "Content-Type: application/json"
 header = "X-API-Key: $UNGOVR_API_KEY"
 data-binary = "@upload-request.json"
