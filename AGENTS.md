@@ -54,17 +54,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.35.2"`.
+**Run `check_access` before anything else**, pass `client_version: "1.36.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.35.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.35.2`.** State it, do not go looking
+**That version string is yours and it is `1.36.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -155,7 +155,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.35.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.36.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -685,7 +685,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.35.2"
+  client_version="1.36.0"
 )
 ```
 
@@ -1190,7 +1190,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.35.2' \
+    --run-at 2026-09-10 --tool 'lexlint 1.36.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1204,7 +1204,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.35.2`, and `--summary` is the one sentence you author.
+`lexlint 1.36.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1676,7 +1676,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.35.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1803,8 +1803,32 @@ this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
 On a first run with no manifest yet, `record.app` is `{"name": ...}` with the
 repository's own name (its package manifest's name, else its directory), and
 `record.profile` is the declaration the run was made with, `activities` and
-`jurisdictions` exactly as sent. Missing the `run_lint` response, do not build
-a partial payload: say so, run `/lexlint` first, and stop.
+`jurisdictions` exactly as sent.
+
+**A first run that could not upload itself leaves its record on disk, and
+that record is the other thing this step uploads.** The first-run
+procedure at https://lexlint.org/first-run writes the run it made to
+`/tmp/lexlint-first-run/record.json`, and when the client refused the upload's
+shell commands it leaves that file in place and hands the upload to the next
+session. So with no `run_lint` response in this session, look there first,
+and take it only when its `app.name` is this repository's own name (its
+package manifest's name, else its directory, the rule the first run filled it
+by): the path is shared by every repository on the machine, and a record
+naming another one is somebody else's run, so say so and leave it. That file
+is already the `record` object, `app`, `profile`, `lint.findings`
+and `envelope` exactly as the run made them: read it with your file tool, wrap
+it in the payload below, show it as the approval rule says, and send it as a
+tool call, never as a shell command. Leave `client_version` out of that payload: the
+field means the bundle version that ran the lint, and this lint was run by
+the first-run procedure, not by this bundle. A shell command is what that session could not run, and
+the tool call needs none; the payload passes through your own output, which is
+the cost and the point. Remove the directory only once the reply confirms the
+run is stored, `run_url` present or `duplicate` true:
+`rm -rf /tmp/lexlint-first-run`. A refusal, an error or a dropped connection
+keeps the record where it is, for the retry the failure rule below describes.
+
+Missing both, the `run_lint` response and a saved record, say so, run
+`/lexlint` first, and stop rather than building a partial payload.
 
 **A manifest with no `lint:` block is not a missing precondition.** The run
 being uploaded is the `run_lint` response, which you have; the `lint:` block is
@@ -1815,7 +1839,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.35.2`) and `record`. Leave `payload_hash` out: the server derives
+(`1.36.0`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 
