@@ -47,17 +47,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.34.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.35.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.34.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.35.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.34.0`.** State it, do not go looking
+**That version string is yours and it is `1.35.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -128,7 +128,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.34.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.35.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -258,7 +258,7 @@ cheaper, and it is worth knowing which you have before you need them:
 | `jq` | keeps a `run_lint` response out of your context entirely | step 3, and the hash below |
 | `python3` with PyYAML | writes the merged `lint:` block without it passing through your output | step 4 |
 | `curl` | keeps the upload payload out of your own output | "Uploading a run" |
-| `sha256sum` | computes `payload_hash` without the bytes reaching you | "Uploading a run" |
+| `sha256sum` | computes `payload_hash`, only if you choose to send one | "Uploading a run" |
 
 **Check once, lazily, and remember the answer.** The first time you want one of
 them, ask in a single command rather than probing per call:
@@ -573,7 +573,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.34.0"
+  client_version="1.35.0"
 )
 ```
 
@@ -1078,7 +1078,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.34.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.35.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1092,7 +1092,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.34.0`, and `--summary` is the one sentence you author.
+`lexlint 1.35.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1564,7 +1564,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.34.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.35.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1703,8 +1703,9 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.34.0`), `payload_hash`, and `record`. Take each part from whatever
-owns it, which is not all one file:
+(`1.35.0`) and `record`. Leave `payload_hash` out: the server derives
+it from `record`. Take each part of the record from whatever owns it, which is
+not all one file:
 
 - `record.app`: the manifest's `app` block, or the first-run name above when
   there is no manifest, with `scope` set to what this run actually read.
@@ -1744,10 +1745,14 @@ files, prompts or transcripts, or git usernames, emails, or remote URLs. None
 of those are part of the record schema, and none belong on a page anyone but
 the developer can see.
 
-**Compute `payload_hash` exactly.** It is the sha256 hex digest of the
-canonical JSON encoding of `record`, and the server recomputes that same
-digest from the `record` you send and refuses the upload on any mismatch, so
-"close" does not pass. Canonical means three things together: object keys
+**`payload_hash` is the server's, and the rest of this section is for a
+client that sends one anyway.** An upload without the field is accepted and
+the server fills it in from `record`, so nothing below is needed
+to upload a run and the default is to leave it out. A CI step that wants to
+assert the digest itself can still send it, and then it must be exact: it is
+the sha256 hex digest of the canonical JSON encoding of `record`, the server
+recomputes that same digest from the `record` you send and refuses the upload
+on any mismatch, so "close" does not pass. Canonical means three things together: object keys
 sorted, the two JSON separators tightened to `,` and `:` with no space after
 either, and every non-ASCII character left as raw UTF-8 rather than
 backslash-escaped. That is exactly what Python's `json.dumps` returns when
@@ -1824,7 +1829,8 @@ suspect. If a record ever genuinely needs one, compute the digest with the
 reference implementation rather than the pipeline, and note in the report that
 you did.
 
-Without both tools, use the reference implementation in whatever language you
+Without both tools, leave the field out, which is the default in any case. If
+you have decided to send it, use the reference implementation in whatever language you
 have, and if that means the payload passes through your own output, that is the
 cost rather than a fault: say so once at the end, as "Three tools that make
 this cheaper" describes, and upload normally.

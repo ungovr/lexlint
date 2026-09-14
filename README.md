@@ -35,6 +35,47 @@ Thin by design, so you can see exactly what you are installing:
 - **No stored keys.** Yours passes straight through to the UnGovr Open Data
   API on every call, and LexLint keeps nothing.
 
+## Get a key
+
+Take the key first. The plugin reads `UNGOVR_API_KEY` at process start, the
+same moment it loads, so a key that is in your shell profile before you
+install costs one restart, and a key taken afterwards costs a second one.
+
+LexLint runs on your own UnGovr Open Data key, and there are two ways to get
+one. Neither is a fallback for the other:
+
+- **No account.** Open https://lexlint.org/trial and press the button. It
+  mints a 30-day key good for 50 requests over its whole life and shows it
+  once. Or hand your coding agent https://mcp.lexlint.org/first-run and it
+  runs the first lint and takes the key on the way.
+- **With an account**, which is free. Sign in at
+  https://ungovr.org/cli-login?client=lexlint and copy the key. The full value
+  is shown once, when it is created. An account key never expires and has no
+  lifetime total, so pick this route if you plan to keep using LexLint past
+  the trial.
+
+Then put it in your shell profile as `UNGOVR_API_KEY`. That is
+`export UNGOVR_API_KEY=<your-key>` in bash and zsh,
+`set -gx UNGOVR_API_KEY <your-key>` in fish, and
+`$env:UNGOVR_API_KEY = '<your-key>'` in PowerShell. The value is read at
+process start, so a key exported into a running session is read by nothing.
+
+**An account can hold several keys**, so creating one here leaves any key you
+already have on another machine working. They share one daily allowance between
+them: a second key is not a second free tier. Revoke the ones you no longer
+recognise at https://ungovr.org/settings/api-keys (each row says which client
+asked for it).
+
+A key you paste into a session is recorded in that session's transcript. Treat
+it the way you would any other secret in a log.
+
+**Already installed and no key yet?** Run `/lexlint-key` and it hands you the
+sign-in link, takes the key you paste back, and puts it where your next
+session will read it. Or ask your session to call `claim_trial_key`, which
+mints the same 30-day trial key and returns it in the result, recorded in the
+transcript the same way a pasted key is. Either way it is the next session
+that has it.
+
 ## Install
 
 Add the marketplace and install the plugin. Either form works:
@@ -71,9 +112,14 @@ bundle's server configuration reads the key from at session start.
 Full setup for every client, including Codex and the plain JSON block:
 https://mcp.lexlint.org/#setup
 
-**Restart your session after installing.** Plugins load at process start. A
-`/clear` is not a restart. Until you restart, the status commands will report
-the server healthy while the plugin is absent.
+**Restart your session after installing.** Plugins load at process start, and
+so does the key, which is why it went into your profile first: one restart
+covers both. A `/clear` is not a restart. Until you restart, the status
+commands will report the server healthy while the plugin is absent.
+
+Then run `/lexlint` and read the preflight line. It reports whether the key
+reached LexLint, whether it is valid, and how much of today's allowance is
+left, which is the check the next three steps depend on.
 
 ## Update
 
@@ -107,40 +153,6 @@ Two things worth knowing when an update looks like it did not take:
 You do not have to track releases yourself. Every `check_access` and every
 `run_lint` reply tells you the version you are running and whether a newer one
 exists, so the skill will say so at the top of a run when it matters.
-
-## Get a key
-
-LexLint runs on your own UnGovr Open Data key. Run `/lexlint-key` and it will
-hand you a link, take the key you paste back, and put it where your next
-session will read it. If you would rather do it by hand:
-
-1. Sign in at https://ungovr.org/cli-login?client=lexlint
-2. Copy the key. The full value is shown once, when it is created.
-3. Put it in your shell profile as `UNGOVR_API_KEY`. That is
-   `export UNGOVR_API_KEY=<your-key>` in bash and zsh,
-   `set -gx UNGOVR_API_KEY <your-key>` in fish, and
-   `$env:UNGOVR_API_KEY = '<your-key>'` in PowerShell.
-4. Start a new session. The value is read at process start, so a key exported
-   into a running session is read by nothing.
-
-**An account can hold several keys**, so creating one here leaves any key you
-already have on another machine working. They share one daily allowance between
-them: a second key is not a second free tier. Revoke the ones you no longer
-recognise at https://ungovr.org/settings/api-keys (each row says which client
-asked for it).
-
-A key you paste into a session is recorded in that session's transcript. Treat
-it the way you would any other secret in a log.
-
-**There is a second route that needs no account at all.** Ask your session to
-call `claim_trial_key`; it mints a 30-day key good for 50 requests over its
-whole life and returns it in the result, recorded in the transcript the same
-way a pasted key is. An account key never expires and has no lifetime total,
-so pick that route if you plan to keep using LexLint past the trial.
-
-Then run `/lexlint` and read the preflight line. It reports whether the key
-reached LexLint, whether it is valid, and how much of today's allowance is
-left, which is the check the next three steps depend on.
 
 ## What it costs
 
