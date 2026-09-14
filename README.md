@@ -186,9 +186,12 @@ within 30 days; deleting a project removes it, and everything under it,
 right away. You can also export a project's own runs as JSON. A run can be
 shared by an unguessable, expiring link that works without signing in, and
 revoking it deletes the link immediately, not merely marks it inactive. A
-trial key's account has no sign-in yet, so until you claim it, write to
-hello@ungovr.org quoting the share link and we delete the run, or the link
-alone, within one working day.
+trial key's account has no sign-in. To keep its runs, sign in at
+https://ungovr.org/cli-login?client=lexlint (an account is free) and paste the
+trial key at https://my.lexlint.org/claim and the runs, their project and the
+key move to your account, where the portal's delete button is yours. To have a
+trial's run deleted without an account, write to hello@ungovr.org quoting the
+share link and we delete the run, or the link alone, within one working day.
 
 One other thing is sent, automatically, and it is the whole of the rest of
 the list: **which plugin version you are running**. It rides the preflight
