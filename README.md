@@ -46,7 +46,7 @@ one. Neither is a fallback for the other:
 
 - **No account.** Open https://lexlint.org/trial and press the button. It
   mints a 30-day key good for 50 requests over its whole life and shows it
-  once. Or hand your coding agent https://mcp.lexlint.org/first-run and it
+  once. Or hand your coding agent https://lexlint.org/first-run and it
   runs the first lint and takes the key on the way.
 - **With an account**, which is free. Sign in at
   https://ungovr.org/cli-login?client=lexlint and copy the key. The full value
