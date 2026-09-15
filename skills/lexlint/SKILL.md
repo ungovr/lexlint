@@ -47,17 +47,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.36.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.36.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.36.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.36.0`.** State it, do not go looking
+**That version string is yours and it is `1.36.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -148,7 +148,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.36.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.36.1) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -459,6 +459,15 @@ rather than `us/ca`. A city LexLint holds nothing for answers from its state
 parent and reports that in `resolved_from_parent`, so naming one is never worse
 than leaving it off, and leaving it off is what hides the finding.
 
+A slug is the jurisdiction's UnGovr Atlas path: California is
+https://ungovr.org/us/ca and its Atlas ID is `urn:ungovr:us/ca`. A deeper or
+unresearched path resolves to the nearest jurisdiction with law, and the
+jurisdictions whose law is researched are listed at https://lexlint.org/law
+for the developer to check. The server resolves whatever you send and names
+what it resolved to in the coverage preview, so there is nothing to look up
+anywhere else, and a slug taken from a web search is the one that quietly
+lints the wrong place.
+
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.
 
@@ -593,7 +602,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.36.0"
+  client_version="1.36.1"
 )
 ```
 
@@ -1098,7 +1107,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.36.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.36.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1112,7 +1121,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.36.0`, and `--summary` is the one sentence you author.
+`lexlint 1.36.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1584,7 +1593,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.36.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1747,7 +1756,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.36.0`) and `record`. Leave `payload_hash` out: the server derives
+(`1.36.1`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 
