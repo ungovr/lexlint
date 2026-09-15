@@ -47,17 +47,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.36.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.36.2"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.36.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.36.1`.** State it, do not go looking
+**That version string is yours and it is `1.36.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -91,17 +91,27 @@ dead end.
 
 **Your own client declining to make a call is a third case, and it is the one
 somebody can fix from this session.** A tool call the developer did not
-approve, a shell you were not granted, a command your client would not run:
-the request never left the machine, so nothing about the server is known, and
+approve, a shell you were not granted, a command your client would not run: the
+request never left the machine, so nothing about the server is known, and
 reporting it as an outage sends the developer to look at a host that is fine.
 Say plainly that your client would not make the call and **not** that the
 server was down, print the exact call or command, and offer the developer the
-two things that actually move it: approve it and you retry, or they run it
-themselves and paste the reply back. A host that does not resolve cannot be
-fixed from here. A permission prompt can. This covers the upload `curl` and the
-shell routes for an oversized response in step 3 of the loop as much as it
-covers a `run_lint` the client would not call, and it is the same rule the
-first-run procedure carries for the same wall.
+one thing that actually moves it: approve it and you retry. A host that does
+not resolve cannot be fixed from here. A permission prompt can. Do not work
+around the refusal, do not reach for a different tool, and do not ask the
+developer to run the call by hand: what happens next is theirs to decide, not
+something to route through you. This covers the upload `curl` and the shell
+routes for an oversized response in step 3 of the loop as much as it covers a
+`run_lint` the client would not call.
+
+**Route 3 in step 3 is the one exception, and it is not an exception to the
+rule so much as a case the rule does not describe.** When a shell is refused
+and the response was oversized, splitting the declaration across several
+`run_lint` calls is not reaching around the refusal: it is the route that
+step 3 names for exactly that state, it uses the tools already in front of
+you, and it produces the same lint. Take it, and say in the report that you
+did and why. What stays forbidden is reaching for a shell the developer
+declined, by another name or another host.
 
 Name the declaration you were about to send, so the developer can re-run once
 the network is there. **Give it as a plain list, one value per line, and never
@@ -148,7 +158,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.36.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.36.2) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -602,7 +612,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.36.1"
+  client_version="1.36.2"
 )
 ```
 
@@ -1107,7 +1117,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.36.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.36.2' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1121,7 +1131,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.36.1`, and `--summary` is the one sentence you author.
+`lexlint 1.36.2`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1593,7 +1603,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.36.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.36.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1756,7 +1766,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.36.1`) and `record`. Leave `payload_hash` out: the server derives
+(`1.36.2`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 
