@@ -55,17 +55,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.36.3"`.
+**Run `check_access` before anything else**, pass `client_version: "1.37.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.36.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.37.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.36.3`.** State it, do not go looking
+**That version string is yours and it is `1.37.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -166,7 +166,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.36.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.37.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -423,6 +423,18 @@ their answers down.
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`.
 
+**Who runs it?** Five more values are roles rather than activities, and a
+sector-gated statute reaches the app through them and through nothing else:
+`handles_health_records` (a HIPAA covered entity or business associate, or a
+health-sector entity under a national regime), `provides_financial_services`
+(a bank, insurer, payment, credit or investment firm, or a designated critical
+ICT provider to one), `operates_essential_service` (an essential or important
+entity under NIS2 or a transposition, or a designated critical-infrastructure
+operator), `is_listed_company` (a public company filing with a securities
+regulator) and `provides_telecom_services`. Ask; never infer a role from the
+code. A health app is not a covered entity because it stores health data,
+and a fintech is not a bank because it moves money.
+
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
 to be accessed** by them, which catches general-purpose apps that were never
@@ -620,7 +632,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.36.3"
+  client_version="1.37.0"
 )
 ```
 
@@ -686,11 +698,11 @@ backwards produces a coverage warning about law the corpus actually holds,
 which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
-Nine activities can raise it, because the corpus maps them on the flag axis
-alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
+Fourteen activities can raise it, because the corpus maps them on the flag
+axis alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
 `ships_mobile_app`, `operates_app_store`, `publishes_adult_content`,
-`operates_social_platform`, `aggregates_content` and
-`distributes_software_product`. Those are ordinary
+`operates_social_platform`, `aggregates_content`,
+`distributes_software_product` and the five roles. Those are ordinary
 declarations rather than exotic ones, so expect the case rather than treating
 it as a corner. Say in the report that the run was split and that these were
 intersected, so a reader can tell this run from a single-call one.
@@ -1125,7 +1137,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.36.3' \
+    --run-at 2026-09-10 --tool 'lexlint 1.37.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1139,7 +1151,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.36.3`, and `--summary` is the one sentence you author.
+`lexlint 1.37.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1611,7 +1623,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.36.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.37.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1774,7 +1786,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.36.3`) and `record`. Leave `payload_hash` out: the server derives
+(`1.37.0`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 

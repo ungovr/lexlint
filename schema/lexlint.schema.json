@@ -56,7 +56,10 @@
                      "automated_outreach", "high_risk_decisions",
                      "publishes_adult_content", "operates_social_platform",
                      "serves_minors", "operates_app_store", "ships_mobile_app",
-                     "aggregates_content", "distributes_software_product"]
+                     "aggregates_content", "distributes_software_product",
+                     "handles_health_records", "provides_financial_services",
+                     "operates_essential_service", "is_listed_company",
+                     "provides_telecom_services"]
           }
         },
         "jurisdictions": {
