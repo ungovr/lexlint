@@ -31,7 +31,9 @@ Thin by design, so you can see exactly what you are installing:
   Everything that runs here runs in your own agent, where you can read it.
 - **One execution path.** The lint is deterministic and happens in one place,
   a stateless worker; the law data behind it updates server-side, not in this
-  bundle.
+  bundle. To avoid hallucinations, which law applies is decided by a fixed,
+  rule-based match against the corpus, never by asking the LLM to reason
+  about the law itself.
 - **No stored keys.** Yours passes straight through to the UnGovr Open Data
   API on every call, and LexLint keeps nothing.
 
