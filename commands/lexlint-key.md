@@ -31,6 +31,17 @@ after they choose it: never run it because no key was found, and never run it
 twice. Say before running it that the key it returns will be recorded in this
 session's transcript, the same as a pasted key.
 
+**Twice includes a key you cannot see from here.** Do not run
+`claim_trial_key` when a key is already saved on this machine, when one was
+minted earlier in this conversation, or when your own memory or notes for this
+machine record one. The one exception is a developer who, told that a first
+key exists, asks for a new key in so many words. A needless mint is not free
+to them: it spends one of the limited trial mints their address gets each
+day, and it leaves the earlier key stranded, still valid and saved somewhere
+nothing reads. If the preflight said `key: not set` on a machine where a key
+was saved before, that is a key that did not arrive and not a missing one:
+`/lexlint` looks for it by file name and says where it is.
+
 One thing to say alongside the account-key link, because a developer cannot
 work it out from the page alone:
 
@@ -81,15 +92,39 @@ which does not take these flags at all. Use its own form there:
 The key belongs in `UNGOVR_API_KEY`. Write it into the `env` block of the
 developer's user settings file, creating the file if it is not there:
 
-- Claude Code: `~/.claude/settings.json`, as `{"env": {"UNGOVR_API_KEY": "..."}}`.
-  Merge into the existing JSON rather than overwriting it, keep every other
-  key, and `chmod 600` the file afterwards.
-- Any other client: name the file it reads and write it there, or fall back to
-  the shell profile below.
+- Claude Code: the **user** settings file, as a top-level
+  `{"env": {"UNGOVR_API_KEY": "..."}}`. That file is
+  `$CLAUDE_CONFIG_DIR/settings.json` when `CLAUDE_CONFIG_DIR` is set, and
+  `~/.claude/settings.json` only when it is not, so ask before choosing:
+  `echo "${CLAUDE_CONFIG_DIR:+set}"` prints `set` or an empty line. With the
+  variable set, a key written to `~/.claude/settings.json` is saved in a file
+  this client never reads. Merge into the existing JSON rather than
+  overwriting it, keep every other key, and `chmod 600` the file afterwards.
+- Any other client: name the user-level file it reads and write it there, or
+  fall back to the shell profile below.
 
 Never write the key into a file that is committed. In a repository that means
-never `.claude/settings.json` and never `.env`; check `git check-ignore` if you
-are unsure whether a candidate file is tracked.
+never `.claude/settings.json`, never `.claude/settings.local.json` and never
+`.env`; check `git check-ignore` if you are unsure whether a candidate file is
+tracked.
+
+**The user file and no other scope, and the reason is not only git.**
+`.claude/settings.local.json` is gitignored, so it passes that test, and it is
+still the wrong place. Claude Code opens two connections to each server, and an
+`env` value from the project or the local settings file reaches the server on
+one of them and arrives empty on the other (measured on Claude Code 2.1.278).
+A key saved there works for some calls and reads as `key: not set` for others.
+
+**Then check that the file still parses, without printing it**:
+
+```
+python3 -m json.tool "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" >/dev/null && echo ok
+```
+
+`ok` means it does. Anything else is the line and column of the first error,
+and it matters more than it looks: an unparseable settings file is ignored
+whole, so a stray comma loses the key and every other setting in the file with
+it. Fix it before going on.
 
 If the developer would rather have the key in their environment for other tools
 too, the shell profile is the alternative, and it is theirs to run.
@@ -121,3 +156,11 @@ see it. Tell them plainly:
 Do not run the lint yourself in this session, and do not claim the key is
 working. Nothing in this session can see it yet, and the preflight after the
 restart is what actually answers that.
+
+**If the preflight after the restart still reads `key: not set`, do not mint
+again, and do not run this command again either.** The key you saved is still
+where you put it. `/lexlint` now looks for it by file name, never by value, and
+says where the saved key is and why it did not arrive: a session that was not
+really restarted, a settings file that stopped parsing, the wrong scope, or a
+surface that does not pass a plugin's header variable on. A second key fixes
+none of those, and it strands the first.

@@ -42,6 +42,9 @@ Thin by design, so you can see exactly what you are installing:
 Take the key first. The plugin reads `UNGOVR_API_KEY` at process start, the
 same moment it loads, so a key that is in your shell profile before you
 install costs one restart, and a key taken afterwards costs a second one.
+The restart is the inconvenience and the server is the decision: once
+installed, every later session in this client carries LexLint's server and can
+call its tools, until you remove it.
 
 LexLint runs on your own UnGovr Open Data key, and there are two ways to get
 one. Neither is a fallback for the other:
@@ -119,9 +122,25 @@ so does the key, which is why it went into your profile first: one restart
 covers both. A `/clear` is not a restart. Until you restart, the status
 commands will report the server healthy while the plugin is absent.
 
+**What installing adds is a server, not a restart.** The restart happens once.
+From then on, every later session in this client carries LexLint's server and
+can call its tools, whether or not that session lints anything. At the default
+`user` scope that is every project on the machine. It stays until you remove
+it:
+
+```
+claude plugin uninstall lexlint@lexlint
+```
+
 Then run `/lexlint` and read the preflight line. It reports whether the key
 reached LexLint, whether it is valid, and how much of today's allowance is
 left, which is the check the next three steps depend on.
+
+**If it reads `key: not set` and you did save a key, do not take another
+one.** A key that is saved and did not arrive is not a missing key: `/lexlint`
+looks for it by file name, never by value, and says where it is and why it did
+not reach the server. A second trial key spends one of the limited mints your
+address gets each day and leaves the first one stranded.
 
 ## Update
 

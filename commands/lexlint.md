@@ -6,10 +6,16 @@ Run the LexLint loop against this repository.
 
 1. Run `check_access` first and show the result. A missing or spent key needs
    handling before any question is worth asking. When `key_present` is false,
-   read `setup.steps`: it names both routes to a key, the no-account trial
-   (`claim_trial_key`, run only after the developer picks it) and the account
-   sign-in, and offer the trial first since it needs nothing from the
-   developer but a yes. The same response says which models this procedure is
+   do not offer a route to a key yet: a key that is saved on this machine and
+   did not reach the server reads exactly the same from here. Do what "When
+   the preflight says there is no key" in the `lexlint` skill says first,
+   which is one command that prints file names and never a value. If it finds
+   a saved key, say where, say why it did not arrive, and do not mint another.
+   Only when it finds nothing, read `setup.steps`: it names both routes to a
+   key, the no-account trial (`claim_trial_key`, run only after the developer
+   picks it, and never twice) and the account sign-in, and offer the trial
+   first since it needs nothing from the developer but a yes. The same
+   response says which models this procedure is
    tested against: if your own is not one of them, show `model_notice` and let
    the developer decide whether to continue. It is an advisory, so the lint
    runs either way.
@@ -28,7 +34,11 @@ Run the LexLint loop against this repository.
    A scope from the command is not written to the manifest. Say in the report
    that it came from the command, and say what it was.
 3. Resolve any domains named in the manifest with `resolve_domain_jurisdiction`.
-4. Call `run_lint` with the declared activities and jurisdictions.
+4. Show the developer the two lists before you send them, with every value
+   you are unsure of marked as such, and wait for their answer. In a headless
+   or CI session nobody can answer: send the lists as you read them, and name
+   the values you were unsure of in the report. Then call `run_lint` with the
+   declared activities and jurisdictions.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
    `lint.work_items` across untouched, and moving vanished acknowledgments to

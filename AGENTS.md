@@ -33,6 +33,12 @@ The tools need an UnGovr Open Data API key, passed as `X-API-Key` and read from
 `UNGOVR_API_KEY`. If the developer has no key, do not describe the problem and
 stop.
 
+**"No key" is two different states, and getting a key fixes only one of
+them.** The preflight below reports `key_present: false` when no key exists,
+and reports exactly the same thing when a key is saved on this machine and did
+not reach the server. Look before you offer either route: "When the preflight
+says there is no key", below, is one command, and it comes first.
+
 **There are two routes to a key and the developer picks, so ask BEFORE you
 start either one.** Neither is a fallback for the other. One needs an account,
 which is free; the other needs none: `claim_trial_key`, called from this
@@ -41,6 +47,16 @@ returns it in the result. Say that an account key is the one without an expiry
 or a lifetime total, and say that a trial key will be recorded in this
 session's transcript. Then run only the route they chose. Never run
 `claim_trial_key` because no key was found, and never run it twice.
+
+**Twice includes a key you cannot see from here.** Do not run
+`claim_trial_key` when the look below found a key on disk, when a key was
+minted earlier in this conversation, or when your own memory or notes for this
+machine record one. The one exception is a developer who, told that a first
+key exists, asks for a new key in so many words. A needless mint is not free
+to them: it spends one of the limited trial mints their address gets each
+day, and it leaves the earlier key stranded, still valid and saved somewhere
+nothing reads.
+
 `check_access` reports which routes this deployment actually offers in
 `setup.steps`; read them from the response rather than from memory, because a
 deployment that cannot mint a trial names only the account route and offering
@@ -62,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.37.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.38.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.37.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.38.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.37.0`.** State it, do not go looking
+**That version string is yours and it is `1.38.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -81,8 +97,54 @@ Pass the same `client_version` on every `run_lint` call. A run that skips the
 preflight still deserves to learn a newer plugin exists, and the server can
 only compare a version it was sent.
 
-If `key_present` is false, stop and run the setup flow above. Do not ask what
-the app does first: they cannot act on the answer.
+If `key_present` is false, stop, and read the next section before you say
+anything about keys. Do not ask what the app does first: they cannot act on
+the answer.
+
+### When the preflight says there is no key
+
+If `key_present` is false, stop. **And do not offer a route to a key yet.**
+The server cannot tell a key that does not exist from a key that is saved on
+this machine and went out as an empty header, so it answers
+`key_present: false` to both. Read as "no key", the second one ends with a
+fresh key minted over a working one, by a developer who followed every
+instruction they were given.
+
+**So look first, whenever you have a shell, with one command that prints file
+names and nothing else.**
+
+Which files are worth opening differs by client, so the command is in your
+client's entry under "Client setup" below, as "Saved-key check", beside what
+each result means there. It has this shape:
+
+```
+grep -l UNGOVR_API_KEY <the files your client's entry names> 2>/dev/null
+```
+
+`grep -l` prints the NAME of every file the variable's name appears in.
+**Never `cat` one of these files, never print the matching line, and never
+read the value into the conversation.** That rules out `grep` without `-l`,
+and `printenv`, and an `echo` of the variable: the question is where a key is
+saved, and a file's name answers it. No output means none of them names the
+variable. The exit status says nothing, because a file that does not exist
+sets it as well. Where there is no `grep` at all (Windows PowerShell), the
+rule is the same for whatever you use in its place: file names only.
+
+**If your client declines the command, you have not looked.** That is "your
+own client declining to make a call" in the next section, and it is not an
+empty result: say that you could not look, and go on to the setup flow without
+guessing what it would have found. The rule against a second mint in Setup
+still holds there, because it never depended on this command.
+
+**Tell the developer what you found in those words.** "A key is saved in
+`<file>` but did not reach the server", then the one cause that file points
+at and the one thing to do about it. Never "no key", and never an offer to
+mint: told there is no key, a developer takes another one, and the first is
+still sitting in the file.
+
+**There really is no key only on the last line of that list**, where nothing
+that could hold one names the variable. Then run the setup flow above, and ask
+before starting either route.
 
 ### When you cannot reach the server
 
@@ -173,7 +235,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.37.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.38.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -303,12 +365,75 @@ running, and never offer a command from another entry.
 
   The bundle carries the skill, the three commands, and this server already
   configured.
-- **Key** `/lexlint-key`, which persists it to the `env` block of
-  `~/.claude/settings.json`
+- **Key** `/lexlint-key`, which persists it to the `env` block of the user
+  settings file, which is `$CLAUDE_CONFIG_DIR/settings.json` when
+  `CLAUDE_CONFIG_DIR` is set and `~/.claude/settings.json` otherwise
 
   The command hands over the sign-in link, takes the paste, and writes the
-  value where the next session reads it, never into a file that gets
-  committed.
+  value where the next session reads it: never into a file that gets
+  committed, and never into `.claude/settings.json` or
+  `.claude/settings.local.json`, because Claude Code opens two connections to
+  each server and an `env` value from either of those files reaches only one
+  of them.
+
+- **Saved-key check**
+  `grep -l UNGOVR_API_KEY "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" ~/.claude/settings.json .claude/settings.json .claude/settings.local.json ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile ~/.config/fish/config.fish 2>/dev/null`
+
+  For "When the preflight says there is no key" above, which has the rules:
+  file names only, never a value. The first path is the user settings file:
+  the one under `CLAUDE_CONFIG_DIR` when that variable is set, and
+  `~/.claude/settings.json` otherwise. `echo "${CLAUDE_CONFIG_DIR:+set}"` says
+  which, printing `set` or an empty line. When it is not set the first two
+  paths are one file, which is then listed twice.
+
+  - The name is in the user settings file. A key is saved where this client
+    reads it, and it still did not reach the server. Work down the causes
+    listed below, in order.
+  - The name is in `~/.claude/settings.json`, while `CLAUDE_CONFIG_DIR` is
+    set. A key is saved in a settings file this client does not read. With
+    that variable set, the user settings file is the one under it. The
+    developer moves the `env` entry into `$CLAUDE_CONFIG_DIR/settings.json`
+    themselves, then restarts. It is their secret, and moving it means reading
+    it.
+  - The name is in `.claude/settings.json` or `.claude/settings.local.json`,
+    and not the user settings file. A key is saved at project or local scope.
+    Claude Code opens two connections to each server, and an `env` value from
+    either file reaches the server on one of them and arrives empty on the
+    other (measured on Claude Code 2.1.278). The developer moves the `env`
+    entry into the user settings file themselves, takes it out of the project
+    file, then restarts.
+  - The name is in a shell profile, and no settings file. A key is saved
+    there, and this client was not started from a shell that read that file.
+    Open a new terminal and start the client from it, or have the developer
+    move the key into the user settings file.
+  - The name is in none of them. There really is no key on this machine. Run
+    the setup flow above.
+
+  When it is the user settings file, the causes, most likely first:
+
+  1. The session was not restarted as a new process. A `/clear`, or a
+     conversation resumed inside the same process, re-reads nothing: quit the
+     client and start it again.
+  2. The settings file no longer parses as JSON, and an unparseable settings
+     file is ignored whole, so every setting in it is gone and not only this
+     one.
+     `python3 -m json.tool "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" >/dev/null && echo ok`
+     answers without printing any of it: `ok`, or the line and column of the
+     first error.
+  3. The `env` block is nested in the wrong place. It is a top-level key of
+     the file, as `{"env": {"UNGOVR_API_KEY": "..."}}`, and the same block one
+     level down, inside `permissions` for instance, is read by nothing.
+  4. This surface does not expand a plugin's header variables. The Claude
+     desktop app's agentic mode refuses every variable that is not one of its
+     own, so a plugin server there is sent no key wherever it is saved. Run
+     LexLint from Claude Code in a terminal or an IDE instead.
+  5. This Claude Code build sends a plugin's header variable empty whatever it
+     holds, which some builds have done. Update Claude Code, then restart.
+
+  When none of those is it, one fix has been observed to work where nothing
+  else did, and it is the developer's to do: they export `UNGOVR_API_KEY` in
+  the shell they start the client from, copying the value themselves, and
+  start the client from that shell.
 - **Update** `claude plugin update lexlint@lexlint`
 
   `--scope` defaults to `user`, so a project that installed LexLint locally
@@ -331,6 +456,27 @@ running, and never offer a command from another entry.
   The value in that line is the variable's NAME, not the key itself. Codex
   reads it at connect time, so a key exported into a running session is read
   by nothing.
+
+- **Saved-key check**
+  `grep -l UNGOVR_API_KEY ~/.codex/config.toml ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile ~/.config/fish/config.fish 2>/dev/null`
+
+  For "When the preflight says there is no key" above, which has the rules:
+  file names only, never a value. `~/.codex/config.toml` is in the list for
+  the opposite reason to the rest: it is supposed to name the variable, and it
+  never holds the key.
+
+  - The name is in a shell profile and `~/.codex/config.toml`. A key is saved
+    in the profile and the header is mapped to it, and the Codex session was
+    not started from a shell that read that profile. Open a new terminal and
+    start Codex from it.
+  - The name is in a shell profile, and not `~/.codex/config.toml`. A key is
+    saved, and Codex sends no `X-API-Key` header at all, because the
+    `env_http_headers` line that names the variable is missing. Add the line
+    the Install entry above gives to the `[mcp_servers.lexlint]` entry, then
+    start Codex again.
+  - The name is in no shell profile. There really is no key on this machine.
+    `~/.codex/config.toml` on its own is the header mapping, which names the
+    variable and is never a key. Run the setup flow above.
 - **Update** not available here.
 
   There is no installed client to update: the tools are served remotely and
@@ -372,6 +518,22 @@ running, and never offer a command from another entry.
   Some clients expand `${UNGOVR_API_KEY}` inside a config file and some do
   not. If yours does not, the key is written literally and the file is then
   the secret it contains.
+
+- **Saved-key check**
+  `grep -l UNGOVR_API_KEY ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile ~/.config/fish/config.fish 2>/dev/null`
+
+  For "When the preflight says there is no key" above, which has the rules:
+  file names only, never a value. If you know the file your client keeps its
+  MCP servers in, add its path to the command: a header written there,
+  literally or as a variable, is part of the answer too.
+
+  - The name is in a shell profile. A key is saved there, and this client was
+    not started from a shell that read that file, or its server entry does not
+    pass the variable on as `X-API-Key`. Open a new terminal and start the
+    client from it. If the key still does not arrive, the server entry is what
+    to read next.
+  - The name is in none of them. There really is no key on this machine. Run
+    the setup flow above.
 - **Update** not available here.
 
   There is no installed client to update: the tools are served remotely and
@@ -692,6 +854,16 @@ the deferral rather than guessing a jurisdiction to fill the gap.
 Two calls. The first validates the declaration and tells you what the corpus
 holds for it; the second returns findings.
 
+**Show the developer the two lists before you send them**, with every value
+you are unsure of marked as such, and wait for their answer. What goes is
+what they would have sent, and a value they strike or add changes the whole
+lint: every finding downstream is drawn by one of these values. That holds on
+a re-run as well, when the lists come out of a committed `lexlint.yml`: say
+that they do, and mark any value the code no longer seems to support. In a
+headless or CI session nobody can answer: send the lists as you read them,
+and name the values you were unsure of in the report, in step 7, beside the
+findings each one is carrying.
+
 ```
 set_profile(
   activities=["crawls_web", "generates_content"],
@@ -724,7 +896,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.37.0"
+  client_version="1.38.0"
 )
 ```
 
@@ -909,16 +1081,28 @@ developer may have work here that this run cannot see.
 findings, and both sets arrive.** Declare `us/ca` and `us/ca/santa-barbara`
 and the city's findings are the state's a second time under city ids, because
 `id` is keyed on the slug that was declared while the answer came from one
-rung up. Every finding read from a parent carries `resolved_from` naming that
-parent. This is the declaration reported as it was made rather than a
-duplicate to clean up, and both entries stay in the manifest: the developer
-declared the city, and the record should say what the city returned.
+rung up. Two fields say which slug is which, and they are easy to read the
+wrong way round. **`jurisdiction` names the slug the law was read from**, so
+on the city's findings it is `us/ca`. **`resolved_from` names the slug that
+was declared**, here `us/ca/santa-barbara`, and it is present only on a
+finding a parent answered for: a finding read where it was declared carries
+none. (`resolved_from_parent` in the coverage preview is the other way round
+and names the parent, so do not read one as the other.) This is the
+declaration reported as it was made rather than a duplicate to clean up, and
+both entries stay in the manifest: the developer declared the city, and the
+record should say what the city returned.
 
 Three rules stop the mirror from inflating everything downstream:
 
-- **A finding carrying `resolved_from` mirrors the finding with the same
-  citation under the slug `resolved_from` names.** Match on that pair, never
-  by comparing summaries.
+- **A finding is a mirror when another finding in the same run carries the
+  same `jurisdiction` and the same citation.** One corpus row read once
+  comes back once per declared slug it answered for, so the first copy is
+  the instrument and every copy after it is a mirror. Match on that pair,
+  never by comparing summaries, and never on whether a copy carries
+  `resolved_from`: two cities of one undeclared state are one instrument
+  twice, the same as a city beside its declared state. Declare the city
+  alone and its findings are the only copy: nothing to mirror, and nothing
+  to subtract.
 - **Report distinct instruments, with the mirror count beside it**, never a
   bare total: "57 findings, 40 distinct instruments; the 17 under
   `us/ca/santa-barbara` are the `us/ca` ones again, which is where that city
@@ -1002,8 +1186,8 @@ KEYS = {
         "id", "severity", "kind", "jurisdiction", "jurisdiction_name",
         "summary", "detail", "why", "matched_by", "posture", "basis",
         "citation", "url", "note_url", "status", "requires", "applies_to",
-        "effective_date", "lifecycle", "settledness", "as_of_date", "stale",
-        "confidence", "resolved_from") + CARRY,
+        "effective_date", "lifecycle", "certainty", "settledness", "as_of_date",
+        "stale", "confidence", "resolved_from") + CARRY,
     "work_items": ("id", "lane", "title", "findings", "jurisdictions"),
     "vanished": ("id", "last_seen") + CARRY,
 }
@@ -1199,13 +1383,22 @@ def main():
         fh.write(doc_out)
     os.replace(a.output + ".lexlint-tmp", a.output)
 
-    cited = {(f.get("jurisdiction"), f.get("citation")) for f in out_f if f.get("citation")}
-    mirrors = 0
-    for f in out_f:
+    # `jurisdiction` is the slug a finding was READ FROM. `resolved_from`, set
+    # only when a parent answered, is the slug that was DECLARED. One corpus
+    # row read once comes back once per declared slug it answered for, every
+    # copy with the same `jurisdiction` and citation, so a mirror is any copy
+    # after the first. Whether the parent was declared too, or two cities of
+    # one undeclared state were, is not a distinction the count depends on.
+    def declared(f):
         rf = f.get("resolved_from")
-        parents = [rf] if isinstance(rf, str) else (rf or [])
-        mirrors += bool(f.get("citation")) and any((p, f["citation"]) in cited for p in parents)
-    seen = {f.get("jurisdiction") for f in out_f}
+        return [rf] if isinstance(rf, str) else list(rf or [f.get("jurisdiction")])
+    copies = {}
+    for f in out_f:
+        if f.get("citation") and f.get("jurisdiction"):
+            k = (f["jurisdiction"], f["citation"])
+            copies[k] = copies.get(k, 0) + 1
+    mirrors = sum(n - 1 for n in copies.values())
+    seen = {s for f in out_f for s in declared(f)}
     json.dump({
         "calls": calls, "corpus_built_at": corpus, "findings": len(out_f),
         "distinct_instruments": len(out_f) - mirrors, "mirrors": mirrors,
@@ -1229,7 +1422,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.37.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.38.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1243,7 +1436,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.37.0`, and `--summary` is the one sentence you author.
+`lexlint 1.38.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1263,16 +1456,22 @@ the same day: `findings` and `distinct_instruments` with `mirrors` between
 them, `triage_carried` and `triage_restored`, `vanished_added` and
 `vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
-question about a declared slug that never came back. A `triage_carried` of 0
+question about a declared slug that never came back. A slug counts as having
+come back when any finding names it in `resolved_from`, or in `jurisdiction`
+with no `resolved_from` beside it, so a city that answered from its state is
+not listed: it was linted, one rung up. A `triage_carried` of 0
 against a manifest that had acknowledgments is the failure this whole section
 is written against, and it is a number rather than a silence.
 
 `finding_fields_this_bundle_does_not_know` is the one to read even when it is
 the only thing that changed. A name in it means the corpus is ahead of your
 installed schema, which is the ordinary shape of an additive change and not a
-fault: say which fields were left out and that an update picks them up. It is
-also the most direct evidence there is that an update is worth taking, so
-pair it with the newer-version notice if you saw one.
+fault: say which fields were left out. Say that an update picks them up only
+when the preflight reported one (`update_available: true`), and pair the two
+notices then. When the preflight said this bundle is current, say that
+instead: the field is newer than any published bundle, no command the
+developer can run will bring it in, and promising that one will sends them
+after an update that changes nothing.
 
 **Without `python3` and PyYAML, write the block yourself**, to the same rules,
 which the script only mechanises. They fix the shape completely, and following
@@ -1300,7 +1499,8 @@ them gets you the same bytes:
   on the lint's own output, where the developer cannot fix it. Your schema is
   frozen at install and the corpus is not, so this is the ordinary way a
   newer field arrives: say which fields you left out, say that upgrading
-  picks them up on the next run, and do not invent a place to keep them.
+  picks them up on the next run only where the preflight reported a newer
+  version, and do not invent a place to keep them.
 - `lint.vanished` is sorted by `id`. Findings stay in the order the run
   returned them.
 
@@ -1579,6 +1779,16 @@ certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
 warning, never a silent pass, and unlinted is not the same as clean.
 
+**After the findings, say which findings rest on exactly one declared
+activity.** The `run_lint` response groups them for you in
+`declaration_sensitivity`, keyed by activity with the finding ids, so the
+developer can see what a value they doubt is carrying: strike that value and
+those are the findings that go with it. An activity nothing rests on alone is
+absent from it, and `{}` means no finding rests on a single value. If you
+marked a value as unsure in step 3 and nobody was there to answer, this is
+where the report names it, beside its group. On a split run (step 3) take the
+union of the calls' groups, and drop any id the merged run no longer holds.
+
 **Say what this run did not reach, every run, as its own section.** "Unlinted
 is not clean" is the rule above; this is the part that makes it operational,
 and it is the one thing in the report nobody can reconstruct afterwards. It is
@@ -1667,10 +1877,12 @@ Each file holds the payload plus the two fields that make it checkable:
 level so the check below can run without parsing the whole file.
 
 **Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
-walks up and answers from `us/ca`, reporting the walk in `resolved_from`. Filed
-under what was asked for, one corpus row lands in the cache repeatedly under
-slugs `check_access` has never heard of, and not one of those entries can be
-revalidated.
+walks up and answers from `us/ca`. The resolved slug is the payload's own
+`jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
+holds the slug you asked for, and it is present only when a parent answered.
+Filed under what was asked for, one corpus row lands in the cache repeatedly
+under slugs `check_access` has never heard of, and not one of those entries can
+be revalidated.
 
 ### Revalidating is free, so do it every run
 
@@ -1715,7 +1927,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.37.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.38.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1878,7 +2090,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.37.0`) and `record`. Leave `payload_hash` out: the server derives
+(`1.38.0`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 

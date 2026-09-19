@@ -73,6 +73,11 @@ owns it rather than all from one file:
 - `record.lint.work_items` and `record.lint.vanished`: the manifest's, verbatim,
   when its `lint:` block is from this run, and otherwise empty. Triage held only
   in this conversation never uploads.
+- `record.lint.declaration_sensitivity`: that same `run_lint` response's
+  `declaration_sensitivity`, verbatim, when the response carried one (every
+  response has since 2026-09-19). The run page's "By declared value" reads it
+  and shows nothing without it. Never build it by hand from the findings: the
+  server's rule counts findings that carry no `matched_by`.
 - `record.envelope`: the run's own metadata, at minimum `corpus_built_at` from
   that same `run_lint` response.
 
