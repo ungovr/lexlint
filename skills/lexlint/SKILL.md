@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.38.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.38.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.38.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.38.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.38.0`.** State it, do not go looking
+**That version string is yours and it is `1.38.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -206,7 +206,9 @@ one thing that actually moves it: approve it and you retry. A host that does
 not resolve cannot be fixed from here. A permission prompt can. Do not work
 around the refusal, do not reach for a different tool, and do not ask the
 developer to run the call by hand: what happens next is theirs to decide, not
-something to route through you. This covers the upload `curl` and the shell
+something to route through you. Name no setting, rule or flag that would let
+you make the call yourself: what the client allows is the developer's to
+change, unprompted, and offering it as an option is coaching. This covers the upload `curl` and the shell
 routes for an oversized response in step 3 of the loop as much as it covers a
 `run_lint` the client would not call.
 
@@ -264,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.38.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.38.1) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -740,7 +742,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.38.0"
+  client_version="1.38.1"
 )
 ```
 
@@ -938,15 +940,18 @@ record should say what the city returned.
 
 Three rules stop the mirror from inflating everything downstream:
 
-- **A finding is a mirror when another finding in the same run carries the
-  same `jurisdiction` and the same citation.** One corpus row read once
-  comes back once per declared slug it answered for, so the first copy is
-  the instrument and every copy after it is a mirror. Match on that pair,
-  never by comparing summaries, and never on whether a copy carries
-  `resolved_from`: two cities of one undeclared state are one instrument
-  twice, the same as a city beside its declared state. Declare the city
-  alone and its findings are the only copy: nothing to mirror, and nothing
-  to subtract.
+- **A finding carrying `resolved_from` mirrors the entry with the same
+  instrument key under the slug `jurisdiction` names, kept only when the two
+  share a citation.** `id` is `<declared slug>:<instrument key>`, so the
+  mirror's own instrument key, read off its id, is the same key the parent
+  carries under the answering slug: an exact id match, never a citation
+  guess, and never a fuzzy read of the summary. This is also the only match
+  that folds a citation-less coverage pair (a state and its city both
+  reporting "not shown" cite nothing to group on). **When the answering slug
+  was not itself declared, there is no parent entry to match against**: two
+  cities of one undeclared state still mirror each other, but the first one
+  read stands for the law and the rest mirror that one, so the pair counts
+  as one mirror, never zero and never two.
 - **Report distinct instruments, with the mirror count beside it**, never a
   bare total: "57 findings, 40 distinct instruments; the 17 under
   `us/ca/santa-barbara` are the `us/ca` ones again, which is where that city
@@ -1228,20 +1233,41 @@ def main():
     os.replace(a.output + ".lexlint-tmp", a.output)
 
     # `jurisdiction` is the slug a finding was READ FROM. `resolved_from`, set
-    # only when a parent answered, is the slug that was DECLARED. One corpus
-    # row read once comes back once per declared slug it answered for, every
-    # copy with the same `jurisdiction` and citation, so a mirror is any copy
-    # after the first. Whether the parent was declared too, or two cities of
-    # one undeclared state were, is not a distinction the count depends on.
+    # only when a parent answered, is the slug that was DECLARED. A mirror's
+    # id is `<declared>:<instrument key>`, so the entry it mirrors is that
+    # same key under the slug that answered it -- an exact id match, never a
+    # citation guess, and the only match that also folds a citation-less
+    # coverage pair (a state and a city both reporting "not shown" carry no
+    # citation to group on, and a join keyed on citation cannot see them).
     def declared(f):
         rf = f.get("resolved_from")
         return [rf] if isinstance(rf, str) else list(rf or [f.get("jurisdiction")])
-    copies = {}
+    by_id = {f["id"]: f for f in out_f if isinstance(f.get("id"), str)}
+    elected = {}
+    mirrors = 0
     for f in out_f:
-        if f.get("citation") and f.get("jurisdiction"):
-            k = (f["jurisdiction"], f["citation"])
-            copies[k] = copies.get(k, 0) + 1
-    mirrors = sum(n - 1 for n in copies.values())
+        fid = f.get("id")
+        answered_by = f.get("jurisdiction")
+        rf = f.get("resolved_from")
+        candidates = [rf] if isinstance(rf, str) else list(rf or [])
+        rf = next((c for c in candidates if isinstance(c, str) and c
+                   and isinstance(fid, str) and fid.startswith(c + ":")), None)
+        if not (rf and isinstance(answered_by, str) and answered_by and answered_by != rf):
+            continue
+        parent_id = answered_by + ":" + fid[len(rf) + 1:]
+        parent = by_id.get(parent_id)
+        if parent is None:
+            # No entry for the parent in this run: the first sibling to reach
+            # it stands for the law, and later siblings mirror THAT one, so
+            # two cities sharing one absent parent count as one mirror, never
+            # zero and never two.
+            head = elected.get(parent_id)
+            if head is None:
+                elected[parent_id] = f
+                continue
+            parent = head
+        if (f.get("citation") or "").strip() == (parent.get("citation") or "").strip():
+            mirrors += 1
     seen = {s for f in out_f for s in declared(f)}
     json.dump({
         "calls": calls, "corpus_built_at": corpus, "findings": len(out_f),
@@ -1266,7 +1292,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.38.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.38.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1280,7 +1306,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.38.0`, and `--summary` is the one sentence you author.
+`lexlint 1.38.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1771,7 +1797,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.38.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.38.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -1934,7 +1960,7 @@ defect this paragraph exists to close.
 
 **Build the payload.** It is the versioned object `schema:
 "ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.38.0`) and `record`. Leave `payload_hash` out: the server derives
+(`1.38.1`) and `record`. Leave `payload_hash` out: the server derives
 it from `record`. Take each part of the record from whatever owns it, which is
 not all one file:
 
