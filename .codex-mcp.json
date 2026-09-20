@@ -3,9 +3,12 @@
     "lexlint": {
       "type": "http",
       "url": "https://mcp.lexlint.org/mcp",
-      "headers": {
-        "X-API-Key": "${UNGOVR_API_KEY:-}",
+      "http_headers": {
+        "X-API-Key": "",
         "X-LexLint-Bundle": "1.39.2"
+      },
+      "env_http_headers": {
+        "X-API-Key": "UNGOVR_API_KEY"
       }
     }
   }
