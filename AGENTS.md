@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.39.2"`.
+**Run `check_access` before anything else**, pass `client_version: "1.39.3"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.39.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.39.2`.** State it, do not go looking
+**That version string is yours and it is `1.39.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.39.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.39.3) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -270,8 +270,14 @@ knows which model is reading this file is you.
 of a config file, an environment variable or a settings dump names whatever that
 file says, which is not necessarily the model reading this line.
 
-Lowercase your own model id, split it into words on every character that is
-not a letter, and test whether any one of those words is exactly a token in
+**What you were told is your model id, all of it, the product name included.**
+Some clients give a model its exact id. Others tell it only the product it
+runs in and a model generation, "X, an agent based on GPT-6", and never the
+tier, so there the product name is the only word that can match, and leaving it
+out stops the run on a notice that names the very model running it.
+
+Lowercase that, split it into words on every character that is not a letter,
+and test whether any one of those words is exactly a token in
 `tested_model_families`. **Whole words, never substrings.** `solar-pro` is not
 `sol` and `octopus-v2` is not `opus`, and a substring rule clears both: it
 fails by staying silent about a model nobody has tested, which is the one
@@ -930,7 +936,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.39.2"
+  client_version="1.39.3"
 )
 ```
 
@@ -1480,7 +1486,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.39.2' \
+    --run-at 2026-09-10 --tool 'lexlint 1.39.3' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1494,7 +1500,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.39.2`, and `--summary` is the one sentence you author.
+`lexlint 1.39.3`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1992,7 +1998,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.39.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2175,7 +2181,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.39.2`, the bundle that ran the lint. The
+- `client_version`: `1.39.3`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
