@@ -123,7 +123,10 @@ result. Report the refusal; never read a result out of it.
 `User-Agent` to look like a browser or like some other tool, here or anywhere
 else: it circumvents an access control the operator chose.
 
-On success, report the returned `run_url` and say the run is stored, and
+Say what became of the upload, in one line: the link the reply carried; that
+the developer said no; or that it was asked and did not land, refused, failed
+or state unknown, with the reason. On success, report the returned
+`run_url` and say the run is stored, and
 report `share_url` too when it came back: a trial key's account has no email
 to sign in with, so that link is its way back into the run, and it works for
 30 days. If `duplicate` came back true, say the run was already stored under

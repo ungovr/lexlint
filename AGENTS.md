@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.39.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.39.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.39.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.39.0`.** State it, do not go looking
+**That version string is yours and it is `1.39.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.39.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.39.1) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -448,16 +448,23 @@ running, and never offer a command from another entry.
 
   That registers the transport and not the key: `mcp add` has no flag for a
   custom header, and `--bearer-token-env-var` sends `Authorization`, which
-  this server does not read. Add
-  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }` by hand to the
+  this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
-  `~/.codex/config.toml`.
+  `~/.codex/config.toml`: `http_headers = { "X-API-Key" = "" }` and
+  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. The first is what
+  lets the server answer before there is a key: with the variable unset Codex
+  sends no header at all, this server reads no header as a sign-in it cannot
+  offer, and no tools appear (measured on Codex 0.155, 2026-09-20). An empty
+  header is read as no key, the tools appear, and the variable's value
+  replaces it the moment it is set.
 - **Key** persisted to `UNGOVR_API_KEY` in the environment Codex starts from,
   named by the `env_http_headers` line in `~/.codex/config.toml`
 
   The value in that line is the variable's NAME, not the key itself. Codex
   reads it at connect time, so a key exported into a running session is read
-  by nothing.
+  by nothing, and so is a key saved anywhere but the shell profile Codex
+  starts from: a private file or a note of the agent's own is a stranded key,
+  which is how run 17 of the first-run funnel ended.
 
 - **Saved-key check**
   `grep -l UNGOVR_API_KEY ~/.codex/config.toml ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile ~/.config/fish/config.fish 2>/dev/null`
@@ -923,7 +930,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.39.0"
+  client_version="1.39.1"
 )
 ```
 
@@ -1473,7 +1480,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.39.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.39.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1487,7 +1494,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.39.0`, and `--summary` is the one sentence you author.
+`lexlint 1.39.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1830,6 +1837,13 @@ certification, or a clean bill of health, and never suppress a coverage warning
 to make a summary look tidier. A jurisdiction LexLint has no data for is a
 warning, never a silent pass, and unlinted is not the same as clean.
 
+**Say what became of the upload**, in one line: the `run_url` or `share_url`
+the reply carried; that the developer said no; or that it was asked and did
+not land, refused, failed or state unknown, with the reason the upload
+section's failure rule asks for. A report with none of these has skipped the
+close, and a headless or CI session, where nothing is asked and nothing is
+sent, says that instead.
+
 **After the findings, say which findings rest on exactly one declared
 activity.** The `run_lint` response groups them for you in
 `declaration_sensitivity`, keyed by activity with the finding ids, so the
@@ -1978,7 +1992,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.39.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2161,7 +2175,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.39.0`, the bundle that ran the lint. The
+- `client_version`: `1.39.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
