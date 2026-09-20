@@ -173,7 +173,9 @@ Two things worth knowing when an update looks like it did not take:
 
 You do not have to track releases yourself. Every `check_access` and every
 `run_lint` reply tells you the version you are running and whether a newer one
-exists, so the skill will say so at the top of a run when it matters.
+exists, so the skill will say so at the top of a run when it matters. The
+bundle's server entry sends its own version on every call, so that answer
+does not depend on the session remembering to ask.
 
 ## What it costs
 

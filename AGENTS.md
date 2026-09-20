@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.38.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.39.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.38.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.38.1`.** State it, do not go looking
+**That version string is yours and it is `1.39.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -179,9 +179,9 @@ around the refusal, do not reach for a different tool, and do not ask the
 developer to run the call by hand: what happens next is theirs to decide, not
 something to route through you. Name no setting, rule or flag that would let
 you make the call yourself: what the client allows is the developer's to
-change, unprompted, and offering it as an option is coaching. This covers the upload `curl` and the shell
+change, unprompted, and offering it as an option is coaching. This covers the shell
 routes for an oversized response in step 3 of the loop as much as it covers a
-`run_lint` the client would not call.
+`run_lint` or an `upload_lint_run` the client would not call.
 
 **Route 3 in step 3 is the one exception, and it is not an exception to the
 rule so much as a case the rule does not describe.** When a shell is refused
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.38.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.39.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -506,6 +506,34 @@ running, and never offer a command from another entry.
 
   Nothing is installed there to update.
 
+**Claude desktop app, agentic mode**
+
+- **Install** not available here.
+
+  The Claude desktop app's agentic mode is the one Claude surface the plugin
+  cannot be keyed on: the bundle's server entry sends
+  `X-API-Key: ${UNGOVR_API_KEY:-}`, and this surface never expands a plugin's
+  header variable, whatever the value is saved in, and shows nothing when it
+  declines to (upstream report anthropics/claude-code#94395, open on
+  2026-09-19). What it sends in the header's place is unmeasured, so there is
+  no version of these steps LexLint can stand behind here. Set LexLint up in
+  Claude Code in a terminal or an IDE, which is the Claude Code entry, or
+  paste the first-run line into a Claude Code session there; the document is
+  https://lexlint.org/first-run either way.
+- **Key** not available here.
+
+  There is nowhere on this surface a key can reach the plugin from: the header
+  variable is not expanded here, so a key saved in the user settings file, the
+  shell profile or the environment is sent to the server by nothing. The
+  no-account trial key does not help either, because it still has to land
+  somewhere the connection reads it from; say that plainly rather than walking
+  a developer through steps their surface cannot take, and send them to Claude
+  Code in a terminal or an IDE.
+- **Update** not available here.
+
+  Nothing LexLint can key is installed here to update. Update from a terminal,
+  as the Claude Code entry says.
+
 **Any other MCP client**
 
 - **Install** `https://mcp.lexlint.org/mcp`
@@ -542,23 +570,25 @@ running, and never offer a command from another entry.
   are always current. What goes stale is this procedure itself. Re-read it
   from the current bundle at https://github.com/ungovr/lexlint
 
-## Four tools that make this cheaper, and none of them required
+## Two tools that make this cheaper, and neither of them required
 
-Everything below works with no shell at all. Four ordinary tools make it
+Everything below works with no shell at all. Two ordinary tools make it
 cheaper, and it is worth knowing which you have before you need them:
 
 | Tool | What it saves | Where |
 |---|---|---|
-| `jq` | keeps a `run_lint` response out of your context entirely | step 3, and the hash below |
+| `jq` | keeps a `run_lint` response out of your context entirely | step 3 |
 | `python3` with PyYAML | writes the merged `lint:` block without it passing through your output | step 4 |
-| `curl` | keeps the upload payload out of your own output | "Uploading a run" |
-| `sha256sum` | computes `payload_hash`, only if you choose to send one | "Uploading a run" |
+
+The upload needs neither: it is one tool call carrying the declaration, and
+the server rebuilds the findings, so nothing of size ever passes through your
+output on the way out.
 
 **Check once, lazily, and remember the answer.** The first time you want one of
 them, ask in a single command rather than probing per call:
 
 ```bash
-command -v jq curl sha256sum shasum python3
+command -v jq python3
 python3 -c 'import yaml'
 ```
 
@@ -567,12 +597,9 @@ It is not in the standard library, so an interpreter on the PATH is not an
 answer on its own, and the second line exits non-zero on the machines where
 they part. Nothing else in this procedure needs it.
 
-**`shasum` is in that list on purpose**: macOS ships it and does not ship
-`sha256sum`, so probing only the GNU name reports the hash tool missing on a
-Mac that has one. Either name counts as present, and where you use it, it is
-`shasum -a 256`. **If the command itself cannot run, you have no shell**, which
-is a different situation from a missing tool and is answered in step 3 by a
-route that needs neither.
+**If the command itself cannot run, you have no shell**, which is a different
+situation from a missing tool and is answered in step 3 by a route that needs
+neither.
 
 **When one is missing, the flows still work.** Every place these appear names
 the route to take without them, and none of those routes is a degraded lint:
@@ -591,8 +618,6 @@ then not again:
   call.
 - You wrote the manifest and had no `python3` with PyYAML, so the whole
   `lint:` block came out through your own output.
-- An upload happened and you had no `curl`, so the payload went through your
-  own output to reach the tool.
 
 One line, in the report, phrased as the fact it is:
 
@@ -898,7 +923,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.38.1"
+  client_version="1.39.0"
 )
 ```
 
@@ -1448,7 +1473,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.38.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.39.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1462,7 +1487,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.38.1`, and `--summary` is the one sentence you author.
+`lexlint 1.39.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1953,7 +1978,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.38.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.39.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2071,41 +2096,31 @@ the account the key belongs to, and hands back the portal URL and, for a trial
 key, a share URL that needs no sign-in. It is the only way a run ever leaves
 the repository: nothing else in this procedure sends findings, work items, or
 the manifest anywhere. It runs at the close of the run that produced it, after
-the developer has seen the payload and approved the call, at your client's
-prompt or, where it asks nothing, at yours.
+the developer has seen what will be sent and approved the call, at your
+client's prompt or, where it asks nothing, at yours.
+
+**It is one tool call, and nothing else.** The call sends the declaration
+`run_lint` ran on and two values from its reply, and the server rebuilds the
+findings itself from that same declaration, judged at that same instant, so
+what is stored is what the developer was shown. No shell, no file outside the
+tree, no key read out of anything, and no findings array passing through your
+output: the whole call is a few hundred bytes plus whatever triage the
+developer has written. That is the route, and the only one this procedure
+gives.
 
 **Preconditions.** The `run_lint` response from a completed `/lexlint` run in
 this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
-`app` and `profile` supplies `record.app` and `record.profile` when it exists.
-On a first run with no manifest yet, `record.app` is `{"name": ...}` with the
-repository's own name (its package manifest's name, else its directory), and
-`record.profile` is the declaration the run was made with, `activities` and
-`jurisdictions` exactly as sent.
+`app` and `profile` supplies the name and the declaration when it exists. On a
+first run with no manifest yet, the name is the repository's own (its package
+manifest's name, else its directory), and the declaration is the one the run
+was made with, `activities` and `jurisdictions` exactly as sent.
 
-**A first run that could not upload itself leaves its record on disk, and
-that record is the other thing this step uploads.** The first-run
-procedure at https://lexlint.org/first-run writes the run it made to
-`/tmp/lexlint-first-run/record.json`, and when the client refused the upload's
-shell commands it leaves that file in place and hands the upload to the next
-session. So with no `run_lint` response in this session, look there first,
-and take it only when its `app.name` is this repository's own name (its
-package manifest's name, else its directory, the rule the first run filled it
-by): the path is shared by every repository on the machine, and a record
-naming another one is somebody else's run, so say so and leave it. That file
-is already the `record` object, `app`, `profile`, `lint.findings`
-and `envelope` exactly as the run made them: read it with your file tool, wrap
-it in the payload below, show it as the approval rule says, and send it as a
-tool call, never as a shell command. Leave `client_version` out of that payload: the
-field means the bundle version that ran the lint, and this lint was run by
-the first-run procedure, not by this bundle. A shell command is what that session could not run, and
-the tool call needs none; the payload passes through your own output, which is
-the cost and the point. Remove the directory only once the reply confirms the
-run is stored, `run_url` present or `duplicate` true:
-`rm -rf /tmp/lexlint-first-run`. A refusal, an error or a dropped connection
-keeps the record where it is, for the retry the failure rule below describes.
-
-Missing both, the `run_lint` response and a saved record, say so, run
-`/lexlint` first, and stop rather than building a partial payload.
+Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
+again against today's corpus and closes by uploading. That includes a session
+opened after a first run whose upload was refused. The first-run procedure at
+https://lexlint.org/first-run sends the declaration and not the findings and
+writes no record of its own, so there is no file waiting for a later session
+to send, and nothing on this machine to look for.
 
 **A manifest with no `lint:` block is not a missing precondition.** The run
 being uploaded is the `run_lint` response, which you have; the `lint:` block is
@@ -2114,151 +2129,64 @@ come yet. Upload the run and say the work items are empty. Stopping here
 instead strands a completed run behind an unrelated approval gate, which is the
 defect this paragraph exists to close.
 
-**Build the payload.** It is the versioned object `schema:
-"ungovr.lexlint-upload/1"`, `generated_at` (now, in UTC), `client_version`
-(`1.38.1`) and `record`. Leave `payload_hash` out: the server derives
-it from `record`. Take each part of the record from whatever owns it, which is
-not all one file:
+**Build the arguments.** Take each from whatever owns it, which is not all one
+file:
 
-- `record.app`: the manifest's `app` block, or the first-run name above when
-  there is no manifest, with `scope` set to what this run actually read.
-  Verbatim is right for every other key, and wrong for this one whenever the
-  scope came from the request rather than the file: a one-off scope is
-  deliberately never written to the manifest, so copying `app` wholesale
-  uploads a run over one directory with no scope at all, and the portal
-  captions it `whole repository`. Nothing downstream catches it. When the run
-  read the whole repository, leave `scope` off.
-- `record.profile`: the manifest's `profile` block, verbatim, or the first-run
-  declaration above.
-- `record.lint.findings`: **this session's `run_lint` response**, which is the
-  run being uploaded. Where the manifest's merged block covers this same run,
-  carry `state`, `where`, `note` and `handled_by` across per finding id, the
-  same four fields step 4 carries: they are the developer's, and the run has no
-  opinion about them. The set of findings is always the run's.
-- `record.lint.work_items` and `record.lint.vanished`: the manifest's,
-  verbatim, when its `lint:` block is from this run. Otherwise `work_items` is
-  empty. **Triage that lives only in this conversation never uploads**: a plan
-  the developer has not approved and the repo does not hold is not part of the
-  record, and sending it files their name to work items they never agreed to.
-- `record.envelope`: the run's own metadata, at minimum `corpus_built_at`
-  from that same `run_lint` response, so the portal can show how current the
-  corpus was when the run happened.
+- `record.app`, which the server builds from `app_name`, `app_repo` and
+  `app_scope`: the manifest's `app.name`, or the first-run name above; its
+  `app.repo` when it has one; and `app_scope` set to what this run actually
+  read, whenever that was one directory rather than the whole repository. A
+  `/lexlint <path>` scope is deliberately never written to the manifest, so
+  copying `app` wholesale uploads a run over one directory carrying no scope
+  at all, and the portal captions it `whole repository`. Leave `app_scope`
+  out only when the run read the whole repository.
+- `activities` and `jurisdictions`: the two lists `run_lint` was called with,
+  exactly as sent, and never the manifest's where the two differ. The server
+  rebuilds from what you send, so a declaration the run did not use stores a
+  run that never happened.
+- `corpus_built_at` and `run_at`: both from that same `run_lint` response,
+  verbatim. The server refuses the call when its corpus has moved since, or
+  when `run_at` is more than an hour old, because either way the findings it
+  would store are not the ones the developer approved. Both refusals name the
+  same remedy: lint again, show the developer the new result, and upload that.
+- `work_items` and `vanished`: the manifest's, verbatim, when its `lint:`
+  block is from this run. Otherwise leave both out. **Triage that lives only
+  in this conversation never uploads**: a plan the developer has not approved
+  and the repo does not hold is not part of the record, and sending it files
+  their name to work items they never agreed to.
+- `findings_state`: the developer's per-finding triage, keyed by finding id.
+  Where the manifest's merged block covers this same run, take `state`,
+  `where`, `note` and `handled_by` from every finding that carries any of
+  them, the same four fields step 4 carries across: they are the developer's,
+  and the run has no opinion about them. Leave the argument out when no
+  finding carries one. An id the run does not carry is refused, and that is
+  right: the triage is another run's.
+- `client_version`: `1.39.0`, the bundle that ran the lint. The
+  bundle's own server entry sends it on every call as well, so the server
+  has it either way.
 
-**Never pair one run's findings with another run's envelope.** A committed
-manifest normally holds the *previous* run's `lint:` block, so copying it
-wholesale while `corpus_built_at` comes from today's run files a run that never
-happened: older findings stamped with a newer corpus date. Nothing downstream
-catches it. The hash is computed over whatever you assembled, so it matches,
-and the server accepts it. Compare the manifest's `lint.run_at` and its finding
-ids against the response in hand, and on any disagreement treat the block as
-the previous run's and take only the four overlay fields from it.
+**Never pair one run's triage with another run's reply.** A committed manifest
+normally holds the *previous* run's `lint:` block. Compare its `lint.run_at`
+and its finding ids against the response in hand, and on any disagreement
+take nothing from the block but the four overlay fields, for the ids both
+carry, and leave `work_items` out. The server keeps the other half of this
+rule: an id it did not rebuild is refused rather than stored.
 
-Never put into the payload: the API key or any other credential, source
-files, prompts or transcripts, or git usernames, emails, or remote URLs. None
-of those are part of the record schema, and none belong on a page anyone but
-the developer can see.
+Nothing else goes in the call, and nothing else could: the tool takes no
+credential, no source file, no prompt or transcript and no git identity, and
+what the server stores is the app name, the declaration, the findings it
+rebuilt, the triage you sent and the corpus date.
 
-**`payload_hash` is the server's, and the rest of this section is for a
-client that sends one anyway.** An upload without the field is accepted and
-the server fills it in from `record`, so nothing below is needed
-to upload a run and the default is to leave it out. A CI step that wants to
-assert the digest itself can still send it, and then it must be exact: it is
-the sha256 hex digest of the canonical JSON encoding of `record`, the server
-recomputes that same digest from the `record` you send and refuses the upload
-on any mismatch, so "close" does not pass. Canonical means three things together: object keys
-sorted, the two JSON separators tightened to `,` and `:` with no space after
-either, and every non-ASCII character left as raw UTF-8 rather than
-backslash-escaped. That is exactly what Python's `json.dumps` returns when
-called with `record`, `sort_keys=True`, `separators=(",", ":")` and
-`ensure_ascii=False`, hashed with `hashlib.sha256` and hex-encoded:
-
-```python
-hashlib.sha256 (json.dumps (record, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode ()).hexdigest ()
-```
-
-That is the reference for any language, not only Python: reproduce the three
-properties above exactly, not "compact JSON" in general, because a library's
-own default separators or its own escaping of non-ASCII characters will not
-match the server's and the upload will 400.
-
-**With `jq` and a hash tool you never need the bytes at all.** Write `record`
-to a file and canonicalize and hash it on disk. This is byte-identical to the
-reference above, because `-S` sorts keys at every level, `-c` gives exactly the
-two tight separators, and jq emits raw UTF-8 rather than escaping it:
-
-```bash
-jq -cS . record.json | tr -d '\n' | sha256sum | cut -d' ' -f1
-```
-
-`tr` removes the newline jq adds, which is not part of the digest. On macOS use
-`shasum -a 256` in place of `sha256sum`. Together with posting the file
-directly, this means the payload is built, hashed and sent without one byte of
-it passing through you, so a 100 KB record costs what a small one does.
-
-**Numbers are the one place the two can part, so check for them rather than
-assuming.** No part of a record is *supposed* to hold one: nothing in the
-upload schema declares a numeric field, and a `run_lint` response carries no
-numbers at any path. But `app`, `profile`, `lint` and each finding are all
-deliberately open to fields a newer client might add, and `app` and `profile`
-are copied out of the developer's own `lexlint.yml` verbatim, so "supposed to"
-is not the same as "cannot". Two commands settle it, on the same file you are about to hash. Both should
-answer `0`:
-
-```bash
-jq '[.. | numbers] | length' record.json
-jq -r '.. | strings' record.json | grep -c $'\x7f'
-```
-
-The first counts numbers. **The second is for one character, and it is the
-only non-number case where the two encoders part: DEL, U+007F.** The reference
-writes it as a raw byte and jq writes the six-character escape `\u007f`, so a
-record carrying one hashes two different ways while the number count still
-answers zero. It is checked at the value level rather than by grepping the
-file, because the character can arrive either as a raw byte or as a `\u007f`
-escape in the manifest and only the parsed value shows both. Every other
-control character, every C1 byte, U+2028 and U+FEFF all agree.
-
-**Both zero, and the pipeline is exact.** Either one non-zero, and something
-arrived from the manifest rather than from LexLint: look at it, and hash the
-record with the reference implementation instead of the pipeline, saying in
-the report that you did.
-
-The reason to know the rule anyway is that it is not a short list of
-exceptions you can check off. jq passes the number literal through as you
-wrote it; the reference re-renders whatever it parsed. So they differ for any
-literal that is not already exactly what the reference would print, and that
-is more shapes than it sounds:
-
-- `1e3` and `1E3` both become `1000.0` through the reference, and `1E+3` to jq.
-- `0.1234567890123456789` keeps its digits in jq and rounds to
-  `0.12345678901234568` through the reference, which holds it as a double.
-- `1.7976931348623157e309` becomes `Infinity` through the reference, which is
-  not JSON at all.
-- `-0` becomes `0` through the reference, which reads it as an integer and
-  drops the sign, while jq keeps `-0`.
-
-Those are illustrations, not a checklist: treat any number you type as
-suspect. If a record ever genuinely needs one, compute the digest with the
-reference implementation rather than the pipeline, and note in the report that
-you did.
-
-Without both tools, leave the field out, which is the default in any case. If
-you have decided to send it, use the reference implementation in whatever language you
-have, and if that means the payload passes through your own output, that is the
-cost rather than a fault: say so once at the end, as "Three tools that make
-this cheaper" describes, and upload normally.
-
-**Show the consent preview, then wait.** Before calling the tool, print
-exactly what is about to leave the repository:
+**Show the consent preview, then wait for the approval.** Before calling the
+tool, print exactly what is about to leave the repository:
 
 | Field | Value |
 |---|---|
-| Findings | 31 |
+| Findings | 31, rebuilt by the server from the declaration below |
 | Jurisdictions | `us` `us/ca` `eu` +3 more |
 | Work items | 5 |
-| Size | 14.2 KB |
+| Triage carried | 12 findings with a state, place, note or owner |
 | Destination | the account of key `ung_live_<prefix>...` |
-| Payload hash | the sha256 hex digest just computed |
 
 Give the jurisdictions cell the same three-and-a-count treatment as
 everywhere else in this procedure, and name the full list in a line under the
@@ -2277,87 +2205,22 @@ Then ask for an explicit yes. **No yes, no call.** Not because the plugin is
 installed, not because a previous session said yes, and never in a headless
 or CI session, where there is nobody to give one.
 
-**Send the payload from disk rather than through your own output.** A real
-payload is around 100 KB of legal text, and passing it as a tool argument means
-reproducing every one of those bytes in your own output, where the server's
-hash check turns the smallest slip into a refused upload. The relay buys
-nothing: these tools are ordinary JSON-RPC over HTTPS, and the key you already
-hold authenticates a direct call. The approval rule above applies to this curl
-exactly as it would to the tool call. Write the request to a file, with the
-payload nested where the tool call expects it:
+**A refusal is a reply, not a failed call.** The server answers a refusal as
+JSON-RPC, HTTP 200 with an `error` member in place of a `result`, and your
+client hands it to you as the tool's result. A reply carrying `error` stored
+nothing and has no `run_url`; `error.message` says what to fix, and for a
+moved corpus or a stale `run_at` that is to lint again and upload the new
+result. Report the refusal; never read a result out of it.
 
-```json
-{"jsonrpc": "2.0", "id": 1, "method": "tools/call",
- "params": {"name": "upload_lint_run",
-            "arguments": {"payload": {"schema": "ungovr.lexlint-upload/1"}}}}
-```
-
-then post that file:
-
-```bash
-curl -sS --fail-with-body https://mcp.lexlint.org/mcp \
-  -H 'Content-Type: application/json' \
-  -H "X-API-Key: $UNGOVR_API_KEY" \
-  --data-binary @upload-request.json
-```
-
-No `initialize` call first, no session to carry, and no `Accept:
-text/event-stream`: the server keeps no state and answers a plain JSON POST
-with plain JSON. Read `run_url`, `share_url` and `duplicate` out of the reply
-exactly as you would out of a tool result.
-
-**Check the reply for an error before you read anything else out of it**, on
-this route and on every other `curl` in this document. There are two ways it
-can carry one and neither one shows up as a failed command. `curl -sS` on its
-own exits 0 on a 500 and prints the edge's error page as though it were the
-answer, which is what `--fail-with-body` is there to stop: it prints the body
-and exits non-zero. And a call the server read and refused comes back HTTP
-200 with an `error` member instead of a `result`, so no exit code will ever
-say so. A reply carrying `error` has no `run_url` and no findings, and
-`error.message` says what to fix. Report the refusal; never read a result out
-of it.
-
-**Then delete both files, and write them outside the repository in the first
-place.** There are two: the request, and the `record.json` the hash pipeline
-above reads. Each holds the complete findings and the developer's own triage,
-and a file left in the working tree is a file that gets committed by the next
-`git add .` This procedure says elsewhere that nothing about an upload is
-recorded in the repo, and a stray `record.json` in the project root is exactly
-that record. Put both in a temporary directory, delete both when the reply is
-read, and if a write outside the repository is not possible, delete them
-immediately and say in the report that they existed. On a machine other people can read, keep the key out of the process
-list by handing curl its configuration on standard input instead of passing
-`-H`:
-
-```bash
-curl -sS --config - <<CFG
-url = "https://mcp.lexlint.org/mcp"
-fail-with-body
-header = "Content-Type: application/json"
-header = "X-API-Key: $UNGOVR_API_KEY"
-data-binary = "@upload-request.json"
-CFG
-```
-
-**`curl` works against this endpoint and Python's `urllib` does not.** The
-identical request from `urllib.request` comes back `403` with Cloudflare error
-`1010`, "browser signature banned", because the edge in front of this endpoint
-refuses that client's signature. That is a fact about our edge rather than
-about your machine, so try a second ordinary client before concluding the route
-is closed. Not doing that is what cost the first session to try this several
-steps.
-
-**A blocked client is never a reason to forge an identity.** Do not set a
+**A blocked route is never a reason to forge an identity.** Do not set a
 `User-Agent` to look like a browser or like some other tool, here or anywhere
 else: it circumvents an access control the operator chose, and the operator
-being us changes nothing about that. Where no ordinary HTTP client is
-available, call `upload_lint_run(payload)` as a tool and accept the relay. That
-path works, and it is not going away.
+being us changes nothing about that.
 
-**Report what came back, by whichever route sent it.** On success, print the
-returned `run_url` and say the run is stored. Print `share_url` too when it
-came back: that is a trial key's own way in, since its account has no email to
-sign in with, and the link works for 30 days. If `duplicate` came back true, say the run was
+**Report what came back.** On success, print the returned `run_url` and say
+the run is stored. Print `share_url` too when it came back: that is a trial
+key's own way in, since its account has no email to sign in with, and the
+link works for 30 days. If `duplicate` came back true, say the run was
 already stored under that URL rather than uploaded again: the portal keys on
 the account and the payload hash together, so re-sending the same run is
 always safe and never files a second copy.

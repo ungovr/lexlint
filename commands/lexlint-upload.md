@@ -7,108 +7,84 @@ you its URL once it lands.
 
 **This is the closing step of a lint run that produced findings, and the
 approval you give to the call is the yes.** A run closes by uploading itself,
-and that is the only place it is raised unprompted: the payload is shown first,
-exactly what leaves the repository, and a declined approval means nothing was
-sent. Never volunteer it anywhere else, and never run it in a headless or CI
-session, where with nobody there to approve the payload there is nothing to
-upload.
+and that is the only place it is raised unprompted: what will be sent is shown
+first, exactly what leaves the repository, and a declined approval means
+nothing was sent. Never volunteer it anywhere else, and never run it in a
+headless or CI session, where with nobody there to approve it there is
+nothing to upload.
+
+**It is one tool call, and nothing else.** `upload_lint_run` takes the
+declaration `run_lint` ran on and two values from its reply, and the server
+rebuilds the findings itself from that declaration, judged at that same
+instant, so what is stored is what you were shown. No shell, no file outside
+the tree, no findings array passing through the agent's output: the call is a
+few hundred bytes plus whatever triage you have written.
 
 ## 1. Check the preconditions
 
 The `run_lint` response from a completed `/lexlint` run in this session, which
-is the run being uploaded. A `lexlint.yml` on disk carrying `app` and `profile`
-supplies `record.app` and `record.profile` when it exists. On a first run with
-no manifest yet, `record.app` is `{"name": ...}` with the repository's own name
-(its package manifest's name, else its directory), and `record.profile` is the
-declaration the run was made with, `activities` and `jurisdictions` exactly as
-sent.
+is the run being uploaded. A `lexlint.yml` on disk carrying `app` and
+`profile` supplies the name and the declaration when it exists. On a first run
+with no manifest yet, the name is the repository's own (its package manifest's
+name, else its directory), and the declaration is the one the run was made
+with, `activities` and `jurisdictions` exactly as sent.
 
-**A first run that could not upload itself leaves its record on disk, and
-that record is the other thing this command uploads.** The first-run
-procedure at https://lexlint.org/first-run writes the run it made to
-`/tmp/lexlint-first-run/record.json`, and when the client refused the upload's
-shell commands it leaves that file in place and hands the upload to the next
-session. So with no `run_lint` response in this session, look there first,
-and take it only when its `app.name` is this repository's own name (its
-package manifest's name, else its directory, the rule the first run filled it
-by): the path is shared by every repository on the machine, and a record
-naming another one is somebody else's run, so say so and leave it. That file
-is already the `record` object, `app`, `profile`, `lint.findings`
-and `envelope` exactly as the run made them: read it with your file tool, wrap
-it in the `ungovr.lexlint-upload/1` payload of section 2, show it as section 3
-says, and send it as a tool call, `upload_lint_run(payload)`, never as the
-`curl` in section 4. Leave `client_version` out of that payload: the
-field means the bundle version that ran the lint, and this lint was run by
-the first-run procedure, not by this bundle. A shell command is what that session could not run, and
-the tool call needs none; the payload passes through your own output, which is
-the cost and the point. Remove the directory only once the reply confirms the
-run is stored, `run_url` present or `duplicate` true:
-`rm -rf /tmp/lexlint-first-run`. A refusal, an error or a dropped connection
-keeps the record where it is, for the retry the failure rule below describes.
-
-Missing both, the `run_lint` response and a saved record, say so, run
-`/lexlint` first, and stop rather than building a partial payload.
+Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
+again against today's corpus and closes by uploading. That includes a session
+opened after a first run whose upload was refused. The first-run procedure at
+https://lexlint.org/first-run sends the declaration and not the findings and
+writes no record of its own, so there is no file waiting for a later session
+to send, and nothing on this machine to look for.
 
 A manifest with **no `lint:` block is not a missing precondition**. The run
 being uploaded is the `run_lint` response, which you have; the `lint:` block is
 written by the loop's merge and triage steps, and triage waits on an approval
 that may not have come yet. Upload the run and say the work items are empty.
 
-## 2. Build the payload
+## 2. Build the arguments
 
-Assemble the `ungovr.lexlint-upload/1` object, taking each part from whatever
-owns it rather than all from one file:
+Take each from whatever owns it rather than all from one file:
 
-- `record.app` and `record.profile`: the manifest's, verbatim, or the first-run
-  name and declaration above when there is no manifest, with one exception:
-  `app.scope` is what this run actually read. A `/lexlint <path>` scope is
-  deliberately never written to the manifest, so copying `app` wholesale
-  uploads a run over one directory carrying no scope, and the portal captions
-  it `whole repository` on the run page, in the run list and on the counsel
-  cover. Leave `scope` off only when the run read the whole repository.
-- `record.lint.findings`: this session's `run_lint` response, which is the run
-  being uploaded. Where the manifest's merged block covers this same run, carry
-  `state`, `where`, `note` and `handled_by` across per finding id. The set of
-  findings is always the run's.
-- `record.lint.work_items` and `record.lint.vanished`: the manifest's, verbatim,
-  when its `lint:` block is from this run, and otherwise empty. Triage held only
-  in this conversation never uploads.
-- `record.lint.declaration_sensitivity`: that same `run_lint` response's
-  `declaration_sensitivity`, verbatim, when the response carried one (every
-  response has since 2026-09-19). The run page's "By declared value" reads it
-  and shows nothing without it. Never build it by hand from the findings: the
-  server's rule counts findings that carry no `matched_by`.
-- `record.envelope`: the run's own metadata, at minimum `corpus_built_at` from
-  that same `run_lint` response.
+- `record.app`, which the server builds from `app_name`, `app_repo` and
+  `app_scope`: the manifest's `app.name`, or the first-run name above; its
+  `app.repo` when it has one; and `app_scope` set to what this run actually
+  read, whenever that was one directory rather than the whole repository. A
+  `/lexlint <path>` scope is deliberately never written to the manifest, so
+  copying `app` wholesale uploads a run over one directory carrying no scope
+  at all, and the portal captions it `whole repository`. Leave `app_scope`
+  out only when the run read the whole repository.
+- `activities` and `jurisdictions`: the two lists `run_lint` was called with,
+  exactly as sent, and never the manifest's where the two differ. The server
+  rebuilds from what you send, so a declaration the run did not use stores a
+  run that never happened.
+- `corpus_built_at` and `run_at`: both from that same `run_lint` response,
+  verbatim. The server refuses the call when its corpus has moved since, or
+  when `run_at` is more than an hour old, because either way the findings it
+  would store are not the ones the developer approved. Both refusals name the
+  same remedy: lint again, show the new result, and upload that.
+- `work_items` and `vanished`: the manifest's, verbatim, when its `lint:`
+  block is from this run. Otherwise leave both out. Triage held only in this
+  conversation never uploads.
+- `findings_state`: the developer's per-finding triage, keyed by finding id.
+  Where the manifest's merged block covers this same run, take `state`,
+  `where`, `note` and `handled_by` from every finding that carries any of
+  them: they are the developer's, and the run has no opinion about them.
+  Leave the argument out when no finding carries one. An id the run does not
+  carry is refused, and that is right: the triage is another run's.
+- `client_version`: the bundle version from the skill you are running. The
+  bundle's own server entry sends it on every call as well, so the server has
+  it either way.
 
-**Never pair one run's findings with another run's envelope.** A committed
-manifest normally holds the previous run's `lint:` block, and copying it
-wholesale under today's `corpus_built_at` files a run that never happened. The
-hash is computed over whatever you assembled, so nothing downstream catches it.
+**Never pair one run's triage with another run's reply.** A committed
+manifest normally holds the previous run's `lint:` block. Compare its
+`lint.run_at` and its finding ids against the response in hand, and on any
+disagreement take nothing from the block but the four overlay fields, for the
+ids both carry, and leave `work_items` out.
 
-Never include the API key or any other credential, source files, prompts or
-transcripts, or git usernames, emails, or remote URLs.
+Nothing else goes in the call, and nothing else could: the tool takes no
+credential, no source file, no prompt or transcript and no git identity.
 
-Leave `payload_hash` out. The server derives it from `record` and stores the
-filled-in object, so nothing you run produces it. A payload that carries one
-must match the server's exactly (the sha256 hex digest of the canonical JSON
-encoding of `record`: keys sorted, `,` and `:` with no space after either,
-non-ASCII left as raw UTF-8) and is refused otherwise, so sending it is a
-check you can add, never a step you need. The skill's "Uploading a run"
-section carries the on-disk recipe and its caveats for a client that sends it
-anyway.
-
-**On mentioning a tool you do not have:** the same restraint as the skill.
-Say it once, in this session, and only if its absence actually cost something
-here (the payload went through your own output because there was no `curl`).
-Never because a tool is merely missing, never twice, never before the result,
-and not at all in a headless or CI session or on a client with no shell,
-where nobody can act on it and installing the tool would change nothing.
-
-Without `curl`, call `upload_lint_run(payload)` as a tool and accept that the
-payload passes through your own output. That works; the cost is the bytes.
-
-## 3. Show the exact payload and wait
+## 3. Show the exact arguments and wait
 
 Print what is about to leave the repository, in full, before calling
 anything:
@@ -116,67 +92,42 @@ anything:
 ```
 LexLint will upload exactly this:
 
-  findings:      <count>
-  jurisdictions: <three slugs, plus a count if there are more>
-  work items:    <count, or "0, the manifest holds no merged run yet">
-  size:          <payload size>
-  destination:   the account of key ung_live_<prefix>...
+  findings:       <count>, rebuilt by the server from the declaration below
+  jurisdictions:  <three slugs, plus a count if there are more>
+  work items:     <count, or "0, the manifest holds no merged run yet">
+  triage carried: <count of findings with a state, place, note or owner>
+  destination:    the account of key ung_live_<prefix>...
 ```
 
-Then send it. If your client asks before it runs the command or the tool
-call, that prompt is the developer's yes and there is no second question to
-ask. If it will not ask (a pre-approved shell, a skip-permissions or full-auto
-session, any client that runs commands without a prompt), ask the developer
-yourself, in one line, and wait: "Send this run to the LexLint portal?" A no
-means nothing leaves the repository. Either way, the payload above is what was
-approved; do not change it after the yes.
+Then send it. If your client asks before it runs the tool call, that prompt
+is the developer's approval and there is no second question to ask. If it will not
+ask (a pre-approved session, a skip-permissions or full-auto session, any
+client that runs calls without a prompt), ask the developer yourself, in one
+line, and wait: "Send this run to the LexLint portal?" A no means nothing
+leaves the repository. Either way, what was shown is what was approved; do not
+change it after the yes.
 
-## 4. Upload, from disk
+## 4. Send it, and read the reply as a reply
 
-The approval rule in section 3 applies to this command exactly as it would to
-the tool call.
+Call `upload_lint_run` with the arguments from section 2. Nothing is written
+to disk on the way, and nothing has to be deleted afterwards.
 
-A real payload is around 100 KB of legal text, and passing it as a tool
-argument means reproducing every byte of it in your own output, where the
-server's hash check turns the smallest slip into a refused upload. Send the
-file instead. Write the JSON-RPC request out with the payload nested inside
-it, `{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name":
-"upload_lint_run", "arguments": {"payload": <the object>}}}`, then post it:
+**A refusal is a reply, not a failed call.** The server answers a refusal as
+JSON-RPC, HTTP 200 with an `error` member in place of a `result`, and your
+client hands it to you as the tool's result. A reply carrying `error` stored
+nothing and has no `run_url`; `error.message` says what to fix, and for a
+moved corpus or a stale `run_at` that is to lint again and upload the new
+result. Report the refusal; never read a result out of it.
 
-```bash
-curl -sS --fail-with-body https://mcp.lexlint.org/mcp \
-  -H 'Content-Type: application/json' \
-  -H "X-API-Key: $UNGOVR_API_KEY" \
-  --data-binary @upload-request.json
-```
+**A blocked route is never a reason to forge an identity.** Do not set a
+`User-Agent` to look like a browser or like some other tool, here or anywhere
+else: it circumvents an access control the operator chose.
 
-**Check the reply for an error before reading anything else out of it.** Two
-ways it can carry one and neither is a failed command: `curl -sS` alone exits 0
-on a 500 and prints the edge's error page as though it were the answer, which
-is what `--fail-with-body` stops, and a call the server read and refused comes
-back HTTP 200 with an `error` member instead of a `result`, which no exit code
-will ever report. A reply carrying `error` stored nothing and has no
-`run_url`; `error.message` says what to fix.
-
-No `initialize` first and no session to carry: the server is stateless and
-answers a plain JSON POST with plain JSON. Write both files, the request and
-the `record.json` it wraps, outside the repository, and delete
-both once the reply is read: each holds the complete findings and the
-developer's triage, and a file left in the tree gets committed by the next
-`git add .`
-
-**`curl` works and Python's `urllib` does not**: the same request from
-`urllib.request` returns `403` with Cloudflare error `1010`, "browser signature
-banned". That is our edge, not your machine. **Never forge a `User-Agent` to
-get past a block** anywhere, ours included: it circumvents an access control
-the operator chose. If no ordinary HTTP client is available, call
-`upload_lint_run(payload)` as a tool and accept the relay.
-
-On success, report the returned `run_url`
-and say the run is stored, and report `share_url` too when it came back: a
-trial key's account has no email to sign in with, so that link is its way back
-into the run, and it works for 30 days. If `duplicate` came back true, say the
-run was already stored under that URL rather than uploaded again.
+On success, report the returned `run_url` and say the run is stored, and
+report `share_url` too when it came back: a trial key's account has no email
+to sign in with, so that link is its way back into the run, and it works for
+30 days. If `duplicate` came back true, say the run was already stored under
+that URL rather than uploaded again.
 
 If the call fails outright, say plainly that **nothing was stored**, give the
 reason, and offer to try again. If the connection drops after the request was
