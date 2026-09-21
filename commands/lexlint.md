@@ -19,9 +19,11 @@ Run the LexLint loop against this repository.
    tested against: if your own is not one of them, show `model_notice` and let
    the developer decide whether to continue. It is an advisory, so the lint
    runs either way.
-2. Read `lexlint.yml` at the repo root. If no manifest exists, create one by
-   asking what the app does and where it will operate, quoting every
-   jurisdiction slug. Never infer the declaration from the code.
+2. Read `lexlint.yml` at the repo root. If no manifest exists, build a
+   candidate declaration from the code, show it as a table (value, evidence,
+   your call) and ask the developer to confirm or correct it, quoting every
+   jurisdiction slug. Nothing unconfirmed is ever sent: the code is evidence
+   for the proposal, never the declaration itself.
 
    `$ARGUMENTS`, when given, is one path, and which of two things it means is
    read off the path itself: a `.yml` or `.yaml` file is the manifest to use

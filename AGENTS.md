@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.40.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.40.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.40.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.40.0`.** State it, do not go looking
+**That version string is yours and it is `1.40.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.40.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.40.1) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -654,9 +654,9 @@ noise wearing the clothes of advice.
 
 ### How to show a list
 
-Four of the things below are lists with a repeating shape: the coverage
-preview, the triage plan, the counsel list, the instruments table in a brief
-for counsel. **Show each of those as a markdown
+Five of the things below are lists with a repeating shape: the declaration
+candidates in step 1, the coverage preview, the triage plan, the counsel list,
+the instruments table in a brief for counsel. **Show each of those as a markdown
 table**, the way the examples do. Every surface that runs LexLint renders GFM
 tables, and a fenced code block is the one construct none of them prettifies:
 fencing a table opts out of the rendering on purpose, for no gain.
@@ -708,8 +708,18 @@ Two more rules are about the words in the cells rather than the layout:
 
 ### 1. Read or create `lexlint.yml`
 
-If the repo has one, read it. If not, ask the developer two questions and write
-their answers down.
+If the repo has one, read it. If not, work the declaration out **with** the
+developer, never for them and never without them: read the code, build a
+candidate for each of the two lists below, show the candidates, and ask the
+developer to confirm or correct them. **Nothing unconfirmed is ever sent.**
+
+Show each candidate as a table of three columns: the value, your evidence (a
+file and line, a store listing, a README sentence, or `none found`), and your
+call, `include`, `leave out` or `ask`. A role from the list below is always
+`ask`. Then one question: confirm, or strike and add. An open question with no
+candidate is what the developer gets when you skip the table, and it is the
+worse question: they cannot say yes to it, and they have to know this
+vocabulary to answer it at all. Run 21 of the funnel stopped on exactly that.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
 `generates_content`, `deploys_chatbot`, `processes_voice`,
@@ -726,9 +736,10 @@ health-sector entity under a national regime), `provides_financial_services`
 ICT provider to one), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
-regulator) and `provides_telecom_services`. Ask; never infer a role from the
-code. A health app is not a covered entity because it stores health data,
-and a fintech is not a bank because it moves money.
+regulator) and `provides_telecom_services`. These rows are always `ask`;
+never mark a role `include` from the code. A health app is not a covered
+entity because it stores health data, and a fintech is not a bank because it
+moves money.
 
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
@@ -744,10 +755,11 @@ manufacturer of a product with digital elements, which is close to every
 shipped piece of software, so declare it alongside `ships_mobile_app` rather
 than instead of it where you ship both.
 
-Read the code to inform your questions, never to answer them on the
-developer's behalf. Declaring `trains_models` because you saw a model import,
-when the app only calls an API, produces findings for obligations that do not
-apply.
+Read the code to build the candidate and its evidence, never to declare on
+the developer's behalf: the table is a proposal until they confirm it.
+Declaring `trains_models` because you saw a model import, when the app only
+calls an API, produces findings for obligations that do not apply, and the
+evidence column is there so the developer can catch exactly that.
 
 **Ask about voices and faces even when nothing here is AI.** `processes_voice`
 and `processes_biometrics` reach privacy law rather than AI law, so they attach
@@ -765,7 +777,10 @@ every jurisdiction the app itself is offered in.** For a crawler, that means
 the jurisdiction of each site it fetches, which step 2 resolves.
 
 List every one of them. A jurisdiction left off is not passed, it is unlinted,
-and unlinted is not clean.
+and unlinted is not clean. Propose here too: the markets a store listing or a
+README names, and the operators step 2 will resolve, go in the table with
+their evidence, and the four readings below are asked on top of it. A
+jurisdiction you did not propose is one the developer has to think of alone.
 
 **Ask the fourth reading as its own question, because nobody volunteers it:
 where are the people and the property the app acts on?** A small number of city
@@ -937,7 +952,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.40.0"
+  client_version="1.40.1"
 )
 ```
 
@@ -1487,7 +1502,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.40.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.40.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1501,7 +1516,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.40.0`, and `--summary` is the one sentence you author.
+`lexlint 1.40.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2007,7 +2022,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.40.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2193,7 +2208,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.40.0`, the bundle that ran the lint. The
+- `client_version`: `1.40.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
