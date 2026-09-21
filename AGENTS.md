@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.40.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.40.2"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.40.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.40.1`.** State it, do not go looking
+**That version string is yours and it is `1.40.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.40.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.40.2) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -715,11 +715,32 @@ developer to confirm or correct them. **Nothing unconfirmed is ever sent.**
 
 Show each candidate as a table of three columns: the value, your evidence (a
 file and line, a store listing, a README sentence, or `none found`), and your
-call, `include`, `leave out` or `ask`. A role from the list below is always
-`ask`. Then one question: confirm, or strike and add. An open question with no
-candidate is what the developer gets when you skip the table, and it is the
-worse question: they cannot say yes to it, and they have to know this
-vocabulary to answer it at all. Run 21 of the funnel stopped on exactly that.
+call, `include`, `leave out` or `ask`. Then one question: confirm, or strike
+and add. An open question with no candidate is what the developer gets when
+you skip the table, and it is the worse question: they cannot say yes to it,
+and they have to know this vocabulary to answer it at all. Run 21 of the
+funnel stopped on exactly that.
+
+**Make the call the definition makes.** `ask` is for what the code cannot
+show: a regulated role, a market, a person or property the app acts on. It is
+not for a value whose definition already decides it on the evidence in your
+hand. A game that teenagers may play is `include` for `serves_minors`, because
+the definition below reaches a service merely likely to be accessed by them;
+an app that fetches and shows another operator's records is `include` for
+`aggregates_content`. Run 22 marked both `ask`, the developer answered "yes
+go", and the lint that followed matched nothing.
+
+**An `ask` row is not answered by a yes.** A one-word yes confirms the rows
+you marked `include` and answers nothing else. When an `ask` row is still open
+after the developer's answer, ask it again, once, in one line, and do not call
+`set_profile` with one open: a declaration with a question left in it is a
+lint that under-reports by design.
+
+**Resolve the domains first.** When there is no manifest, do step 2 before you
+show the table, so every operator the app talks to is a jurisdiction row with
+its evidence rather than something you learn after the developer has already
+said yes. Run 22 found California for two operators after the confirmation,
+and it went into a comment instead of the declaration.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
 `generates_content`, `deploys_chatbot`, `processes_voice`,
@@ -736,8 +757,8 @@ health-sector entity under a national regime), `provides_financial_services`
 ICT provider to one), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
-regulator) and `provides_telecom_services`. These rows are always `ask`;
-never mark a role `include` from the code. A health app is not a covered
+regulator) and `provides_telecom_services`. These rows are always `ask`, and
+they are the rows `ask` is for; never mark a role `include` from the code. A health app is not a covered
 entity because it stores health data, and a fintech is not a bank because it
 moves money.
 
@@ -952,7 +973,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.40.1"
+  client_version="1.40.2"
 )
 ```
 
@@ -1502,7 +1523,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.40.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.40.2' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1516,7 +1537,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.40.1`, and `--summary` is the one sentence you author.
+`lexlint 1.40.2`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2022,7 +2043,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.40.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2208,7 +2229,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.40.1`, the bundle that ran the lint. The
+- `client_version`: `1.40.2`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

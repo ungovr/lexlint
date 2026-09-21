@@ -23,7 +23,9 @@ Run the LexLint loop against this repository.
    candidate declaration from the code, show it as a table (value, evidence,
    your call) and ask the developer to confirm or correct it, quoting every
    jurisdiction slug. Nothing unconfirmed is ever sent: the code is evidence
-   for the proposal, never the declaration itself.
+   for the proposal, never the declaration itself. Make the call where the
+   definition decides it; an `ask` row the developer did not answer is asked
+   again before the lint runs, never dropped.
 
    `$ARGUMENTS`, when given, is one path, and which of two things it means is
    read off the path itself: a `.yml` or `.yaml` file is the manifest to use
