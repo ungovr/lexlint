@@ -48,11 +48,14 @@ Take each from whatever owns it rather than all from one file:
 - `record.app`, which the server builds from `app_name`, `app_repo` and
   `app_scope`: the manifest's `app.name`, or the first-run name above; its
   `app.repo` when it has one; and `app_scope` set to what this run actually
-  read, whenever that was one directory rather than the whole repository. A
-  `/lexlint <path>` scope is deliberately never written to the manifest, so
-  copying `app` wholesale uploads a run over one directory carrying no scope
-  at all, and the portal captions it `whole repository`. Leave `app_scope`
-  out only when the run read the whole repository.
+  read, whenever that was not the whole repository: one directory as a
+  string, or the manifest's `scope` object, `{include: [...], exclude:
+  [...]}`, when it read several. The server stores the object either way, and
+  refuses any other shape by name. A `/lexlint <path>` scope is deliberately
+  never written to the manifest, so copying `app` wholesale uploads a run over
+  one directory carrying no scope at all, and the portal captions it `whole
+  repository`. Leave `app_scope` out only when the run read the whole
+  repository.
 - `activities` and `jurisdictions`: the two lists `run_lint` was called with,
   exactly as sent, and never the manifest's where the two differ. The server
   rebuilds from what you send, so a declaration the run did not use stores a
@@ -85,6 +88,10 @@ Nothing else goes in the call, and nothing else could: the tool takes no
 credential, no source file, no prompt or transcript and no git identity.
 
 ## 3. Show the exact arguments and wait
+
+Show them in the conversation, never as a file: write nothing into the
+repository but the manifest, and a preview saved under `docs/` is a file the
+next `git add` commits.
 
 Print what is about to leave the repository, in full, before calling
 anything:
