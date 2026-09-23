@@ -8,7 +8,7 @@ catches basic issues early, it certifies nothing, and it replaces neither QA nor
 legal review.
 This file and the `lexlint` skill are two renderings of one procedure, and this
 is the client-neutral one, for any agent that reads `AGENTS.md` instead. The
-tools are served over MCP at https://mcp.lexlint.org/mcp and the connection
+tools are served over MCP at https://mcp.lexlint.io/mcp and the connection
 details are in `.mcp.json` beside this file. Follow the loop below in order, and
 do not paraphrase the reporting rules in section 7: they are what makes a lint
 worth trusting.
@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.40.2"`.
+**Run `check_access` before anything else**, pass `client_version: "1.40.3"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.40.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.40.2`.** State it, do not go looking
+**That version string is yours and it is `1.40.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.40.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.40.3) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -347,8 +347,9 @@ above and follow the `rejected` steps.
 was read, false when the read failed, and null when it was never attempted.
 Never render null as "unreachable".
 
-LexLint stores no keys. Yours is passed through to the UnGovr Open Data API on
-every call, and the upstream free tier is the only meter. `check_access`,
+LexLint stores no keys. Every call checks yours and spends from its
+allowance, the same one it has on the UnGovr Open Data API, and that
+allowance is the only meter. `check_access`,
 `set_profile`, and `run_lint` together cost five upstream requests, however
 many jurisdictions are declared: one for the preflight, one for `set_profile`,
 and three for `run_lint`'s reads of the bulk export, which are filtered to
@@ -451,7 +452,7 @@ running, and never offer a command from another entry.
 
 **Codex**
 
-- **Install** `codex mcp add lexlint --url https://mcp.lexlint.org/mcp`
+- **Install** `codex mcp add lexlint --url https://mcp.lexlint.io/mcp`
 
   That registers the transport and not the key: `mcp add` has no flag for a
   custom header, and `--bearer-token-env-var` sends `Authorization`, which
@@ -533,7 +534,7 @@ running, and never offer a command from another entry.
   no version of these steps LexLint can stand behind here. Set LexLint up in
   Claude Code in a terminal or an IDE, which is the Claude Code entry, or
   paste the first-run line into a Claude Code session there; the document is
-  https://lexlint.org/first-run either way.
+  https://lexlint.io/first-run either way.
 - **Key** not available here.
 
   There is nowhere on this surface a key can reach the plugin from: the header
@@ -550,7 +551,7 @@ running, and never offer a command from another entry.
 
 **Any other MCP client**
 
-- **Install** `https://mcp.lexlint.org/mcp`
+- **Install** `https://mcp.lexlint.io/mcp`
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
@@ -823,7 +824,7 @@ than leaving it off, and leaving it off is what hides the finding.
 A slug is the jurisdiction's UnGovr Atlas path: California is
 https://ungovr.org/us/ca and its Atlas ID is `urn:ungovr:us/ca`. A deeper or
 unresearched path resolves to the nearest jurisdiction with law, and the
-jurisdictions whose law is researched are listed at https://lexlint.org/law
+jurisdictions whose law is researched are listed at https://lexlint.io/law
 for the developer to check. The server resolves whatever you send and names
 what it resolved to in the coverage preview, so there is nothing to look up
 anywhere else, and a slug taken from a web search is the one that quietly
@@ -973,7 +974,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.40.2"
+  client_version="1.40.3"
 )
 ```
 
@@ -1078,7 +1079,7 @@ Two costs come with it, and one rule that is not optional:
 you different shapes.** A client's tool-result file usually holds the lint
 itself. A file written by an HTTP client holds the JSON-RPC envelope around it,
 and the lint sits inside that in one of two places: as `result.structuredContent`
-(always on `https://mcp.lexlint.org/rpc`, and on `/mcp` when the call carried
+(always on `https://mcp.lexlint.io/rpc`, and on `/mcp` when the call carried
 the `MCP-Protocol-Version: 2025-06-18` header), or only as a JSON *string*
 inside `result.content[0].text`. On `/rpc` the text block is a one-line pointer
 and not the lint, which is why the typed copy is tried first. Normalize once,
@@ -1523,7 +1524,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.40.2' \
+    --run-at 2026-09-10 --tool 'lexlint 1.40.3' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1537,7 +1538,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.40.2`, and `--summary` is the one sentence you author.
+`lexlint 1.40.3`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1857,7 +1858,7 @@ the research was read from.
 
 | Lane | What to do | Where | Citation |
 |---|---|---|---|
-| COUNSEL | Confirm whether the labeling duty reaches this product | European Union | [AI Act Art. 50](https://lexlint.org/l/eu-2024-1689-50) |
+| COUNSEL | Confirm whether the labeling duty reaches this product | European Union | [AI Act Art. 50](https://lexlint.io/l/eu-2024-1689-50) |
 
 **Never construct that URL.** `note_url` is a short code stored with the
 record, not something derivable from the citation, and an instrument the
@@ -2043,7 +2044,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.40.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.40.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2114,7 +2115,7 @@ JSON. A run can be shared by an unguessable, expiring link that works
 without signing in, and revoking it deletes the link immediately, not
 merely marks it inactive. A trial key's account has no sign-in. To keep its
 runs, the developer signs in at https://ungovr.org/cli-login?client=lexlint (an
-account is free) and pastes the trial key at https://my.lexlint.org/claim and
+account is free) and pastes the trial key at https://my.lexlint.io/claim and
 the runs, their project and the key move to the account, where the portal's
 delete button is theirs. To have a trial's run deleted without an account, the
 developer writes to hello@ungovr.org quoting the share link and we delete the
@@ -2183,7 +2184,7 @@ was made with, `activities` and `jurisdictions` exactly as sent.
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
 again against today's corpus and closes by uploading. That includes a session
 opened after a first run whose upload was refused. The first-run procedure at
-https://lexlint.org/first-run sends the declaration and not the findings and
+https://lexlint.io/first-run sends the declaration and not the findings and
 writes no record of its own, so there is no file waiting for a later session
 to send, and nothing on this machine to look for.
 
@@ -2229,7 +2230,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.40.2`, the bundle that ran the lint. The
+- `client_version`: `1.40.3`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
@@ -2312,6 +2313,6 @@ any system. It does not certify anything. A clean run means the basics were
 checked against the data LexLint holds today, in the jurisdictions you declared,
 for the activities you declared. It does not mean you are in the clear.
 
-Full documentation: https://mcp.lexlint.org/
+Full documentation: https://mcp.lexlint.io/
 
-A worked example, end to end: https://mcp.lexlint.org/example
+A worked example, end to end: https://mcp.lexlint.io/example

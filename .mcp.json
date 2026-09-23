@@ -2,10 +2,10 @@
   "mcpServers": {
     "lexlint": {
       "type": "http",
-      "url": "https://mcp.lexlint.org/mcp",
+      "url": "https://mcp.lexlint.io/mcp",
       "headers": {
         "X-API-Key": "${UNGOVR_API_KEY:-}",
-        "X-LexLint-Bundle": "1.40.2"
+        "X-LexLint-Bundle": "1.40.3"
       }
     }
   }

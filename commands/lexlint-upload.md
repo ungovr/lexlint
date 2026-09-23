@@ -32,7 +32,7 @@ with, `activities` and `jurisdictions` exactly as sent.
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
 again against today's corpus and closes by uploading. That includes a session
 opened after a first run whose upload was refused. The first-run procedure at
-https://lexlint.org/first-run sends the declaration and not the findings and
+https://lexlint.io/first-run sends the declaration and not the findings and
 writes no record of its own, so there is no file waiting for a later session
 to send, and nothing on this machine to look for.
 

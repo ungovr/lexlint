@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://lexlint.org/static/lexlint/lexlint-mark-dark.svg">
-  <img src="https://lexlint.org/static/lexlint/lexlint-mark.svg" alt="LexLint" width="76">
+  <source media="(prefers-color-scheme: dark)" srcset="https://lexlint.io/static/lexlint/lexlint-mark-dark.svg">
+  <img src="https://lexlint.io/static/lexlint/lexlint-mark.svg" alt="LexLint" width="76">
 </picture>
 
 # LexLint
@@ -13,14 +13,14 @@ you ship.
 Like a code linter: it catches basic issues early, it certifies nothing, and it
 replaces neither QA nor legal review.
 
-<a href="https://lexlint.org/is-the-risk-real">
-  <img src="https://lexlint.org/static/lexlint/need-lexlint.png" width="560"
+<a href="https://lexlint.io/is-the-risk-real">
+  <img src="https://lexlint.io/static/lexlint/need-lexlint.png" width="560"
        alt="You need LexLint if your code or your AI agent crawls, trains on, or republishes content from sites you don't own, AI writes any content your users see, your app holds personal data, voices, or faces, under-18s can reach your app or you check that they can't, or your app has users in more than one country. One checked box is enough.">
 </a>
 
 The law behind every one of those rows is readable without installing anything.
-https://lexlint.org/law is what LexLint tracks, jurisdiction by jurisdiction,
-down to the individual instrument, and https://lexlint.org/news is the same law
+https://lexlint.io/law is what LexLint tracks, jurisdiction by jurisdiction,
+down to the individual instrument, and https://lexlint.io/news is the same law
 as it moves in the press. Both are the corpus the lint runs against, so they are
 also the way to see what a run would have to say about your jurisdictions before
 you set one up.
@@ -49,9 +49,9 @@ call its tools, until you remove it.
 LexLint runs on your own UnGovr Open Data key, and there are two ways to get
 one. Neither is a fallback for the other:
 
-- **No account.** Open https://lexlint.org/trial and press the button. It
+- **No account.** Open https://lexlint.io/trial and press the button. It
   mints a 30-day key good for 50 requests over its whole life and shows it
-  once. Or hand your coding agent https://lexlint.org/first-run and it
+  once. Or hand your coding agent https://lexlint.io/first-run and it
   runs the first lint and takes the key on the way.
 - **With an account**, which is free. Sign in at
   https://ungovr.org/cli-login?client=lexlint and copy the key. The full value
@@ -107,7 +107,7 @@ every cloud session on the repository starts with LexLint already installed:
 }
 ```
 
-Two settings on the cloud environment go with it. Add `mcp.lexlint.org` to its
+Two settings on the cloud environment go with it. Add `mcp.lexlint.io` to its
 allowed domains, because the default network access tier reaches GitHub, which
 is what makes the marketplace fetch above work, and does not reach the LexLint
 server, so without it the plugin installs and then no tool call connects. Then
@@ -115,7 +115,7 @@ set `UNGOVR_API_KEY` as an environment variable there, which is where the
 bundle's server configuration reads the key from at session start.
 
 Full setup for every client, including Codex and the plain JSON block:
-https://mcp.lexlint.org/#setup
+https://mcp.lexlint.io/#setup
 
 **Restart your session after installing.** Plugins load at process start, and
 so does the key, which is why it went into your profile first: one restart
@@ -223,7 +223,7 @@ shared by an unguessable, expiring link that works without signing in, and
 revoking it deletes the link immediately, not merely marks it inactive. A
 trial key's account has no sign-in. To keep its runs, sign in at
 https://ungovr.org/cli-login?client=lexlint (an account is free) and paste the
-trial key at https://my.lexlint.org/claim and the runs, their project and the
+trial key at https://my.lexlint.io/claim and the runs, their project and the
 key move to your account, where the portal's delete button is yours. To have a
 trial's run deleted without an account, write to hello@ungovr.org quoting the
 share link and we delete the run, or the link alone, within one working day.
@@ -270,7 +270,7 @@ lint:
       jurisdiction: eu
       summary: "TDM opt-outs are enforceable rights reservations"
       citation: "DSM Directive Art. 4(3)"
-      note_url: "https://lexlint.org/l/eu-2019-790-4"
+      note_url: "https://lexlint.io/l/eu-2019-790-4"
       as_of_date: "2026-07-27"
       stale: false
       state: acknowledged
@@ -295,10 +295,10 @@ does not mean you are in the clear.
 
 ## More
 
-- Product: https://lexlint.org
-- The law it tracks, jurisdiction by jurisdiction: https://lexlint.org/law
-- Relevant law in the press: https://lexlint.org/news
-- Docs and tool reference: https://mcp.lexlint.org/#tools
-- A worked example, end to end: https://mcp.lexlint.org/example
+- Product: https://lexlint.io
+- The law it tracks, jurisdiction by jurisdiction: https://lexlint.io/law
+- Relevant law in the press: https://lexlint.io/news
+- Docs and tool reference: https://mcp.lexlint.io/#tools
+- A worked example, end to end: https://mcp.lexlint.io/example
 
 Powered by UnGovr. https://www.ungovr.org

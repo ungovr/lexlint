@@ -64,28 +64,33 @@ rather than sending them back to look again.
 
 ## 3. Verify it against the live API
 
-One request, so a wrong key fails here rather than four steps later. One
-line, and no backslash continuation: `\` continues a line in bash and zsh and
-does not in PowerShell, where this same command otherwise breaks apart.
+One request, so a wrong key fails here rather than four steps later. It asks
+LexLint's own `check_access`, the preflight every lint starts with, and spends
+one request of the key's daily allowance. One line, and no backslash
+continuation: `\` continues a line in bash and zsh and does not in PowerShell,
+where this same command otherwise breaks apart.
 
 ```
-curl -sS -o /dev/null -w '%{http_code}' -H "X-API-Key: <the-key>" https://data.ungovr.org/v1/ai-laws/index.json
+curl -sS --fail-with-body -X POST https://mcp.lexlint.io/rpc -H "X-API-Key: <the-key>" -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}'
 ```
 
 On Windows PowerShell, `curl` is usually an alias for `Invoke-WebRequest`,
 which does not take these flags at all. Use its own form there:
 
 ```
-(Invoke-WebRequest -Uri https://data.ungovr.org/v1/ai-laws/index.json -Headers @{'X-API-Key'='<the-key>'} -SkipHttpErrorCheck).StatusCode
+(Invoke-RestMethod -Method Post -Uri https://mcp.lexlint.io/rpc -Headers @{'X-API-Key'='<the-key>'} -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}').result.structuredContent | Format-List key_valid, notice
 ```
 
-- `200`: the key works. Go to step 4.
-- `401` or `403`: the key was refused. Ask them to check they copied the whole
-  value, and offer the link again.
-- `402`: the key works and today's free allowance is already spent. Still worth
-  persisting; say when it resets (00:00 UTC).
-- Anything else, or no answer: the API is having a problem. That says nothing
-  about the key, so persist it anyway and say the check was inconclusive.
+Read `key_valid` and `notice` from the answer:
+
+- `key_valid: true`: the key works. Go to step 4. If `notice` says the free
+  allowance is spent, or that paid access is needed, pass that sentence on;
+  the key is still worth persisting.
+- `key_valid: false`: the key was refused. Ask them to check they copied the
+  whole value, and offer the link again.
+- `key_valid: null`, an error, or no answer: LexLint could not check. That says
+  nothing about the key, so persist it anyway and say the check was
+  inconclusive.
 
 ## 4. Persist it where the next session will read it
 

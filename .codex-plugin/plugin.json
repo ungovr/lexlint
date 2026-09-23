@@ -1,9 +1,9 @@
 {
   "name": "lexlint",
-  "version": "1.40.2",
+  "version": "1.40.3",
   "description": "A compliance lint for AI, scraping, privacy, cybersecurity, age-gating, and news-aggregation law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "author": { "name": "UnGovr", "url": "https://www.ungovr.org" },
-  "homepage": "https://lexlint.org",
+  "homepage": "https://lexlint.io",
   "repository": "https://github.com/ungovr/lexlint",
   "license": "MIT",
   "skills": "./skills/",
@@ -13,6 +13,6 @@
     "shortDescription": "Lint an app against AI, privacy and cybersecurity law",
     "developerName": "UnGovr",
     "category": "Coding",
-    "websiteURL": "https://lexlint.org"
+    "websiteURL": "https://lexlint.io"
   }
 }

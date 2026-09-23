@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lexlint.org/schema/lexlint.schema.json",
+  "$id": "https://lexlint.io/schema/lexlint.schema.json",
   "title": "lexlint.yml",
   "description": "The committed LexLint manifest. You declare what your app does and where it operates; the lint writes its findings underneath. Manifest-first, not detection-first.",
   "type": "object",
