@@ -5,7 +5,7 @@
       "url": "https://mcp.lexlint.io/mcp",
       "headers": {
         "X-API-Key": "${UNGOVR_API_KEY:-}",
-        "X-LexLint-Bundle": "1.40.3"
+        "X-LexLint-Bundle": "1.41.0"
       }
     }
   }

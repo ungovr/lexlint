@@ -5,8 +5,8 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, privacy, cybersecurity, age-gating, and news-aggregation law.
-All six topics are matched by run_lint, not reference-only. Declare what your app does
+A compliance lint for AI, scraping, privacy, cybersecurity, communications, age-gating, and news-aggregation law.
+All seven topics are matched by run_lint, not reference-only. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 
@@ -15,7 +15,7 @@ replaces neither QA nor legal review.
 
 <a href="https://lexlint.io/is-the-risk-real">
   <img src="https://lexlint.io/static/lexlint/need-lexlint.png" width="560"
-       alt="You need LexLint if your code or your AI agent crawls, trains on, or republishes content from sites you don't own, AI writes any content your users see, your app holds personal data, voices, or faces, under-18s can reach your app or you check that they can't, or your app has users in more than one country. One checked box is enough.">
+       alt="You need LexLint if you or your AI agent crawl, train on, or republish other sites' content, AI writes any content your users see, your app holds personal data, voices, or faces, under-18s can reach your app or you check that they can't, or your app has users in more than one country. One checked box is enough.">
 </a>
 
 The law behind every one of those rows is readable without installing anything.

@@ -2,7 +2,7 @@
 
 # LexLint for agents
 
-LexLint is a lint for AI, scraping, privacy, cybersecurity, age-gating, and news-aggregation law.
+LexLint is a lint for AI, scraping, privacy, cybersecurity, communications, age-gating, and news-aggregation law.
 Like a code linter, it
 catches basic issues early, it certifies nothing, and it replaces neither QA nor
 legal review.
@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.40.3"`.
+**Run `check_access` before anything else**, pass `client_version: "1.41.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.40.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.41.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.40.3`.** State it, do not go looking
+**That version string is yours and it is `1.41.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.40.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.41.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -748,7 +748,8 @@ and it went into a comment instead of the declaration.
 `processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
-`distributes_software_product`.
+`distributes_software_product`, `statutory_requests`,
+`records_conversations`, `tracks_devices`.
 
 **Who runs it?** Five more values are roles rather than activities, and a
 sector-gated statute reaches the app through them and through nothing else:
@@ -782,6 +783,24 @@ the developer's behalf: the table is a proposal until they confirm it.
 Declaring `trains_models` because you saw a model import, when the app only
 calls an API, produces findings for obligations that do not apply, and the
 evidence column is there so the developer can catch exactly that.
+
+**Three facts carry communications law, and each has a near neighbour.**
+`automated_outreach` is software that sends people messages or places calls:
+marketing email, SMS alerts, notifications, an agent that texts. It returns the
+consent, sender-identification, opt-out and calling-hour rules (CAN-SPAM, the
+TCPA, PECR, CASL), and nothing else: where a model writes or speaks the
+messages (an AI voice agent, generated email copy), declare `generates_content`
+or `deploys_chatbot` beside it, because the AI-disclosure rules attach there
+and not to the sending. A request filed with a public body under a records or
+freedom-of-information law is `statutory_requests` instead, and it exists so
+that a records-request sender does not collect marketing law it does not owe.
+`records_conversations` is recording, transcribing or monitoring a call, a
+meeting or a chat, or letting a vendor read it as it happens (a chat widget, a
+session-replay script); it returns the one-party and all-party recording
+consent rules, which `processes_voice` alone does not. `tracks_devices` is any
+cookie, pixel, SDK identifier or fingerprint the service does not strictly need
+to deliver what the user asked for, which is almost every site running
+analytics or advertising; it returns the cookie-consent rule.
 
 **Ask about voices and faces even when nothing here is AI.** `processes_voice`
 and `processes_biometrics` reach privacy law rather than AI law, so they attach
@@ -974,7 +993,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.40.3"
+  client_version="1.41.0"
 )
 ```
 
@@ -1524,7 +1543,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.40.3' \
+    --run-at 2026-09-10 --tool 'lexlint 1.41.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1538,7 +1557,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.40.3`, and `--summary` is the one sentence you author.
+`lexlint 1.41.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1927,7 +1946,7 @@ never empty, because its last line is always there:
   whose corpus does not cover it, and a report that does not say so reads as
   though the question was asked and answered.
 - **The standing line.** LexLint covers AI, scraping, privacy, cybersecurity,
-  age-gating and news-aggregation law, in the jurisdictions declared, for the
+  communications, age-gating and news-aggregation law, in the jurisdictions declared, for the
   activities declared. Everything else is unlinted, and unlinted is not clean.
 
 Name the instrument where you can ("California's right of publicity, Cal. Civ.
@@ -2044,7 +2063,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.40.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.41.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2230,7 +2249,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.40.3`, the bundle that ran the lint. The
+- `client_version`: `1.41.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

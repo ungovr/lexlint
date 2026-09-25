@@ -59,7 +59,8 @@
                      "aggregates_content", "distributes_software_product",
                      "handles_health_records", "provides_financial_services",
                      "operates_essential_service", "is_listed_company",
-                     "provides_telecom_services"]
+                     "provides_telecom_services", "statutory_requests",
+                     "records_conversations", "tracks_devices"]
           }
         },
         "jurisdictions": {
