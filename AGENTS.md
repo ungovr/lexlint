@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.41.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.42.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.41.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.42.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.41.1`.** State it, do not go looking
+**That version string is yours and it is `1.42.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.41.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.42.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -707,6 +707,16 @@ Two more rules are about the words in the cells rather than the layout:
   so the reader knows why before they meet the statute. In a table it is the
   line under the row, never a fifth column.
 
+**When a law binds is always the finding's `in_force.words`**, verbatim:
+"in force since 2018-05-25", "not yet in force, from 2027-12-02, in 15
+months", "blocked by a court", "no longer in force, repealed". In a table,
+bold the words when `in_force.state` is `not_yet_in_force`, and strike the
+date of an ended law, keeping its reason: `~~in force since 2024-02-01~~
+repealed`, from `in_force.from` and `in_force.reason`. An ended law with no
+`from` prints its words as they are. Never print `status` or
+`lifecycle.label` for this: they are the corpus's and the older band's
+words, and a developer reads the same law on lexlint.io in these.
+
 ### 1. Read or create `lexlint.yml`
 
 If the repo has one, read it. If not, work the declaration out **with** the
@@ -993,7 +1003,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.41.1"
+  client_version="1.42.0"
 )
 ```
 
@@ -1286,7 +1296,8 @@ KEYS = {
         "id", "severity", "kind", "jurisdiction", "jurisdiction_name",
         "summary", "detail", "why", "matched_by", "posture", "basis",
         "citation", "url", "note_url", "status", "requires", "applies_to",
-        "effective_date", "lifecycle", "certainty", "settledness", "as_of_date",
+        "effective_date", "lifecycle", "in_force", "certainty", "settledness",
+        "as_of_date",
         "stale", "confidence", "resolved_from") + CARRY,
     "work_items": ("id", "lane", "title", "findings", "jurisdictions"),
     "vanished": ("id", "last_seen") + CARRY,
@@ -1543,7 +1554,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.41.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.42.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1557,7 +1568,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.41.1`, and `--summary` is the one sentence you author.
+`lexlint 1.42.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1826,9 +1837,10 @@ their repository beside the doc-lane drafts. It carries, in this order:
    jurisdictions the question spans. This is the declaration restated, never
    a description of the code.
 3. **The instruments.** One row per finding: the jurisdiction by
-   `jurisdiction_name`, status, as-of date, then the citation last, linked
-   where `note_url` exists and plain where it does not. Under the table, one
-   line per finding, so the table keeps its four columns: first the finding's
+   `jurisdiction_name`, `in_force.words`, as-of date, then the citation
+   last, linked where `note_url` exists and plain where it does not. Under
+   the table, one line per finding, so the table keeps its four columns:
+   first the finding's
    `why`, in the lint's words, so counsel reads the reason before the law;
    then the finding's `summary` exactly as the lint gave it (the instrument's
    name and one sentence), the name linked to the LexLint page where
@@ -1839,8 +1851,8 @@ their repository beside the doc-lane drafts. It carries, in this order:
    otherwise. A lawyer who can see where the question comes from reads it
    differently from one handed a statute. A
    `posture` or `coverage` finding routed here is not an instrument and
-   arrives with `citation: null` and no status: its row carries the kind in
-   the status column and its `basis` (the field and value the lint read,
+   arrives with `citation: null` and no `in_force`: its row carries the kind
+   in that column and its `basis` (the field and value the lint read,
    `crawl_policy = unsettled`) in the citation column. Never supply a
    citation for a row the lint gave none; a lawyer handed an invented
    reference has been handed something worse than a blank. Last on the line,
@@ -1871,8 +1883,8 @@ A finding whose instrument has a LexLint page carries `note_url`. Everywhere
 you show that finding, show its citation as a link to that page: in the triage
 list, in the work item, in the counsel list, in the brief for counsel, in
 `lexlint.yml`. A citation alone
-is a string to go and search for. The page behind it holds the summary, the
-status, the effective date, what the instrument asks of an app, and the source
+is a string to go and search for. The page behind it holds the summary, when
+the law binds, what the instrument asks of an app, and the source
 the research was read from.
 
 | Lane | What to do | Where | Citation |
@@ -2063,7 +2075,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.41.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.42.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2078,7 +2090,7 @@ already records them, so a domain sitting there is not resolved a second time.
 | Severity | Meaning |
 |----------|---------|
 | `warn` | Something to act on. Three different things arrive this way, and `kind` tells them apart: a live obligation applies to the declared profile (`obligation`); a jurisdiction-wide crawl-law attribute LexLint flags as worth acting on, such as an unsettled or restrictive posture (`posture`); or LexLint lacks current data for a declared jurisdiction (`coverage`). |
-| `info` | Context, not a live duty on you. Three different things arrive this way, and `kind` tells them apart: an instrument LexLint cannot say is currently binding (`pending`); a jurisdiction-wide statement of how the local law treats crawling as a whole (`posture`), which cites nothing and binds nobody on its own; and a note about what was not reported (`coverage`), such as instruments that exist but no longer bind. |
+| `info` | Context, not a live duty on you. Three different things arrive this way, and `kind` tells them apart: an instrument LexLint cannot say is in force today (`pending`); a jurisdiction-wide statement of how the local law treats crawling as a whole (`posture`), which cites nothing and binds nobody on its own; and a note about what was not reported (`coverage`), such as instruments that exist but no longer bind. |
 
 LexLint never reports an `error` severity. A lint cannot be sure an activity is
 prohibited rather than merely regulated, and it will not assert unlawfulness on
@@ -2095,7 +2107,7 @@ Findings also carry a `kind`:
 | `obligation` | A specific instrument binds the declared profile. |
 | `coverage` | A note about what was not reported, never a pass: LexLint could not read something, holds no data, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. |
 | `posture` | How this jurisdiction's law treats crawling as a whole: whether browsewrap binds, what weight robots.txt carries, whether a public page is outside computer-crime law. Jurisdiction-wide attributes rather than instruments, so they bind nobody on their own and cite nothing. They appear only when `crawls_web` is declared. |
-| `pending` | An instrument LexLint cannot say is currently binding: proposed or in committee, enacted with a future effective date, enacted with no commencement date on record, enjoined by a court, or carrying a status LexLint has no policy for. An injunction can be lifted and a missing commencement date does not mean the law never took effect, so treat this as a duty to watch, not one to ignore. |
+| `pending` | An instrument LexLint cannot say is in force today: proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for. An injunction can be lifted, and a start date missing from the record does not mean the law is not in force, so treat this as a duty to watch, not one to ignore. |
 
 A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
@@ -2249,7 +2261,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.41.1`, the bundle that ran the lint. The
+- `client_version`: `1.42.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

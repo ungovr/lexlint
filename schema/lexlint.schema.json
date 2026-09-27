@@ -112,12 +112,12 @@
         "severity": {
           "type": "string",
           "enum": ["warn", "info"],
-          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which of three kinds it is: an instrument LexLint cannot say is currently binding (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), or a note about what was not reported (coverage). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
+          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which of three kinds it is: an instrument LexLint cannot say is in force today (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), or a note about what was not reported (coverage). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
         },
         "kind": {
           "type": "string",
           "enum": ["obligation", "coverage", "posture", "pending"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is currently binding, whether proposed, enacted with a future effective date or no commencement date on record, enjoined by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on."
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {
@@ -175,7 +175,7 @@
         "effective_date": { "type": ["string", "null"] },
         "lifecycle": {
           "type": "object",
-          "description": "What the instrument status and dates mean, read as of the call. Derived, not stored, so its values move without a corpus change.",
+          "description": "What the instrument status and dates mean, read as of the call. Derived, not stored, so its values move without a corpus change. For display, use in_force.words; this object's label is kept for existing clients.",
           "properties": {
             "band": { "type": "string", "enum": ["new", "recent", "in_force", "imminent", "proposed", "blocked", "historical", "unknown"] },
             "label": { "type": "string" },
@@ -186,9 +186,27 @@
           "required": ["band", "label", "tone", "detail", "commencement_established"],
           "additionalProperties": false
         },
+        "in_force": {
+          "type": "object",
+          "description": "When this law binds, as LexLint's pages say it. Print `words` wherever a law's state is shown. Derived at the call, like lifecycle. Supersedes lifecycle.label for display; lifecycle stays for existing clients.",
+          "properties": {
+            "state": { "type": "string", "enum": ["in_force", "not_yet_in_force", "blocked", "proposed", "no_longer_in_force", "never_in_force", "unknown"] },
+            "dated": { "type": "boolean" },
+            "from": { "type": ["string", "null"], "description": "ISO date the law started or starts to bind." },
+            "until": { "type": ["string", "null"], "description": "ISO date an ended law stopped binding, where the corpus dates it." },
+            "reason": { "type": ["string", "null"], "enum": ["repealed", "replaced", "struck down", "failed", null] },
+            "days": { "type": ["integer", "null"] },
+            "countdown": { "type": ["string", "null"] },
+            "stage": { "type": ["string", "null"] },
+            "words": { "type": "string" },
+            "as_of": { "type": "string", "description": "The day the countdown was computed. A client that caches the answer recomputes from `from` rather than printing a stale countdown." }
+          },
+          "required": ["state", "dated", "from", "until", "reason", "days", "countdown", "stage", "words", "as_of"],
+          "additionalProperties": false
+        },
         "certainty": {
           "type": "object",
-          "description": "Which resultset this instrument belongs in, and for forward-looking law how much of it is pinned to primary text rather than predicted. Derived at the call, not stored. A second axis over `kind`, never a replacement: an enjoined instrument stays kind \"pending\" and is resultset \"present\", because a court pausing enforcement is a present fact about a live risk. NOTHING IN THE \"forward\" RESULTSET MAY GATE A BUILD.",
+          "description": "Which resultset this instrument belongs in, and for forward-looking law how much of it is pinned to primary text rather than predicted. Derived at the call, not stored. A second axis over `kind`, never a replacement: an instrument blocked by a court stays kind \"pending\" and is resultset \"present\", because a court pausing enforcement is a present fact about a live risk. NOTHING IN THE \"forward\" RESULTSET MAY GATE A BUILD.",
           "properties": {
             "resultset": { "type": ["string", "null"], "enum": ["present", "forward", "historical", null], "description": "present: law as it stands. forward: law that may be coming, informational and never gating. historical: spent, and neither. null: LexLint has no rule for this status, which is a coverage gap and never a default placement." },
             "rung": { "type": ["integer", "null"], "enum": [1, 2, 3, 4, 5, null], "description": "Orders the forward resultset by how much is PINNED, never by a probability; 1 is the most certain. null means the corpus holds no stage to rank by, which is NOT the lowest rung." },
