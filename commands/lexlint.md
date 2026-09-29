@@ -25,7 +25,10 @@ Run the LexLint loop against this repository.
    jurisdiction slug. Nothing unconfirmed is ever sent: the code is evidence
    for the proposal, never the declaration itself. Make the call where the
    definition decides it; an `ask` row the developer did not answer is asked
-   again before the lint runs, never dropped.
+   again before the lint runs, never dropped. A manifest whose `profile` has no
+   `public_sector` was never asked that question: ask it once on this run and
+   write the answer into the manifest, and where nobody can answer leave it
+   out, never `["none"]` on the developer's behalf.
 
    `$ARGUMENTS`, when given, is one path, and which of two things it means is
    read off the path itself: a `.yml` or `.yaml` file is the manifest to use
@@ -38,11 +41,13 @@ Run the LexLint loop against this repository.
    A scope from the command is not written to the manifest. Say in the report
    that it came from the command, and say what it was.
 3. Resolve any domains named in the manifest with `resolve_domain_jurisdiction`.
-4. Show the developer the two lists before you send them, with every value
+4. Show the developer the two lists before you send them, and their
+   `public_sector` answer beside them when the profile has one, with every value
    you are unsure of marked as such, and wait for their answer. In a headless
    or CI session nobody can answer: send the lists as you read them, and name
    the values you were unsure of in the report. Then call `run_lint` with the
-   declared activities and jurisdictions.
+   declared activities and jurisdictions, and `public_sector` when the profile
+   has it.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
    `lint.work_items` across untouched, and moving vanished acknowledgments to

@@ -74,6 +74,14 @@
           "type": "object",
           "description": "Domain to jurisdiction slug, as resolved by resolve_domain_jurisdiction. A null value means unresolved: check the operator's terms page and declare what you find.",
           "additionalProperties": { "type": ["string", "null"] }
+        },
+        "public_sector": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["body", "supplier", "none"] },
+          "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
+          "description": "Whether a public body runs this software (body), it is sold to or run for public bodies (supplier), both, or neither (none). none is only ever alone. The developer's answer, never read from the code. Absent means never asked."
         }
       }
     },
@@ -112,12 +120,12 @@
         "severity": {
           "type": "string",
           "enum": ["warn", "info"],
-          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which of three kinds it is: an instrument LexLint cannot say is in force today (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), or a note about what was not reported (coverage). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
+          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which it is: an instrument LexLint cannot say is in force today (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), a note about what was not reported (coverage), a duty your public-sector customer owes (customer_duty), or an instrument whose owed is not yours (obligation). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
         },
         "kind": {
           "type": "string",
-          "enum": ["obligation", "coverage", "posture", "pending"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on."
+          "enum": ["obligation", "coverage", "posture", "pending", "customer_duty"],
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on. customer_duty: with public_sector declared, a duty your public-sector customer owes and meets through your software."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {
@@ -158,7 +166,7 @@
         },
         "basis": {
           "type": ["string", "null"],
-          "description": "Only on kind: posture. The corpus value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds."
+          "description": "On kind: posture, the corpus value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds. On kind: customer_duty, why the duty is your customer's: it binds your public-sector customer and is discharged through the software you supply."
         },
         "citation": { "type": ["string", "null"] },
         "url": { "type": ["string", "null"] },
@@ -174,7 +182,25 @@
         },
         "applies_to": {
           "type": ["string", "null"],
-          "description": "Whom the instrument binds, as the corpus records it. Reported, not filtered on: deciding a government-only duty does not reach this caller needs an actor role the profile does not yet collect."
+          "description": "Whom the instrument binds, as the corpus records it. Reported, not filtered on. Whether a government-only duty reaches this caller is the question public_sector answers: with it declared, owed carries the answer, and without it nothing here decides it."
+        },
+        "owed": {
+          "type": "string",
+          "enum": ["yours", "customer", "elsewhere"],
+          "description": "With public_sector declared: whose duty this is for this caller. Absent otherwise."
+        },
+        "requires_elsewhere": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "With public_sector declared: this instrument's lines owed by a party the caller is not. Context, never work."
+        },
+        "customer_duty_id": {
+          "type": "string",
+          "description": "The customer_duty finding split from this instrument."
+        },
+        "instrument_id": {
+          "type": "string",
+          "description": "On a customer_duty finding: the instrument finding it was split from."
         },
         "effective_date": { "type": ["string", "null"] },
         "lifecycle": {
@@ -281,8 +307,8 @@
         "id": { "type": "string", "minLength": 1 },
         "lane": {
           "type": "string",
-          "enum": ["code", "doc", "counsel"],
-          "description": "code ships a diff, doc drafts an artifact into the repo, counsel is routed to a human and acted on by nobody here."
+          "enum": ["code", "doc", "counsel", "product"],
+          "description": "code ships a diff, doc drafts an artifact into the repo, counsel is routed to a human and acted on by nobody here. product ships what a public-sector customer needs to discharge a duty of their own."
         },
         "title": { "type": "string", "minLength": 1 },
         "findings": {
