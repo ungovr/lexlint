@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.43.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.44.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.43.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.44.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.43.0`.** State it, do not go looking
+**That version string is yours and it is `1.44.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.43.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.44.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -689,15 +689,17 @@ rather than the layout:
 Two more rules are about the words in the cells rather than the layout:
 
 - **A jurisdiction is shown by name, never by slug.** Every finding carries
-  `jurisdiction_name`: "Ireland", "European Union", "California (US)". That
+  `jurisdiction_name`: "Ireland", "European Union", "US-California". That
   is the word in every table and every sentence; the slug (`us/ca`) belongs in
   `lexlint.yml` and nowhere a person reads. A finding without a name (a slug
   the corpus does not name) shows its slug, which is the gap it marks.
 - **The flag goes before the name.** A finding or coverage row that carries
   `jurisdiction_flag` gets it, then a space, before the name in every table
   and list: "🇪🇺 European Union", "🇮🇪 Ireland". Only a country, the EU and
-  the UN have one, so "California (US)" stands without a flag. Never borrow
-  its country's, and never draw a flag the lint did not send.
+  the UN have one. A state or city's name opens with its country's code
+  instead, "US-California", which is as wide as a flag and its space, so the
+  names still line up. Never borrow its country's flag, and never draw a flag
+  the lint did not send.
 - **`summary` is one sentence; the paragraph is `detail`.** The lint writes
   the instrument's name, a colon, and one sentence, and puts the whole
   research summary in `detail`. Show the sentence in every list. Read
@@ -875,7 +877,7 @@ You declared 6 jurisdictions. LexLint holds data for all 6.
 | Jurisdiction | Instruments | Reviewed |
 |---|---:|---|
 | 🇺🇸 United States (federal) | 19 | 2026-08-12 |
-| California (US) | 14 | 2026-08-12 |
+| US-California | 14 | 2026-08-12 |
 | 🇪🇺 European Union | 12 | 2026-08-12 |
 | 🇩🇪 Germany | 8 | 2026-08-12 |
 | 🇬🇧 United Kingdom | 6 | 2026-08-12 |
@@ -1008,7 +1010,7 @@ answer. Neither order costs more.
 run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  client_version="1.43.0"
+  client_version="1.44.0"
 )
 ```
 
@@ -1559,7 +1561,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.43.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.44.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1573,7 +1575,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.43.0`, and `--summary` is the one sentence you author.
+`lexlint 1.44.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1782,7 +1784,7 @@ work item. Then show the developer:
 | Lane | What to do | Jurisdictions |
 |---|---|---|
 | CODE | Honor machine-readable TDM reservations before fetch | 🇪🇺 European Union, 🇩🇪 Germany, 🇫🇷 France +17 more |
-| CODE | Label synthetic content on generated output | 🇪🇺 European Union, 🇰🇷 South Korea, California (US) |
+| CODE | Label synthetic content on generated output | 🇪🇺 European Union, 🇰🇷 South Korea, US-California |
 | DOC | AI-usage statement in the product README | 🇪🇺 European Union, 🇰🇷 South Korea |
 
 The TDM item spans the European Union and its declared national
@@ -2080,7 +2082,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.43.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.44.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2266,7 +2268,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.43.0`, the bundle that ran the lint. The
+- `client_version`: `1.44.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

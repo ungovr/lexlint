@@ -122,7 +122,7 @@
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {
           "type": "string",
-          "description": "How the jurisdiction reads to a person, from the engine since bundle 1.20.0: Ireland, European Union, California (US). Absent when the corpus did not name the slug, or when the slug answered from a parent."
+          "description": "How the jurisdiction reads to a person, from the engine since bundle 1.20.0: Ireland, European Union, US-California (\"California (US)\" before 1.44.0). Absent when the corpus did not name the slug, or when the slug answered from a parent."
         },
         "jurisdiction_flag": {
           "type": "string",
