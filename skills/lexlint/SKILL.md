@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.45.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.46.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.45.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.46.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.45.1`.** State it, do not go looking
+**That version string is yours and it is `1.46.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.45.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.46.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -847,7 +847,7 @@ run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
-  client_version="1.45.1"
+  client_version="1.46.0"
 )
 ```
 
@@ -998,6 +998,130 @@ was truncated, or never unwrapped, or never a lint in the first place.
 **Never narrow the declaration to make a response fit.** A jurisdiction dropped
 to shrink a payload goes unlinted while the report says the run covered it,
 which is the trade this whole procedure is written against.
+
+**Then show the run, before you merge anything.** Print what came back in the
+shape https://lexlint.io draws a run in: three lines saying what was linted, a block
+for each finding the developer should read first, and a count. It is their
+first look at the run, so it comes straight after `run_lint`, before step 4's
+merge and step 5's plan, on every run that returned a lint.
+
+```
+declared  generates_content, crawls_web
+operates  🇪🇺 European Union, 🇨🇦 Canada, US-California
+corpus    2026-09-30
+
+WARN  🇨🇦 Canada  PIPEDA breach of security safeguards regime · in force since 2018-11-01
+      Requires an organization to report to the Privacy Commissioner, and to
+      notify the affected individual directly, any breach of security
+      safeguards involving personal information under its control where it
+      is reasonable to believe the breach creates a real risk of significant
+      harm.
+      read against its source 2026-09-02 · https://lexlint.io/l/ca-s-c-2000-c-5-ss-10-1-10-3
+
+WARN  🇪🇺 European Union  AI Act, Article 50 (transparency obligations for AI systems and synthetic content) · in force since 2026-08-02
+      Providers of AI systems that interact directly with people must ensure
+      users are informed they are dealing with an AI system unless obvious
+      from context, and providers of generative AI must mark synthetic audio,
+      image, video, or text output in a machine-readable, detectable format.
+      read against its source 2026-08-14 · https://lexlint.io/l/eu-2024-1689-50
+
+WARN  US-California  California AI Transparency Act (SB 942, as amended by AB 853) · in force since 2026-08-02
+      A covered provider of a generative AI system must offer a manifest
+      disclosure option (a visible AI-generated content label), embed a
+      latent disclosure of machine-readable provenance data in content it
+      creates, and provide a free public AI-content detection tool.
+      read against its source 2026-08-14 · https://lexlint.io/l/us-ca-cal-bus-prof-sections-22757-22757-6
+
+INFO  US-California  AB 2839, election materially deceptive deepfake disclaimer law · blocked by a court
+      As enacted, prohibited knowingly distributing, with actual malice,
+      materially deceptive AI-generated election media within specified
+      windows around an election, and required a conspicuous manipulation
+      disclaimer for satire or parody content to qualify for that exemption.
+      read against its source 2026-08-14, for counsel · https://lexlint.io/l/us-ca-cal-elec-20012
+
+4 of 94 findings: 3 for code, 1 for counsel
+The other 90: 69 warn, 21 info. All of them go into lexlint.yml in step 4,
+and the plan in step 5 works through them.
+```
+
+It is fenced, like the status line: it is a printout, and its columns only line
+up in a fence. The words are the ones "How to show a list" asks for: a place is
+`jurisdiction_flag`, a space and `jurisdiction_name`, never a slug, and a
+state has its country code and no flag; when a law binds is `in_force.words`,
+verbatim. A fence prints a markdown link as its text, so each block's link is
+the bare `note_url` at the end of its last line, which a terminal makes
+clickable. With no `note_url` the line ends at the date: never build the URL.
+
+**The three lines at the top.** `declared` is the activities you sent, in the
+order you sent them, then `public_sector` when the profile carried it.
+`operates` is each jurisdiction you declared, by flag and name, read off a
+finding for that slug; a slug no finding names stays a slug, which is the gap
+it marks. `corpus` is the day of the reply's `corpus_built_at`.
+
+**Which findings get a block.** Three kinds, each once:
+
+- **The lead for each declared place**: its `warn` obligation that is in force
+  (`in_force.state` is `in_force`) and `present`, preferring one with a
+  `note_url`, and the newest `effective_date` among those.
+- **Every finding for counsel**, whatever its severity. A finding is for
+  counsel when `settledness.band` is `unsettled` or `lifecycle.band` is
+  `blocked`: the corpus routes it there, and you do not.
+- **Every coverage warning.** A declared jurisdiction LexLint holds nothing
+  for is never left out of a report, and this is the first report.
+
+Warns first, then infos. A block is the severity upper-cased, the place, the
+law's name (the part of `summary` before its first ": "), a `·` and
+`in_force.words`; then the rest of `summary`, whole and never cut, wrapped at
+about 76 columns under a six-space indent; then `read against its source` and
+the day of `as_of_date`, `, for counsel` when it is, and the link. A coverage
+warning has no law and no date: its block is its first line with `summary`
+after the place.
+
+**Then the count, and then the rest.** `N of M findings: X for code, Y for
+counsel` counts the blocks you printed, and the line under it counts every
+finding you did not print, by severity, and says where each one goes. Nothing
+is dropped: the manifest carries every finding the run returned, and the plan
+reads all of them. A run that printed every finding it returned says "That is
+all of them." there instead. "For code" and "for counsel" are the corpus's
+routing, for this first look; the lanes the work goes into are step 5's.
+
+**A law arrives once however many declared places reach it.** A child declared
+beside its parent mirrors the parent's findings (step 4 says how), so the block
+reads each law once, by its instrument key and the slug it was read from, and
+the count says so: "4 of 90 instruments (94 findings, 4 of them a parent's law
+again)", never a bare total. A split run (step 3) is one run here too: read
+every call's file at once, as the command below does for `lint-*.json`.
+
+This prints the blocks' rows from the unwrapped `lint.json`, then the two
+count lines, so the run is read in one slice rather than whole. For a split
+run, feed it `jq -s '{findings: map(.findings) | add}' lint-*.json` instead of
+the file:
+
+```bash
+jq -r '
+  def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
+  def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
+  def lead: [ .[] | select(.severity == "warn" and .kind == "obligation"
+                           and ((.certainty.resultset // "present") == "present")
+                           and .in_force.state == "in_force") ]
+            | group_by(.resolved_from // .jurisdiction)
+            | map(sort_by(.effective_date // "") | reverse | sort_by(.note_url == null) | .[0]);
+  (.findings | length) as $total
+  | (.findings | group_by(law) | map(sort_by(.resolved_from != null) | .[0])) as $all
+  | ([$all | lead[]] + [$all[] | select(counsel)]
+     + [$all[] | select(.kind == "coverage" and .severity == "warn")]
+     | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown
+  | ($shown[] | [.severity, (.jurisdiction_flag // ""), (.jurisdiction_name // .jurisdiction),
+                 (.in_force.words // ""), .summary, (.as_of_date // ""), (.note_url // ""),
+                 (if counsel then "counsel" else "code" end)] | @tsv),
+    ("\($shown | length) of \($all | length) "
+     + (if $total > ($all | length)
+        then "instruments (\($total) findings, \($total - ($all | length)) of them a parent's law again)"
+        else "findings" end)
+     + ": \([$shown[] | select(counsel | not)] | length) for code, \([$shown[] | select(counsel)] | length) for counsel"),
+    "not shown: \([$all[] | select(.severity == "warn")] | length - ([$shown[] | select(.severity == "warn")] | length)) warn, \([$all[] | select(.severity == "info")] | length - ([$shown[] | select(.severity == "info")] | length)) info"
+' lint.json
+```
 
 ### 4. Merge the findings into the manifest
 
@@ -1403,7 +1527,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.45.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.46.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1417,7 +1541,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.45.1`, and `--summary` is the one sentence you author.
+`lexlint 1.46.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1960,7 +2084,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.45.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.46.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2153,7 +2277,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.45.1`, the bundle that ran the lint. The
+- `client_version`: `1.46.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

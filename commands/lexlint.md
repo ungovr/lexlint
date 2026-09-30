@@ -47,7 +47,10 @@ Run the LexLint loop against this repository.
    or CI session nobody can answer: send the lists as you read them, and name
    the values you were unsure of in the report. Then call `run_lint` with the
    declared activities and jurisdictions, and `public_sector` when the profile
-   has it.
+   has it, and show the run before anything else, as the skill's "Then show
+   the run" lays it out: what was declared, where it operates by flag and
+   name, the corpus date, a block for each place's lead finding and for every
+   finding for counsel, and the count.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
    `lint.work_items` across untouched, and moving vanished acknowledgments to

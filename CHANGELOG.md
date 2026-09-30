@@ -5,6 +5,17 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.46.0 (2026-09-30)
+
+- A run now opens in the shape https://lexlint.io and
+  https://developer.lexlint.io show a run in, printed straight after
+  `run_lint` and before anything is merged:
+  what was declared, where the app operates, by flag and name, and the date
+  of the corpus; then a block for the lead finding in each declared place and
+  for every finding for counsel, each with its place, the law, when it binds,
+  the duty in full, the date it was read against its source and the address
+  of its law page; then a count of what the block shows and of the rest.
+
 ## 1.45.1 (2026-09-29)
 
 - The bundle now carries this changelog, CHANGELOG.md, with one entry per
