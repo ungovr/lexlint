@@ -5,6 +5,13 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.46.1 (2026-09-30)
+
+- The bundle's descriptions now name content-moderation law among the topics the lint
+  reads: the liability of a service for what its users post,
+  notice-and-takedown, and moderation transparency. A profile that declares
+  `operates_social_platform` meets it. Nothing you declare or call changes.
+
 ## 1.46.0 (2026-09-30)
 
 - A run now opens in the shape https://lexlint.io and

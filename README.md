@@ -5,8 +5,8 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, privacy, cybersecurity, communications, age-gating, and reuse law.
-All seven topics are matched by run_lint, not reference-only. Declare what your app does
+A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law.
+All eight topics are matched by run_lint, not reference-only. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 
