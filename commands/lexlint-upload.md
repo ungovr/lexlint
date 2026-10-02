@@ -31,7 +31,7 @@ with, `activities`, `jurisdictions` and, when the run sent one,
 `public_sector`, exactly as sent.
 
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
-again against today's corpus and closes by uploading. That includes a session
+again against today's law library and closes by uploading. That includes a session
 opened after a first run whose upload was refused. The first-run procedure at
 https://lexlint.io/first-run sends the declaration and not the findings and
 writes no record of its own, so there is no file waiting for a later session
@@ -67,7 +67,7 @@ Take each from whatever owns it rather than all from one file:
   the developer was shown. Leave it out only when the run itself was made
   without it.
 - `corpus_built_at` and `run_at`: both from that same `run_lint` response,
-  verbatim. The server refuses the call when its corpus has moved since, or
+  verbatim. The server refuses the call when the law library has moved since, or
   when `run_at` is more than an hour old, because either way the findings it
   would store are not the ones the developer approved. Both refusals name the
   same remedy: lint again, show the new result, and upload that.
@@ -131,7 +131,7 @@ to disk on the way, and nothing has to be deleted afterwards.
 JSON-RPC, HTTP 200 with an `error` member in place of a `result`, and your
 client hands it to you as the tool's result. A reply carrying `error` stored
 nothing and has no `run_url`; `error.message` says what to fix, and for a
-moved corpus or a stale `run_at` that is to lint again and upload the new
+moved law library or a stale `run_at` that is to lint again and upload the new
 result. Report the refusal; never read a result out of it.
 
 **A blocked route is never a reason to forge an identity.** Do not set a

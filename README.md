@@ -21,7 +21,7 @@ replaces neither QA nor legal review.
 The law behind every one of those rows is readable without installing anything.
 https://lexlint.io/law is what LexLint tracks, jurisdiction by jurisdiction,
 down to the individual instrument, and https://lexlint.io/news is the same law
-as it moves in the press. Both are the corpus the lint runs against, so they are
+as it moves in the press. Both are the LexLint law library the lint runs against, so they are
 also the way to see what a run would have to say about your jurisdictions before
 you set one up.
 
@@ -32,7 +32,7 @@ Thin by design, so you can see exactly what you are installing:
 - **One execution path.** The lint is deterministic and happens in one place,
   a stateless worker; the law data behind it updates server-side, not in this
   bundle. To avoid hallucinations, which law applies is decided by a fixed,
-  rule-based match against the corpus, never by asking the LLM to reason
+  rule-based match against the law library, never by asking the LLM to reason
   about the law itself.
 - **No stored keys.** Yours passes straight through to the UnGovr Open Data
   API on every call, and LexLint keeps nothing.
@@ -185,7 +185,7 @@ Data API on every call, and the upstream free tier is the only meter:
 
 `check_access`, `set_profile`, and `run_lint` together cost five upstream
 requests, however many jurisdictions you declare: one for the preflight, one
-for `set_profile`, and three for `run_lint`'s read of the published corpus,
+for `set_profile`, and three for `run_lint`'s read of the published law library,
 which is filtered to your declaration in memory rather than fetched per
 jurisdiction. Narrowing a declaration to conserve quota buys nothing: six
 jurisdictions and sixty cost the same five requests. That total does not
@@ -196,7 +196,7 @@ which costs one to four more requests per domain not already recorded in
 ## Use
 
 Run `/lexlint` in any repo. The skill runs a preflight, asks what your app does
-and where it operates, previews what the corpus holds for those jurisdictions,
+and where it operates, previews what the law library holds for those jurisdictions,
 runs the lint, collapses the findings into a short plan you approve, and then
 works that plan: shipping diffs, drafting the documents your findings call for,
 and routing what is not yours to act on alone.

@@ -8,7 +8,7 @@ description: Use when shipping an app that crawls the web, trains models, genera
 # LexLint
 
 A lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law,
-backed by a corpus researched jurisdiction by jurisdiction. Like a code linter, it catches basic
+backed by the LexLint law library, researched jurisdiction by jurisdiction. Like a code linter, it catches basic
 issues early, it certifies nothing, and it replaces neither QA nor legal review.
 
 **LexLint does not read your code to work out what your app does.** You declare
@@ -18,12 +18,12 @@ confidently wrong lint, and a committed one produces a diff a reviewer can read
 when the law changes underneath it.
 
 Once the declaration is written down, which law applies is decided by a
-fixed, rule-based match against the corpus, never by asking the LLM to reason
-about the law itself: the same declaration, the same corpus snapshot, and the
-same judging instant always produce the same findings. A finding's kind,
-severity, staleness and certainty rung move with the clock as well as with
-the corpus, so a run repeated later against an unchanged corpus can still
-answer differently.
+fixed, rule-based match against the law library, never by asking the
+LLM to reason about the law itself: the same declaration, the same snapshot
+of the law library, and the same judging instant always produce the same
+findings. A finding's kind, severity, staleness and certainty rung move with
+the clock as well as with the law library, so a run repeated later against an
+unchanged law library can still answer differently.
 
 ## Setup
 
@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.46.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.46.2"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.46.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.46.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.46.1`.** State it, do not go looking
+**That version string is yours and it is `1.46.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -232,8 +232,8 @@ before you have read the repository, and a declaration invented to round out a
 failure report is the same defect as an invented finding, one field over.
 
 **Do not fill the gap.** Not from your own memory of what these laws say, not
-from training data, not from a web search, not from any other copy of a corpus
-you find on disk. Asked for a lint it cannot run, a model will reach for
+from training data, not from a web search, not from any other copy of the law
+library you find on disk. Asked for a lint it cannot run, a model will reach for
 whichever route still produces an answer, and every one of those routes returns
 something that looks exactly like a lint result and is not one: plausible
 instrument names, plausible severities, nothing behind any of them. A developer
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.46.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.46.2) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -375,8 +375,8 @@ not suggest minting**. Only `key_valid: false` means the key was actually
 rejected, and that is the one case where minting belongs: run `/lexlint-key`
 and follow the `rejected` steps.
 
-`corpus_reachable` is three-valued for the same reason: true when the corpus
-was read, false when the read failed, and null when it was never attempted.
+`corpus_reachable` is three-valued for the same reason: true when the law
+library was read, false when the read failed, and null when it was never attempted.
 Never render null as "unreachable".
 
 LexLint stores no keys. Every call checks yours and spends from its
@@ -501,7 +501,7 @@ Two more rules are about the words in the cells rather than the layout:
   `jurisdiction_name`: "Ireland", "European Union", "US-California". That
   is the word in every table and every sentence; the slug (`us/ca`) belongs in
   `lexlint.yml` and nowhere a person reads. A finding without a name (a slug
-  the corpus does not name) shows its slug, which is the gap it marks.
+  the law library does not name) shows its slug, which is the gap it marks.
 - **The flag goes before the name.** A finding or coverage row that carries
   `jurisdiction_flag` gets it, then a space, before the name in every table
   and list: "🇪🇺 European Union", "🇮🇪 Ireland". Only a country, the EU and
@@ -516,8 +516,9 @@ Two more rules are about the words in the cells rather than the layout:
   a finding, never in place of the sentence.
 - **`why` comes before the law.** Every instrument finding carries `why`, one
   sentence in basic language saying which declared activity reached it and
-  what the corpus tags it for ("Pulled in because the app records and
-  processes voices, and the corpus tags this instrument for exactly that.").
+  what the law library tags it for ("Pulled in because the app records and
+  processes voices, and the law library tags this instrument for exactly
+  that.").
   Wherever a finding is shown on its own (a triage entry, a work item's
   findings, a brief for counsel), that sentence goes first, above `summary`,
   so the reader knows why before they meet the statute. In a table it is the
@@ -530,7 +531,7 @@ bold the words when `in_force.state` is `not_yet_in_force`, and strike the
 date of an ended law, keeping its reason: `~~in force since 2024-02-01~~
 repealed`, from `in_force.from` and `in_force.reason`. An ended law with no
 `from` prints its words as they are. Never print `status` or
-`lifecycle.label` for this: they are the corpus's and the older band's
+`lifecycle.label` for this: they are the law library's and the older band's
 words, and a developer reads the same law at https://lexlint.io/law in
 these.
 
@@ -796,8 +797,8 @@ the deferral rather than guessing a jurisdiction to fill the gap.
 
 ### 3. Set the profile, then run the lint
 
-Two calls. The first validates the declaration and tells you what the corpus
-holds for it; the second returns findings.
+Two calls. The first validates the declaration and tells you what the law
+library holds for it; the second returns findings.
 
 **Show the developer the two lists before you send them**, and their
 `public_sector` answer beside them when the profile has one, with every value
@@ -847,7 +848,7 @@ run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
-  client_version="1.46.1"
+  client_version="1.46.2"
 )
 ```
 
@@ -900,7 +901,7 @@ unrouted findings.
 
 **One finding is not per jurisdiction, and it is the reason this route needs a
 rule rather than just an instruction.** A finding whose `id` begins
-`activity:` says the corpus tags no instrument anywhere for a declared
+`activity:` says the law library tags no instrument anywhere for a declared
 activity, so that activity is unlinted rather than clean. It carries
 `jurisdiction: null` because it is about the run, not about a place, and the
 run that answers it is the call: `run_lint` reports it when nothing in **that
@@ -911,11 +912,11 @@ So **`activity:` findings are intersected across the calls, while everything
 else is unioned.** An activity is genuinely unlinted only when **every** call
 reported it; a single call omitting it means some jurisdiction did carry the
 tag, and the warning is wrong for the declaration as a whole. Getting this
-backwards produces a coverage warning about law the corpus actually holds,
+backwards produces a coverage warning about law LexLint actually holds,
 which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
-Fourteen activities can raise it, because the corpus maps them on the flag
+Fourteen activities can raise it, because the law library maps them on the flag
 axis alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
 `ships_mobile_app`, `operates_app_store`, `publishes_adult_content`,
 `operates_social_platform`, `aggregates_content`,
@@ -943,11 +944,11 @@ Two costs come with it, and one rule that is not optional:
   Count that against the quota line before starting, exactly as with resolving
   domains.
 - **`corpus_built_at` has to be the same on every call.** If it moves between
-  them, the corpus was rebuilt underneath you and the union is two runs wearing
+  them, the law library was rebuilt underneath you and the union is two runs wearing
   one date, which this procedure forbids everywhere else it can happen (see
   "Never pair one run's findings with another run's envelope"). Start again from
-  the first call. Expect this rather than treating it as bad luck: the corpus
-  rebuilds daily, and a split run is the one shape that can straddle the
+  the first call. Expect this rather than treating it as bad luck: the law
+  library rebuilds daily, and a split run is the one shape that can straddle the
   rebuild.
 
 **Unwrap the file before reading anything out of it, because the routes hand
@@ -1006,9 +1007,9 @@ first look at the run, so it comes straight after `run_lint`, before step 4's
 merge and step 5's plan, on every run that returned a lint.
 
 ```
-declared  generates_content, crawls_web
-operates  🇪🇺 European Union, 🇨🇦 Canada, US-California
-corpus    2026-09-30
+declared     generates_content, crawls_web
+operates     🇪🇺 European Union, 🇨🇦 Canada, US-California
+law library  2026-09-30
 
 WARN  🇨🇦 Canada  PIPEDA breach of security safeguards regime · in force since 2018-11-01
       Requires an organization to report to the Privacy Commissioner, and to
@@ -1056,7 +1057,7 @@ clickable. With no `note_url` the line ends at the date: never build the URL.
 order you sent them, then `public_sector` when the profile carried it.
 `operates` is each jurisdiction you declared, by flag and name, read off a
 finding for that slug; a slug no finding names stays a slug, which is the gap
-it marks. `corpus` is the day of the reply's `corpus_built_at`.
+it marks. `law library` is the day of the reply's `corpus_built_at`.
 
 **Which findings get a block.** Three kinds, each once:
 
@@ -1065,7 +1066,7 @@ it marks. `corpus` is the day of the reply's `corpus_built_at`.
   `note_url`, and the newest `effective_date` among those.
 - **Every finding for counsel**, whatever its severity. A finding is for
   counsel when `settledness.band` is `unsettled` or `lifecycle.band` is
-  `blocked`: the corpus routes it there, and you do not.
+  `blocked`: the law library routes it there, and you do not.
 - **Every coverage warning.** A declared jurisdiction LexLint holds nothing
   for is never left out of a report, and this is the first report.
 
@@ -1082,7 +1083,7 @@ counsel` counts the blocks you printed, and the line under it counts every
 finding you did not print, by severity, and says where each one goes. Nothing
 is dropped: the manifest carries every finding the run returned, and the plan
 reads all of them. A run that printed every finding it returned says "That is
-all of them." there instead. "For code" and "for counsel" are the corpus's
+all of them." there instead. "For code" and "for counsel" are the law library's
 routing, for this first look; the lanes the work goes into are step 5's.
 
 **A law arrives once however many declared places reach it.** A child declared
@@ -1210,7 +1211,7 @@ For every finding in the new run:
 - If its `id` is new, set `state: new`.
 - A finding whose `id` begins `topic:` is a **tool-coverage notice** from an
   older LexLint, not a finding about this app. It said LexLint held law on a
-  topic `run_lint` could not evaluate. Every topic in the corpus is evaluated
+  topic `run_lint` could not evaluate. Every topic in the law library is evaluated
   now, so no run raises one any more, and a manifest written before that can
   still be carrying one. If your previous manifest has a `topic:` entry and this
   run does not, that is what happened: **drop the entry** rather than moving it
@@ -1357,8 +1358,8 @@ def load_run(paths):
             die("%s is not readable JSON: %s" % (p, exc))
     stamps = sorted({str(c.get("corpus_built_at")) for c in calls})
     if len(stamps) > 1:
-        die("the calls report different corpus_built_at (%s): the corpus rebuilt "
-            "mid-run, so start again from the first call" % ", ".join(stamps))
+        die("the calls report different corpus_built_at (%s): the law library "
+            "rebuilt mid-run, so start again from the first call" % ", ".join(stamps))
     merged, per_call = {}, []
     for c in calls:
         if not isinstance(c.get("findings"), list):
@@ -1527,7 +1528,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.46.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.46.2' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1541,7 +1542,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.46.1`, and `--summary` is the one sentence you author.
+`lexlint 1.46.2`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1569,7 +1570,7 @@ against a manifest that had acknowledgments is the failure this whole section
 is written against, and it is a number rather than a silence.
 
 `finding_fields_this_bundle_does_not_know` is the one to read even when it is
-the only thing that changed. A name in it means the corpus is ahead of your
+the only thing that changed. A name in it means the law library is ahead of your
 installed schema, which is the ordinary shape of an additive change and not a
 fault: say which fields were left out. Say that an update picks them up only
 when the preflight reported one (`update_available: true`), and pair the two
@@ -1602,7 +1603,7 @@ them gets you the same bytes:
   the report instead. `finding` is `additionalProperties: false`, so writing
   one through lands a manifest that fails the schema this bundle ships with,
   on the lint's own output, where the developer cannot fix it. Your schema is
-  frozen at install and the corpus is not, so this is the ordinary way a
+  frozen at install and the law library is not, so this is the ordinary way a
   newer field arrives: say which fields you left out, say that upgrading
   picks them up on the next run only where the preflight reported a newer
   version, and do not invent a place to keep them.
@@ -1657,7 +1658,7 @@ result; one nobody mentions is how the next run starts from nothing.
 finding answers most of it, and reading the statute yourself answers none of
 it.
 
-**`applies_to` says whom the instrument binds**, as the corpus records it, and
+**`applies_to` says whom the instrument binds**, as the law library records it, and
 it takes three values: `government`, `private`, `both`. A `government` finding
 does not bind a private app. Read it that way, and read it that way every run:
 the LexLint portal already renders such a finding as "applies to government
@@ -1681,7 +1682,7 @@ app; `owed: elsewhere` does not, arrives at `info`, and keeps its lines in
 `requires_elsewhere`; and `owed: customer` means the duty is your public-sector
 customer's, with the lines your software has to support split into a
 `customer_duty` finding placed directly after it. `applies_to` stays on both as
-the corpus recorded it. `owed` is the answer for this declaration.
+the law library recorded it. `owed` is the answer for this declaration.
 
 An instrument can be partly yours and partly your customer's. It then keeps its
 own lines, carries `customer_duty_id`, and its `customer_duty` finding follows
@@ -1752,8 +1753,8 @@ Each work item takes one of exactly four lanes:
   runs through the contract, not the statute.
 
 **A finding whose `settledness.band` is `unsettled` goes to the counsel lane.
-This is not a judgment you make: the corpus made it, and the fields beside
-the band say why.** The band is derived in the research corpus from whether a
+This is not a judgment you make: the law library made it, and the fields
+beside the band say why.** The band is derived in the law library from whether a
 regulator or a court has construed the duty, whether the instrument is under
 challenge, and what questions the research left open. Route it even when the
 finding also looks answerable with a diff, and say so in the plan: a
@@ -1866,7 +1867,7 @@ their repository beside the doc-lane drafts. It carries, in this order:
    citation for a row the lint gave none; a lawyer handed an invented
    reference has been handed something worse than a blank. Last on the line,
    where the finding carries `settledness`: its band, then the guidance link
-   and the case citation the corpus recorded. A lawyer reading "unsettled"
+   and the case citation the law library recorded. A lawyer reading "unsettled"
    wants to know what has already been said about the duty, and a band with
    no evidence under it is the same non-answer a bare citation is.
 4. **What is already handled.** The code and doc work items that answer the
@@ -1964,7 +1965,7 @@ never empty, because its last line is always there:
 - **Topics outside the six LexLint covers.** Name the ones a reader of this
   particular app would expect to see and LexLint does not hold. A studio that
   records identifiable people gets no right-of-publicity law out of a lint
-  whose corpus does not cover it, and a report that does not say so reads as
+  whose law library does not cover it, and a report that does not say so reads as
   though the question was asked and answered.
 - **The standing line.** LexLint covers AI, scraping, privacy, cybersecurity,
   communications, content-moderation, age-gating and reuse law, in the jurisdictions declared, for the
@@ -2037,7 +2038,7 @@ level so the check below can run without parsing the whole file.
 walks up and answers from `us/ca`. The resolved slug is the payload's own
 `jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
 holds the slug you asked for, and it is present only when a parent answered.
-Filed under what was asked for, one corpus row lands in the cache repeatedly
+Filed under what was asked for, one row of the law library lands in the cache repeatedly
 under slugs `check_access` has never heard of, and not one of those entries can
 be revalidated.
 
@@ -2070,13 +2071,13 @@ Re-fetch a jurisdiction when any of these holds:
 **It must never create coverage.** If `check_access` reports `held: false` for
 a slug, a copy cached while it was held does not make it held. Report the
 coverage warning exactly as a run with no cache would. Coverage is what the
-corpus holds now, and a local file answering otherwise is the reassuring wrong
+law library holds now, and a local file answering otherwise is the reassuring wrong
 answer with a cache in front of it.
 
-**It must never feed the lint.** `run_lint` reads the corpus
+**It must never feed the lint.** `run_lint` reads the law library
 server-side and verifies it against the published manifest, by row count, byte
 count and digest, on every run. Nothing hands it a cached copy, and that is
-deliberate: the verification is what stops a half-published corpus from linting
+deliberate: the verification is what stops a half-published law library from linting
 clean, so a cache able to reach it would be a way to skip it. Findings are not
 cached either, for the same reason `lint.vanished` exists.
 
@@ -2084,12 +2085,12 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.46.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.46.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
 Someone reading a citation is owed the knowledge of whether it was read from
-the corpus this minute or from a copy taken yesterday.
+the law library this minute or from a copy taken yesterday.
 
 Domain resolutions need none of this. `profile.domains` in `lexlint.yml`
 already records them, so a domain sitting there is not resolved a second time.
@@ -2107,7 +2108,7 @@ the strength of a matched instrument. Treat a live `warn` obligation as the
 thing to act on.
 
 Every finding carries `as_of_date` and `stale`, because laws change faster than
-corpora do. A stale finding is still worth acting on; it just may lag the law.
+law libraries do. A stale finding is still worth acting on; it just may lag the law.
 
 Findings also carry a `kind`:
 
@@ -2224,7 +2225,7 @@ was made with, `activities`, `jurisdictions` and, when the run sent one,
 `public_sector`, exactly as sent.
 
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
-again against today's corpus and closes by uploading. That includes a session
+again against today's law library and closes by uploading. That includes a session
 opened after a first run whose upload was refused. The first-run procedure at
 https://lexlint.io/first-run sends the declaration and not the findings and
 writes no record of its own, so there is no file waiting for a later session
@@ -2261,7 +2262,7 @@ file:
   the developer was shown. Leave it out only when the run itself was made
   without it.
 - `corpus_built_at` and `run_at`: both from that same `run_lint` response,
-  verbatim. The server refuses the call when its corpus has moved since, or
+  verbatim. The server refuses the call when the law library has moved since, or
   when `run_at` is more than an hour old, because either way the findings it
   would store are not the ones the developer approved. Both refusals name the
   same remedy: lint again, show the developer the new result, and upload that.
@@ -2277,7 +2278,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.46.1`, the bundle that ran the lint. The
+- `client_version`: `1.46.2`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
@@ -2291,7 +2292,7 @@ rule: an id it did not rebuild is refused rather than stored.
 Nothing else goes in the call, and nothing else could: the tool takes no
 credential, no source file, no prompt or transcript and no git identity, and
 what the server stores is the app name, the declaration, the findings it
-rebuilt, the triage you sent and the corpus date.
+rebuilt, the triage you sent and the law library's date.
 
 **Show the consent preview, then wait for the approval.** Before calling the
 tool, print exactly what is about to leave the repository:
@@ -2325,7 +2326,7 @@ or CI session, where there is nobody to give one.
 JSON-RPC, HTTP 200 with an `error` member in place of a `result`, and your
 client hands it to you as the tool's result. A reply carrying `error` stored
 nothing and has no `run_url`; `error.message` says what to fix, and for a
-moved corpus or a stale `run_at` that is to lint again and upload the new
+moved law library or a stale `run_at` that is to lint again and upload the new
 result. Report the refusal; never read a result out of it.
 
 **A blocked route is never a reason to forge an identity.** Do not set a

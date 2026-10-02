@@ -5,6 +5,16 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.46.2 (2026-10-01)
+
+- LexLint's body of law is now called the law library wherever you and your
+  agent read it: the tool and schema descriptions, the text the server
+  returns, the written procedure, the plugin's commands and README. It used
+  to be called the corpus. Only the word changes. No key, field name, value
+  or step is different, and `corpus_built_at` keeps its name, so a client
+  that reads it is not affected. The run block the procedure prints labels
+  its third line `law library`, where it read `corpus`.
+
 ## 1.46.1 (2026-09-30)
 
 - The bundle's descriptions now name content-moderation law among the topics the lint

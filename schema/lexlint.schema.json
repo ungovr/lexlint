@@ -112,7 +112,7 @@
     },
     "finding": {
       "type": "object",
-      "description": "One finding as the run returned it, plus the four fields triage writes. Closed on purpose: keeping this property map exhaustive is what makes a field LexLint emits and never documented a build failure rather than a surprise in your manifest. The consequence for an installed bundle is deliberate rather than overlooked. A bundle's schema cannot know a field added to the corpus after it shipped, so the lint writes only the keys named here and reports which ones it left out; updating LexLint picks them up on the next run.",
+      "description": "One finding as the run returned it, plus the four fields triage writes. Closed on purpose: keeping this property map exhaustive is what makes a field LexLint emits and never documented a build failure rather than a surprise in your manifest. The consequence for an installed bundle is deliberate rather than overlooked. A bundle's schema cannot know a field added to the law library after it shipped, so the lint writes only the keys named here and reports which ones it left out; updating LexLint picks them up on the next run.",
       "required": ["id", "severity", "state"],
       "additionalProperties": false,
       "properties": {
@@ -130,7 +130,7 @@
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {
           "type": "string",
-          "description": "How the jurisdiction reads to a person, from the engine since bundle 1.20.0: Ireland, European Union, US-California (\"California (US)\" before 1.44.0). Absent when the corpus did not name the slug, or when the slug answered from a parent."
+          "description": "How the jurisdiction reads to a person, from the engine since bundle 1.20.0: Ireland, European Union, US-California (\"California (US)\" before 1.44.0). Absent when the law library did not name the slug, or when the slug answered from a parent."
         },
         "jurisdiction_flag": {
           "type": "string",
@@ -143,7 +143,7 @@
         },
         "why": {
           "type": "string",
-          "description": "Why this instrument was pulled in, in basic language, from the engine since bundle 1.21.0: which declared activity reached it and what the corpus tags it for. Shown above the finding wherever it appears."
+          "description": "Why this instrument was pulled in, in basic language, from the engine since bundle 1.21.0: which declared activity reached it and what the law library tags it for. Shown above the finding wherever it appears."
         },
         "matched_by": {
           "type": "object",
@@ -157,7 +157,7 @@
         },
         "posture": {
           "type": "object",
-          "description": "Only on kind: posture. The jurisdiction-wide crawl-law attributes this finding summarises, carried verbatim from the corpus so the manifest records what was read rather than only what was concluded. crawl_policy and access_legality are open string maps: a new axis added to the corpus must land in a manifest without a schema change, because the alternative is a lint that refuses to write its own result.",
+          "description": "Only on kind: posture. The jurisdiction-wide crawl-law attributes this finding summarises, carried verbatim from the law library so the manifest records what was read rather than only what was concluded. crawl_policy and access_legality are open string maps: a new axis added to the law library must land in a manifest without a schema change, because the alternative is a lint that refuses to write its own result.",
           "properties": {
             "crawl_policy": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
             "access_legality": { "type": "object", "additionalProperties": { "type": ["string", "null"] } }
@@ -166,7 +166,7 @@
         },
         "basis": {
           "type": ["string", "null"],
-          "description": "On kind: posture, the corpus value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds. On kind: customer_duty, why the duty is your customer's: it binds your public-sector customer and is discharged through the software you supply."
+          "description": "On kind: posture, the law library value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds. On kind: customer_duty, why the duty is your customer's: it binds your public-sector customer and is discharged through the software you supply."
         },
         "citation": { "type": ["string", "null"] },
         "url": { "type": ["string", "null"] },
@@ -178,11 +178,11 @@
         "requires": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "What the instrument requires of an operator it binds, where the corpus states it. Omitted rather than emitted empty: an empty list beside a real obligation reads as \"nothing required\", and this corpus states exposure, never clearance."
+          "description": "What the instrument requires of an operator it binds, where the law library states it. Omitted rather than emitted empty: an empty list beside a real obligation reads as \"nothing required\", and the law library states exposure, never clearance."
         },
         "applies_to": {
           "type": ["string", "null"],
-          "description": "Whom the instrument binds, as the corpus records it. Reported, not filtered on. Whether a government-only duty reaches this caller is the question public_sector answers: with it declared, owed carries the answer, and without it nothing here decides it."
+          "description": "Whom the instrument binds, as the law library records it. Reported, not filtered on. Whether a government-only duty reaches this caller is the question public_sector answers: with it declared, owed carries the answer, and without it nothing here decides it."
         },
         "owed": {
           "type": "string",
@@ -205,7 +205,7 @@
         "effective_date": { "type": ["string", "null"] },
         "lifecycle": {
           "type": "object",
-          "description": "What the instrument status and dates mean, read as of the call. Derived, not stored, so its values move without a corpus change. For display, use in_force.words; this object's label is kept for existing clients.",
+          "description": "What the instrument status and dates mean, read as of the call. Derived, not stored, so its values move without a law library change. For display, use in_force.words; this object's label is kept for existing clients.",
           "properties": {
             "band": { "type": "string", "enum": ["new", "recent", "in_force", "imminent", "proposed", "blocked", "historical", "unknown"] },
             "label": { "type": "string" },
@@ -223,7 +223,7 @@
             "state": { "type": "string", "enum": ["in_force", "not_yet_in_force", "blocked", "proposed", "no_longer_in_force", "never_in_force", "unknown"] },
             "dated": { "type": "boolean" },
             "from": { "type": ["string", "null"], "description": "ISO date the law started or starts to bind." },
-            "until": { "type": ["string", "null"], "description": "ISO date an ended law stopped binding, where the corpus dates it." },
+            "until": { "type": ["string", "null"], "description": "ISO date an ended law stopped binding, where the law library dates it." },
             "reason": { "type": ["string", "null"], "enum": ["repealed", "replaced", "struck down", "failed", null] },
             "days": { "type": ["integer", "null"] },
             "countdown": { "type": ["string", "null"] },
@@ -239,7 +239,7 @@
           "description": "Which resultset this instrument belongs in, and for forward-looking law how much of it is pinned to primary text rather than predicted. Derived at the call, not stored. A second axis over `kind`, never a replacement: an instrument blocked by a court stays kind \"pending\" and is resultset \"present\", because a court pausing enforcement is a present fact about a live risk. NOTHING IN THE \"forward\" RESULTSET MAY GATE A BUILD.",
           "properties": {
             "resultset": { "type": ["string", "null"], "enum": ["present", "forward", "historical", null], "description": "present: law as it stands. forward: law that may be coming, informational and never gating. historical: spent, and neither. null: LexLint has no rule for this status, which is a coverage gap and never a default placement." },
-            "rung": { "type": ["integer", "null"], "enum": [1, 2, 3, 4, 5, null], "description": "Orders the forward resultset by how much is PINNED, never by a probability; 1 is the most certain. null means the corpus holds no stage to rank by, which is NOT the lowest rung." },
+            "rung": { "type": ["integer", "null"], "enum": [1, 2, 3, 4, 5, null], "description": "Orders the forward resultset by how much is PINNED, never by a probability; 1 is the most certain. null means the law library holds no stage to rank by, which is NOT the lowest rung." },
             "label": { "type": ["string", "null"], "description": "The rung's state in words, or null where there is no rung." },
             "prediction": { "type": ["string", "null"], "description": "How much of this rung is predicted rather than pinned. Rung 1 reports \"none\"." },
             "detail": { "type": ["string", "null"], "description": "Why this placement was reached, in words." }
@@ -249,7 +249,7 @@
         },
         "settledness": {
           "type": "object",
-          "description": "How much interpretation this duty needs, and the field the counsel lane routes on. Derived in the corpus, not at the call. Present only where the corpus has a verdict; ABSENT is not \"settled\", it means no rule fires and the lane is a judgment call as before.",
+          "description": "How much interpretation this duty needs, and the field the counsel lane routes on. Derived in the law library, not at the call. Present only where the law library has a verdict; ABSENT is not \"settled\", it means no rule fires and the lane is a judgment call as before.",
           "properties": {
             "band": { "type": "string" },
             "guidance_url": { "type": "string" },

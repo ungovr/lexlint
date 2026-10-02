@@ -1,5 +1,5 @@
 ---
-description: Lint this app against the AI, scraping, privacy, and cybersecurity law of the jurisdictions it operates in, drawn from LexLint's AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law corpus
+description: Lint this app against the AI, scraping, privacy, and cybersecurity law of the jurisdictions it operates in, drawn from LexLint's law library of AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law
 ---
 
 Run the LexLint loop against this repository.
@@ -49,7 +49,7 @@ Run the LexLint loop against this repository.
    declared activities and jurisdictions, and `public_sector` when the profile
    has it, and show the run before anything else, as the skill's "Then show
    the run" lays it out: what was declared, where it operates by flag and
-   name, the corpus date, a block for each place's lead finding and for every
+   name, the law library's date, a block for each place's lead finding and for every
    finding for counsel, and the count.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
