@@ -263,6 +263,32 @@
           "required": ["band"],
           "additionalProperties": false
         },
+        "court_action": {
+          "type": "object",
+          "description": "The rulings that changed this law's force, and whether a suit against it is pending, as the run returned them. Present only where a court has done either; absent means no court has, never that none will. Written as the run sent it, and its inner objects are left open on purpose, so a key the law library adds to a ruling later cannot make this file invalid.",
+          "properties": {
+            "rulings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "name_en": { "type": ["string", "null"] },
+                  "court": { "type": ["string", "null"] },
+                  "decided": { "type": ["string", "null"] },
+                  "role": { "type": "string" },
+                  "role_word": { "type": ["string", "null"] },
+                  "provisions": { "type": ["array", "null"], "items": { "type": "string" } },
+                  "stage": { "type": ["object", "null"] },
+                  "url": { "type": "string" }
+                },
+                "required": ["name", "role", "url"]
+              }
+            },
+            "under_challenge": { "type": "boolean" }
+          },
+          "required": ["rulings", "under_challenge"]
+        },
         "as_of_date": { "type": ["string", "null"] },
         "stale": { "type": ["boolean", "null"] },
         "confidence": { "type": ["string", "null"] },

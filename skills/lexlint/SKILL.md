@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.46.2"`.
+**Run `check_access` before anything else**, pass `client_version: "1.47.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.46.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.47.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.46.2`.** State it, do not go looking
+**That version string is yours and it is `1.47.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.46.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.47.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -848,7 +848,7 @@ run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
-  client_version="1.46.2"
+  client_version="1.47.0"
 )
 ```
 
@@ -1034,6 +1034,7 @@ WARN  US-California  California AI Transparency Act (SB 942, as amended by AB 85
       read against its source 2026-08-14 · https://lexlint.io/l/us-ca-cal-bus-prof-sections-22757-22757-6
 
 INFO  US-California  AB 2839, election materially deceptive deepfake disclaimer law · blocked by a court
+      blocked 2025-08-29 by Kohls v. Bonta (United States District Court for the Eastern District of California)
       As enacted, prohibited knowingly distributing, with actual malice,
       materially deceptive AI-generated election media within specified
       windows around an election, and required a conspicuous manipulation
@@ -1072,11 +1073,23 @@ it marks. `law library` is the day of the reply's `corpus_built_at`.
 
 Warns first, then infos. A block is the severity upper-cased, the place, the
 law's name (the part of `summary` before its first ": "), a `·` and
-`in_force.words`; then the rest of `summary`, whole and never cut, wrapped at
+`in_force.words`; then, where a court has acted on the law, its court lines;
+then the rest of `summary`, whole and never cut, wrapped at
 about 76 columns under a six-space indent; then `read against its source` and
 the day of `as_of_date`, `, for counsel` when it is, and the link. A coverage
 warning has no law and no date: its block is its first line with `summary`
 after the place.
+
+**The court lines.** A finding carries `court_action` when a court has
+blocked the law, struck it or part of it down, or upheld it after a block, or
+when a suit against it is pending. Each ruling gets a line under the block's
+first line, at the same indent: what the court did, with the parts of the law
+it reached when it reached only some, the day, the ruling and its court, and
+where the ruling stands now. A pending suit adds `under challenge in court`,
+and never a name: the law library does not name it. The command below writes
+these lines after the lane, one per column, in the order to print them. They
+are the law library's words; print them as they come, and never name a court
+or a ruling the lint did not.
 
 **Then the count, and then the rest.** `N of M findings: X for code, Y for
 counsel` counts the blocks you printed, and the line under it counts every
@@ -1102,6 +1115,14 @@ the file:
 jq -r '
   def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
   def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
+  def ruling: ((.provisions // []) | join(", ") | if . == "" then "" else . + " " end)
+              + ({"enjoins": "blocked", "invalidates": "struck down", "upholds": "upheld"}[.role] // .role)
+              + (if .decided then " \(.decided)" else "" end)
+              + " by \(.name)" + (if .court then " (\(.court))" else "" end)
+              + (if .stage then "; now \(.stage.word // .stage.stage | ascii_downcase)"
+                                + (if .stage.date then " \(.stage.date)" else "" end) else "" end);
+  def courtlines: [(.court_action.rulings // [])[] | ruling]
+                  + (if .court_action.under_challenge then ["under challenge in court"] else [] end);
   def lead: [ .[] | select(.severity == "warn" and .kind == "obligation"
                            and ((.certainty.resultset // "present") == "present")
                            and .in_force.state == "in_force") ]
@@ -1114,7 +1135,7 @@ jq -r '
      | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown
   | ($shown[] | [.severity, (.jurisdiction_flag // ""), (.jurisdiction_name // .jurisdiction),
                  (.in_force.words // ""), .summary, (.as_of_date // ""), (.note_url // ""),
-                 (if counsel then "counsel" else "code" end)] | @tsv),
+                 (if counsel then "counsel" else "code" end)] + courtlines | @tsv),
     ("\($shown | length) of \($all | length) "
      + (if $total > ($all | length)
         then "instruments (\($total) findings, \($total - ($all | length)) of them a parent's law again)"
@@ -1271,7 +1292,7 @@ KEYS = {
         "citation", "url", "note_url", "status", "requires", "applies_to",
         "owed", "requires_elsewhere", "customer_duty_id", "instrument_id",
         "effective_date", "lifecycle", "in_force", "certainty", "settledness",
-        "as_of_date",
+        "court_action", "as_of_date",
         "stale", "confidence", "resolved_from") + CARRY,
     "work_items": ("id", "lane", "title", "findings", "jurisdictions"),
     "vanished": ("id", "last_seen") + CARRY,
@@ -1528,7 +1549,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.46.2' \
+    --run-at 2026-09-10 --tool 'lexlint 1.47.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1542,7 +1563,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.46.2`, and `--summary` is the one sentence you author.
+`lexlint 1.47.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1869,7 +1890,10 @@ their repository beside the doc-lane drafts. It carries, in this order:
    where the finding carries `settledness`: its band, then the guidance link
    and the case citation the law library recorded. A lawyer reading "unsettled"
    wants to know what has already been said about the duty, and a band with
-   no evidence under it is the same non-answer a bare citation is.
+   no evidence under it is the same non-answer a bare citation is. Where the
+   finding carries `court_action`, its court lines follow, as the run block
+   prints them, each ruling's name linked to its `url`: a lawyer asked whether
+   a blocked law binds starts from the order that blocked it.
 4. **What is already handled.** The code and doc work items that answer the
    neighboring findings, by title and with each item's `where` (the file, the
    issue or the document it lives in), so counsel sees what the team has
@@ -2085,7 +2109,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.46.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.47.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2278,7 +2302,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.46.2`, the bundle that ran the lint. The
+- `client_version`: `1.47.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

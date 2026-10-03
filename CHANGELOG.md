@@ -5,6 +5,23 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.47.0 (2026-10-03)
+
+- When a court has blocked a law, struck it or part of it down, or upheld it
+  after a block, the finding now says which ruling did it. A new field,
+  `court_action`, carries each ruling's name, its court, the day it was
+  decided, what it did, the parts of the law it reached when it reached only
+  some, where it stands now (an appeal filed, affirmed, reversed) and its
+  case page on LexLint, plus a flag when a suit against the law is pending.
+  It is absent when no court has acted, which is most laws.
+- The run printed after `run_lint` adds a line under any law a court acted
+  on, for example "blocked 2025-08-29 by Kohls v. Bonta (United States
+  District Court for the Eastern District of California)", and "under
+  challenge in court" when a suit is pending. The brief for counsel names the
+  ruling the same way, linked to its page.
+- `lexlint.yml` keeps `court_action` on each finding, and the bundle's schema
+  declares it. Nothing you declare or call changes.
+
 ## 1.46.2 (2026-10-01)
 
 - LexLint's body of law is now called the law library wherever you and your
