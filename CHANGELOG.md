@@ -5,6 +5,30 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.48.0 (2026-10-03)
+
+- A run that does not say whether a public body runs or buys the software now
+  says so itself. Each jurisdiction where a law binding only public bodies
+  matched carries one info line counting them, and `set_profile` asks the
+  question in its `next` step when the answer was not sent. The same law no
+  longer appears at two severities in two sessions without a reason given.
+- A strategy, a charter or a regulator's guidance that matched your
+  declaration is no longer reported as a duty. These records bind nobody on
+  their own, so one info line per jurisdiction names them as context instead.
+- `generates_content` now means output that reaches the app's users or the
+  public. A tool whose AI output only its own team reads does not declare it.
+- `run_lint` takes `brief: true`, for a client with no LexLint procedure that
+  shows findings to a person. Each finding comes back as one line: its summary
+  and first duty clipped to 160 characters, with the citation, link, when the
+  law binds and whose duty it is. On a customer's 61-finding run that is about
+  3,700 words where the full run is about 25,000. The plugin never sends it:
+  the procedure needs the full findings to write `lexlint.yml`.
+- Every `run_lint` result carries `replay`, a short reference to quote when
+  you tell us about a run. It names the bundle, the law library build, the
+  moment the run was judged and a digest of the declaration, so we can rebuild
+  exactly that run. Nothing about the run is stored to make this work; the
+  feedback step now puts it in the summary for you.
+
 ## 1.47.0 (2026-10-03)
 
 - When a court has blocked a law, struck it or part of it down, or upheld it

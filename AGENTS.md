@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.47.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.48.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.47.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.48.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.47.0`.** State it, do not go looking
+**That version string is yours and it is `1.48.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.47.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.48.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -802,7 +802,11 @@ an answer that cannot be had, a headless or CI run or a developer who has not
 answered: leave `public_sector` out of every call entirely, and never send
 `["none"]` on the developer's behalf. `["none"]` is the answer "neither
 applies", and it moves every duty that binds only public bodies to
-`owed: elsewhere`.
+`owed: elsewhere`. A run sent without it says so itself: each jurisdiction
+that matched a duty binding only public bodies carries an `info` coverage
+line, `<slug>:public-sector-undeclared`, counting them, and those duties stay
+at the severity they would have as yours. A run that asked in one session and
+not the next would otherwise show the same law at two severities.
 
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
@@ -1039,7 +1043,7 @@ run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
-  client_version="1.47.0"
+  client_version="1.48.0"
 )
 ```
 
@@ -1047,6 +1051,11 @@ The same declaration, from the profile you just had blessed, plus your own
 `client_version`. The version is not part of the profile and never goes into
 `lexlint.yml`: it describes the plugin making the call, not the app being
 linted.
+
+**Never send `brief`.** It exists for a client with no procedure, which shows
+each finding as one line. This procedure writes `lexlint.yml` and builds work
+items from fields a brief finding does not carry, and a brief run merged into
+the manifest would drop them.
 
 **The response can be larger than your client will hand you.** A
 three-jurisdiction declaration returning 57 findings came back at 147 KB,
@@ -1740,7 +1749,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.47.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.48.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1754,7 +1763,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.47.0`, and `--summary` is the one sentence you author.
+`lexlint 1.48.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2161,6 +2170,16 @@ absent from it, and `{}` means no finding rests on a single value. If you
 marked a value as unsure in step 3 and nobody was there to answer, this is
 where the report names it, beside its group. On a split run (step 3) take the
 union of the calls' groups, and drop any id the merged run no longer holds.
+When the run went out without `public_sector`, name that as an open question
+here too, beside the `<slug>:public-sector-undeclared` line that counts the
+findings binding only public bodies: their `applies_to` is `government`, and
+the answer is what would move them.
+
+**Policy and guidance are context, never findings.** A `<slug>:soft-law` line
+names the records that matched the declaration but are a strategy, a charter or
+a regulator's guidance rather than law. They bind nobody on their own, so they
+are not findings and not work items. Report the line as it reads, and never
+promote a record it names into the findings table.
 
 **Say what this run did not reach, every run, as its own section.** "Unlinted
 is not clean" is the rule above; this is the part that makes it operational,
@@ -2300,7 +2319,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.47.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.48.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2390,7 +2409,9 @@ developer's own key to us.
 The shape:
 
 1. Draft a short usage summary from what you actually did this session. If no
-   lint ran, omit it rather than inventing one.
+   lint ran, omit it rather than inventing one. When one did, put each run's
+   `replay` value in it, verbatim: it lets us rebuild exactly the run the
+   feedback is about, and it carries nothing the developer did not send.
 2. Ask what they want to say.
 3. Print the exact payload, in full, and wait for an explicit yes.
 4. Call `submit_feedback(comments, usage_summary?)` and report the receipt.
@@ -2493,7 +2514,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.47.0`, the bundle that ran the lint. The
+- `client_version`: `1.48.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
