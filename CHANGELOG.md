@@ -5,6 +5,14 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.48.1 (2026-10-04)
+
+- The command in the procedure that prints the run after `run_lint` could not
+  be pasted into a shell: a single apostrophe in its text ended the quoted
+  program early, and the shell stopped with a syntax error. It now runs as
+  written, and prints the same words as before. Nothing you declare or call
+  changes.
+
 ## 1.48.0 (2026-10-03)
 
 - A run that does not say whether a public body runs or buys the software now
