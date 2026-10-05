@@ -27,8 +27,8 @@ is the run being uploaded. A `lexlint.yml` on disk carrying `app` and
 `profile` supplies the name and the declaration when it exists. On a first run
 with no manifest yet, the name is the repository's own (its package manifest's
 name, else its directory), and the declaration is the one the run was made
-with, `activities`, `jurisdictions` and, when the run sent one,
-`public_sector`, exactly as sent.
+with, `activities`, `jurisdictions` and, when the run sent them,
+`public_sector` and `regulated_sector`, exactly as sent.
 
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
 again against today's law library and closes by uploading. That includes a session
@@ -65,7 +65,8 @@ Take each from whatever owns it rather than all from one file:
   rebuilt without it and stores an unrouted run: every line of every instrument
   as the app's own, no `owed`, no `customer_duty` findings, which is not what
   the developer was shown. Leave it out only when the run itself was made
-  without it.
+  without it. **Send `regulated_sector` whenever the run being uploaded was
+  declared with it**, for the same reason, exactly as `run_lint` took it.
 - `corpus_built_at` and `run_at`: both from that same `run_lint` response,
   verbatim. The server refuses the call when the law library has moved since, or
   when `run_at` is more than an hour old, because either way the findings it
@@ -109,6 +110,7 @@ LexLint will upload exactly this:
   activities:     <the declared activities>
   jurisdictions:  <three slugs, plus a count if there are more>
   public_sector:  <the declared answer; leave this line out when the run has none>
+  regulated_sector: <the declared answer; leave this line out when the run has none>
   work items:     <count, or "0, the manifest holds no merged run yet">
   triage carried: <count of findings with a state, place, note or owner>
   destination:    the account of key ung_live_<prefix>...

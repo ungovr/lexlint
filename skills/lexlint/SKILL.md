@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.48.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.49.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.48.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.48.1`.** State it, do not go looking
+**That version string is yours and it is `1.49.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.48.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.49.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -617,6 +617,23 @@ line, `<slug>:public-sector-undeclared`, counting them, and those duties stay
 at the severity they would have as yours. A run that asked in one session and
 not the next would otherwise show the same law at two severities.
 
+**Whose duty is the financial law?** A second answer, asked only when
+`provides_financial_services` is a declared activity. A bank and a vendor whose
+customers are banks both declare that role, and the lint cannot tell them
+apart. Ask whether this software is run by a bank, insurer or other regulated
+financial entity (`body`), supplied to such entities (`supplier`), or neither
+(`none`), and send the answer as `regulated_sector`, keyed by sector:
+`{"financial": "supplier"}`. A fraud-prevention vendor is `supplier`, a bank's
+own system is `body`. It moves duties and never matches them, so a supplier
+still declares `provides_financial_services` to be linted against financial
+law. The same rule governs when to ask: whenever the profile is declared or
+re-declared, once on the next interactive run when a manifest's `profile`
+declares the role and has no `regulated_sector`, never
+`{"financial": "none"}` on the developer's behalf, and left out of every call
+when it cannot be had. A run sent without it says so: each jurisdiction whose
+matched financial-law duties the answer would move carries an `info` coverage
+line, `<slug>:regulated-sector-undeclared`, counting them.
+
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
 to be accessed** by them, which catches general-purpose apps that were never
@@ -694,9 +711,16 @@ parent and reports that in `resolved_from_parent`, so naming one is never worse
 than leaving it off, and leaving it off is what hides the finding.
 
 A slug is the jurisdiction's UnGovr Atlas path: California is
-https://ungovr.org/us/ca and its Atlas ID is `urn:ungovr:us/ca`. A deeper or
-unresearched path resolves to the nearest jurisdiction with law, and the
-jurisdictions whose law is researched are listed at https://lexlint.io/law
+https://ungovr.org/us/ca and its Atlas ID is `urn:ungovr:us/ca`.
+The server also reads an ISO 3166 code as the place it names, so a region copied
+from a cloud or edge config works as written: `US-CA` is `us/ca`, `GB-ENG` is
+England, a country code such as `FR` is that country, and a territory the law
+library holds under its sovereign is reachable from its own code (`PR` is
+`us/pr`). The
+profile it writes always holds the slug. A city or county has no ISO code: name
+it by path, as above.
+A deeper or unresearched path resolves to the nearest jurisdiction with law,
+and the jurisdictions whose law is researched are listed at https://lexlint.io/law
 for the developer to check. The server resolves whatever you send and names
 what it resolved to in the coverage preview, so there is nothing to look up
 anywhere else, and a slug taken from a web search is the one that quietly
@@ -805,23 +829,25 @@ Two calls. The first validates the declaration and tells you what the law
 library holds for it; the second returns findings.
 
 **Show the developer the two lists before you send them**, and their
-`public_sector` answer beside them when the profile has one, with every value
-you are unsure of marked as such, and wait for their answer. What goes is
+`public_sector` and `regulated_sector` answers beside them when the profile has
+them, with every value you are unsure of marked as such, and wait for their
+answer. What goes is
 what they would have sent, and a value they strike or add changes the whole
 lint: every finding downstream is drawn by one of these values. That holds on
 a re-run as well, when the lists come out of a committed `lexlint.yml`: say
 that they do, and mark any value the code no longer seems to support. In a
 headless or CI session nobody can answer: send the lists as you read them,
 and name the values you were unsure of in the report, in step 7, beside the
-findings each one is carrying. The exception is `public_sector`, which is never
-sent as you read it: send it only when the developer or the committed manifest
-gave it, and otherwise leave it out.
+findings each one is carrying. The exceptions are `public_sector` and
+`regulated_sector`, which are never sent as you read them: send each only when
+the developer or the committed manifest gave it, and otherwise leave it out.
 
 ```
 set_profile(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
-  public_sector=["none"]  # the developer's answer, not a default; omit if not given
+  public_sector=["none"],  # the developer's answer, not a default; omit if not given
+  regulated_sector={"financial": "none"}  # likewise; only with provides_financial_services
 )
 ```
 
@@ -838,8 +864,8 @@ the answer before going on:
   named is answering from one rung up.
 - **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
   what you typed: it is normalized, and the manifest should hold the same
-  strings the next run will send. It carries `public_sector` when you sent
-  one; send every field of it to `run_lint`.
+  strings the next run will send. It carries `public_sector` and
+  `regulated_sector` when you sent them; send every field of it to `run_lint`.
 
 **The `set_profile` call costs one upstream request, separate from
 `check_access`'s own.** It answers the same coverage question that passing
@@ -852,7 +878,8 @@ run_lint(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
-  client_version="1.48.1"
+  regulated_sector={"financial": "none"},  # likewise
+  client_version="1.49.0"
 )
 ```
 
@@ -905,8 +932,8 @@ depend on what was declared beside them: a slug returns the same findings
 called alone as it does called with five others, with the same ids. So call
 `run_lint` with one jurisdiction, or a few, until every declared slug has been
 covered exactly once, and treat the union as the run. Every call carries the
-same `activities` and the same `public_sector`, or the union mixes routed and
-unrouted findings.
+same `activities`, the same `public_sector` and the same `regulated_sector`, or
+the union mixes routed and unrouted findings.
 
 **One finding is not per jurisdiction, and it is the reason this route needs a
 rule rather than just an instruction.** A finding whose `id` begins
@@ -1064,7 +1091,8 @@ the bare `note_url` at the end of its last line, which a terminal makes
 clickable. With no `note_url` the line ends at the date: never build the URL.
 
 **The three lines at the top.** `declared` is the activities you sent, in the
-order you sent them, then `public_sector` when the profile carried it.
+order you sent them, then `public_sector` and `regulated_sector` when the
+profile carried them.
 `operates` is each jurisdiction you declared, by flag and name, read off a
 finding for that slug; a slug no finding names stays a slug, which is the gap
 it marks. `law library` is the day of the reply's `corpus_built_at`.
@@ -1158,8 +1186,8 @@ jq -r '
 
 Rewrite only the `lint:` block. Never touch `version`, `app`, or `profile`:
 those are the developer's declaration, not yours. The one exception is step 3's
-`public_sector` answer, which you write into `profile` because the developer
-gave it to you. And **carry
+`public_sector` and `regulated_sector` answers, which you write into `profile`
+because the developer gave them to you. And **carry
 `lint.work_items` across untouched** if it is there: it is the plan the
 developer approved in the last run's triage, the run does not produce it, and a
 rewrite that drops it deletes their work silently. A work item whose findings
@@ -1558,7 +1586,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.48.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.49.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1572,7 +1600,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.48.1`, and `--summary` is the one sentence you author.
+`lexlint 1.49.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -1701,18 +1729,23 @@ field existed.
 `run_lint` reports `applies_to` and does not filter on it, deliberately.
 Deciding that a government-only duty misses this caller means knowing what
 kind of body the caller is, which the profile collects only as `public_sector`
-(read `owed` below when it was declared) and no other tool here asks for. So
+and, for a regulated financial entity, `regulated_sector` (read `owed` below
+when either was declared) and no other tool here asks for. So
 the field comes to you and the reading lives here, which is the reason it is
 written down: a session that does not think to look reports duties binding
 state agencies to a private studio as work to do.
 
-**When the declaration carried `public_sector`, read `owed` instead.** The lint
-has already done the reading this section asks of you: `owed: yours` binds this
-app; `owed: elsewhere` does not, arrives at `info`, and keeps its lines in
-`requires_elsewhere`; and `owed: customer` means the duty is your public-sector
-customer's, with the lines your software has to support split into a
-`customer_duty` finding placed directly after it. `applies_to` stays on both as
-the law library recorded it. `owed` is the answer for this declaration.
+**When a finding carries `owed`, read `owed` instead.** The lint has already
+done the reading this section asks of you: `owed: yours` binds this app;
+`owed: elsewhere` does not, arrives at `info`, and keeps its lines in
+`requires_elsewhere`; and `owed: customer` means the duty is your customer's, a
+public body or a financial institution, with the lines your software has to
+support split into a `customer_duty` finding placed directly after it.
+`applies_to` stays on both as the law library recorded it. `owed` is the answer
+for this declaration. With `public_sector` declared every instrument finding
+carries it. With only `regulated_sector` declared, only the findings that answer
+moves do, and a government-only finding carries none: it keeps the `applies_to`
+reading below, which that answer says nothing about.
 
 An instrument can be partly yours and partly your customer's. It then keeps its
 own lines, carries `customer_duty_id`, and its `customer_duty` finding follows
@@ -1738,7 +1771,7 @@ counted line rather than as rows:
 of generative AI above thresholds this app is nowhere near. Both sets stay in
 `lexlint.yml` with their citations, and neither is a work item.
 
-With `public_sector` declared, the first count comes from `owed` instead of
+For a finding that carries `owed`, the first count comes from `owed` instead of
 `applies_to`: it is the findings whose `owed` is `elsewhere`, and the threshold
 count is unchanged.
 
@@ -1748,7 +1781,7 @@ generative AI above thresholds this app is nowhere near. Both sets stay in
 
 An instrument finding whose `owed` is `customer` or `elsewhere` is not a work
 item of its own. For `customer`, its `customer_duty` sibling is the work.
-Without `public_sector`, the `applies_to` reading above stands.
+For a finding with no `owed`, the `applies_to` reading above stands.
 
 Never drop such a finding from the report to tidy it. A duty that does not
 reach this app today reaches it the day the app changes, and the developer is
@@ -1776,8 +1809,8 @@ Each work item takes one of exactly four lanes:
   restrictive or unsettled posture leaves as a question a diff cannot answer.
   Record it and route it. This is a real bucket, not a paywall, and nothing
   here is dressed as one.
-- `product`: a capability your public-sector customers need to discharge a duty
-  of their own. Every `customer_duty` finding goes here, and nothing else does.
+- `product`: a capability your public-sector or financial-sector customers need
+  to discharge a duty of their own. Every `customer_duty` finding goes here, and nothing else does.
   It usually ships as a diff, like `code`, and it is a separate lane because the
   duty is not yours: missing it is your customer's breach, and your exposure
   runs through the contract, not the statute.
@@ -1982,7 +2015,10 @@ union of the calls' groups, and drop any id the merged run no longer holds.
 When the run went out without `public_sector`, name that as an open question
 here too, beside the `<slug>:public-sector-undeclared` line that counts the
 findings binding only public bodies: their `applies_to` is `government`, and
-the answer is what would move them.
+the answer is what would move them. The same goes for a run with
+`provides_financial_services` declared and no `regulated_sector`: name it
+beside the `<slug>:regulated-sector-undeclared` line, which counts the
+findings that bind only a regulated financial entity or its suppliers.
 
 **Policy and guidance are context, never findings.** A `<slug>:soft-law` line
 names the records that matched the declaration but are a strategy, a charter or
@@ -2128,7 +2164,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.48.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2157,11 +2193,11 @@ Findings also carry a `kind`:
 
 | `kind` | Meaning |
 |--------|---------|
-| `obligation` | A specific instrument binds the declared profile. With `public_sector` declared, `owed` says whether it binds you. |
+| `obligation` | A specific instrument binds the declared profile. With `public_sector` or `regulated_sector` declared, `owed` says whether it binds you. |
 | `coverage` | A note about what was not reported, never a pass: LexLint could not read something, holds no data, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. |
 | `posture` | How this jurisdiction's law treats crawling as a whole: whether browsewrap binds, what weight robots.txt carries, whether a public page is outside computer-crime law. Jurisdiction-wide attributes rather than instruments, so they bind nobody on their own and cite nothing. They appear only when `crawls_web` is declared. |
 | `pending` | An instrument LexLint cannot say is in force today: proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for. An injunction can be lifted, and a start date missing from the record does not mean the law is not in force, so treat this as a duty to watch, not one to ignore. |
-| `customer_duty` | With `public_sector` declared: a duty your public-sector customer owes and meets through your software. It follows the instrument finding it was split from, names it in `instrument_id`, and goes to the `product` lane. |
+| `customer_duty` | With `public_sector` or `regulated_sector` declared: a duty your customer owes, a public body or a financial institution, and meets through your software. It follows the instrument finding it was split from, names it in `instrument_id`, and goes to the `product` lane. |
 
 A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
 law here is silent, untested, or in flux" is among the most actionable things a
@@ -2190,7 +2226,7 @@ account cannot be signed in to, so its upload also returns `share_url`, a link
 that opens the run with no sign-in for 30 days; report it. Source, schema,
 data, prompts and git history never leave the repository; what goes is the
 lint's own output, the declaration the developer made (the two lists, and
-`public_sector` when they gave one) and the repository's name.
+`public_sector` and `regulated_sector` when they gave them) and the repository's name.
 
 The developer can delete a run or delete a project at any time from the
 portal. Deleting a run removes it immediately and its stored payload is
@@ -2266,8 +2302,8 @@ this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
 `app` and `profile` supplies the name and the declaration when it exists. On a
 first run with no manifest yet, the name is the repository's own (its package
 manifest's name, else its directory), and the declaration is the one the run
-was made with, `activities`, `jurisdictions` and, when the run sent one,
-`public_sector`, exactly as sent.
+was made with, `activities`, `jurisdictions` and, when the run sent them,
+`public_sector` and `regulated_sector`, exactly as sent.
 
 Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
 again against today's law library and closes by uploading. That includes a session
@@ -2305,7 +2341,8 @@ file:
   rebuilt without it and stores an unrouted run: every line of every instrument
   as the app's own, no `owed`, no `customer_duty` findings, which is not what
   the developer was shown. Leave it out only when the run itself was made
-  without it.
+  without it. **Send `regulated_sector` whenever the run being uploaded was
+  declared with it**, for the same reason, exactly as `run_lint` took it.
 - `corpus_built_at` and `run_at`: both from that same `run_lint` response,
   verbatim. The server refuses the call when the law library has moved since, or
   when `run_at` is more than an hour old, because either way the findings it
@@ -2323,7 +2360,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.48.1`, the bundle that ran the lint. The
+- `client_version`: `1.49.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

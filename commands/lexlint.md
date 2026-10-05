@@ -28,7 +28,10 @@ Run the LexLint loop against this repository.
    again before the lint runs, never dropped. A manifest whose `profile` has no
    `public_sector` was never asked that question: ask it once on this run and
    write the answer into the manifest, and where nobody can answer leave it
-   out, never `["none"]` on the developer's behalf.
+   out, never `["none"]` on the developer's behalf. The same goes for
+   `regulated_sector` when the profile declares `provides_financial_services`:
+   ask whether a bank runs the software, it is supplied to banks, or neither,
+   and never `{"financial": "none"}` for them.
 
    `$ARGUMENTS`, when given, is one path, and which of two things it means is
    read off the path itself: a `.yml` or `.yaml` file is the manifest to use
@@ -42,12 +45,13 @@ Run the LexLint loop against this repository.
    that it came from the command, and say what it was.
 3. Resolve any domains named in the manifest with `resolve_domain_jurisdiction`.
 4. Show the developer the two lists before you send them, and their
-   `public_sector` answer beside them when the profile has one, with every value
-   you are unsure of marked as such, and wait for their answer. In a headless
+   `public_sector` and `regulated_sector` answers beside them when the profile
+   has them, with every value you are unsure of marked as such, and wait for
+   their answer. In a headless
    or CI session nobody can answer: send the lists as you read them, and name
    the values you were unsure of in the report. Then call `run_lint` with the
-   declared activities and jurisdictions, and `public_sector` when the profile
-   has it, and show the run before anything else, as the skill's "Then show
+   declared activities and jurisdictions, and `public_sector` and
+   `regulated_sector` when the profile has them, and show the run before anything else, as the skill's "Then show
    the run" lays it out: what was declared, where it operates by flag and
    name, the law library's date, a block for each place's lead finding and for every
    finding for counsel, and the count.

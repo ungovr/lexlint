@@ -5,6 +5,27 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.49.0 (2026-10-05)
+
+- A profile can now say whose duty the financial-services law is,
+  `profile.regulated_sector`, keyed by sector: `{"financial": "supplier"}`.
+  The values are `body` (a bank, insurer or payment institution runs the
+  software), `supplier` (it is supplied to such entities) and `none`. A vendor
+  whose customers are banks no longer reads its customers' duties as its own:
+  the incident notices and reporting duties a bank owes arrive as
+  `customer_duty` findings, a provider's contract terms stay yours, and a law
+  that binds anyone is unchanged. It moves duties and never adds a match, so a
+  vendor still declares `provides_financial_services`. A finding the answer
+  cannot move, a law that binds only public bodies among them, carries no
+  `owed` and is read as it is without the answer.
+- `set_profile` asks the question in its `next` step when
+  `provides_financial_services` is declared and the answer was not sent. A run
+  without it says so: each jurisdiction where financial-law duties would move
+  carries one info line counting them, `<slug>:regulated-sector-undeclared`.
+  Nothing changes for a profile that does not declare the role.
+- `run_lint`, `set_profile` and `upload_lint_run` take `regulated_sector`, and
+  the run echoes it. Send it to `upload_lint_run` whenever the run had it.
+
 ## 1.48.1 (2026-10-04)
 
 - The command in the procedure that prints the run after `run_lint` could not
