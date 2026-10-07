@@ -5,6 +5,23 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.49.1 (2026-10-05)
+
+- When you have not said whether a public body runs or buys the software, or
+  whether a bank or its supplier does, the run's note about it now counts every
+  finding your answer would change, not only the ones it would move off you
+  whole. A finding that is partly a public body's and partly yours stays at
+  warn whatever you answer, so it was never counted, yet your answer still
+  moves its other duties, and a supplier's answer adds a `customer_duty`
+  finding for it. Those findings are now counted in
+  `<slug>:public-sector-undeclared` and `<slug>:regulated-sector-undeclared`,
+  and the lines say the findings "carry duties that bind only" those parties,
+  which is true of a finding that is only partly theirs. Nothing you declare or
+  call changes. A run that did not send the answer can now carry one of those
+  notes in a jurisdiction that did not carry it before, when the only law there
+  that touches it is partly a public body's or a bank's; no other finding is
+  added or removed. A run that sent the answer reads as it did before.
+
 ## 1.49.0 (2026-10-05)
 
 - A profile can now say whose duty the financial-services law is,

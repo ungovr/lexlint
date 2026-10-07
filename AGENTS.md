@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.49.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.49.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.49.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.49.0`.** State it, do not go looking
+**That version string is yours and it is `1.49.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.49.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.49.1) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -803,10 +803,12 @@ answered: leave `public_sector` out of every call entirely, and never send
 `["none"]` on the developer's behalf. `["none"]` is the answer "neither
 applies", and it moves every duty that binds only public bodies to
 `owed: elsewhere`. A run sent without it says so itself: each jurisdiction
-that matched a duty binding only public bodies carries an `info` coverage
-line, `<slug>:public-sector-undeclared`, counting them, and those duties stay
-at the severity they would have as yours. A run that asked in one session and
-not the next would otherwise show the same law at two severities.
+that matched a finding carrying a duty that binds only public bodies, a whole
+finding or one line of it, has an `info` coverage line,
+`<slug>:public-sector-undeclared`, counting those findings. Their duties stay
+shown as yours, at the severity they would have as yours. A run that asked in
+one session and not the next would otherwise show the same law at two
+severities.
 
 **Whose duty is the financial law?** A second answer, asked only when
 `provides_financial_services` is a declared activity. A bank and a vendor whose
@@ -821,9 +823,10 @@ law. The same rule governs when to ask: whenever the profile is declared or
 re-declared, once on the next interactive run when a manifest's `profile`
 declares the role and has no `regulated_sector`, never
 `{"financial": "none"}` on the developer's behalf, and left out of every call
-when it cannot be had. A run sent without it says so: each jurisdiction whose
-matched financial-law duties the answer would move carries an `info` coverage
-line, `<slug>:regulated-sector-undeclared`, counting them.
+when it cannot be had. A run sent without it says so: each jurisdiction where
+the answer would move a matched financial-law duty off the caller, a whole
+finding or one line of it, has an `info` coverage line,
+`<slug>:regulated-sector-undeclared`, counting those findings.
 
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
@@ -1070,7 +1073,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.49.0"
+  client_version="1.49.1"
 )
 ```
 
@@ -1777,7 +1780,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.49.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.49.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1791,7 +1794,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.49.0`, and `--summary` is the one sentence you author.
+`lexlint 1.49.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2205,11 +2208,13 @@ where the report names it, beside its group. On a split run (step 3) take the
 union of the calls' groups, and drop any id the merged run no longer holds.
 When the run went out without `public_sector`, name that as an open question
 here too, beside the `<slug>:public-sector-undeclared` line that counts the
-findings binding only public bodies: their `applies_to` is `government`, and
-the answer is what would move them. The same goes for a run with
+findings carrying a duty that binds only public bodies: some have `applies_to`
+`government`, others are `both` with a public body's duty among their lines, and
+the answer is what would route those duties. The same goes for a run with
 `provides_financial_services` declared and no `regulated_sector`: name it
 beside the `<slug>:regulated-sector-undeclared` line, which counts the
-findings that bind only a regulated financial entity or its suppliers.
+findings carrying a duty that binds only a regulated financial entity or its
+suppliers.
 
 **Policy and guidance are context, never findings.** A `<slug>:soft-law` line
 names the records that matched the declaration but are a strategy, a charter or
@@ -2355,7 +2360,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.49.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2551,7 +2556,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.49.0`, the bundle that ran the lint. The
+- `client_version`: `1.49.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
