@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.49.2"`.
+**Run `check_access` before anything else**, pass `client_version: "1.49.3"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.49.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.49.2`.** State it, do not go looking
+**That version string is yours and it is `1.49.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.49.2) is available
+  lexlint 1.4.0 · a newer LexLint (1.49.3) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -715,11 +715,11 @@ than leaving it off, and leaving it off is what hides the finding.
 
 A slug is the jurisdiction's UnGovr Atlas path: California is
 https://ungovr.org/us/ca and its Atlas ID is `urn:ungovr:us/ca`.
-The server also reads an ISO 3166 code as the place it names, so a region copied
-from a cloud or edge config works as written: `US-CA` is `us/ca`, `GB-ENG` is
-England, a country code such as `FR` is that country, and a territory the law
-library holds under its sovereign is reachable from its own code (`PR` is
-`us/pr`). The
+The server also reads an ISO 3166 code as the jurisdiction it names, so a region
+copied from a cloud or edge config works as written: `US-CA` is `us/ca`,
+`GB-ENG` is England, a country code such as `FR` is that country, and a
+territory the law library holds under its sovereign is reachable from its own
+code (`PR` is `us/pr`). The
 profile it writes always holds the slug. A city or county has no ISO code: name
 it by path, as above.
 A deeper or unresearched path resolves to the nearest jurisdiction with law,
@@ -727,7 +727,7 @@ and the jurisdictions whose law is researched are listed at https://lexlint.io/l
 for the developer to check. The server resolves whatever you send and names
 what it resolved to in the coverage preview, so there is nothing to look up
 anywhere else, and a slug taken from a web search is the one that quietly
-lints the wrong place.
+lints the wrong jurisdiction.
 
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.
@@ -882,7 +882,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.49.2"
+  client_version="1.49.3"
 )
 ```
 
@@ -942,9 +942,9 @@ the union mixes routed and unrouted findings.
 rule rather than just an instruction.** A finding whose `id` begins
 `activity:` says the law library tags no instrument anywhere for a declared
 activity, so that activity is unlinted rather than clean. It carries
-`jurisdiction: null` because it is about the run, not about a place, and the
-run that answers it is the call: `run_lint` reports it when nothing in **that
-call's** jurisdictions carried the tag. Split the calls and each one answers a
+`jurisdiction: null` because it is about the run, not about a jurisdiction,
+and the run that answers it is the call: `run_lint` reports it when nothing in
+**that call's** jurisdictions carried the tag. Split the calls and each one answers a
 smaller question than you asked.
 
 So **`activity:` findings are intersected across the calls, while everything
@@ -1086,8 +1086,8 @@ and the plan in step 5 works through them.
 ```
 
 It is fenced, like the status line: it is a printout, and its columns only line
-up in a fence. The words are the ones "How to show a list" asks for: a place is
-`jurisdiction_flag`, a space and `jurisdiction_name`, never a slug, and a
+up in a fence. The words are the ones "How to show a list" asks for: a
+jurisdiction is `jurisdiction_flag`, a space and `jurisdiction_name`, never a slug, and a
 state has its country code and no flag; when a law binds is `in_force.words`,
 verbatim. A fence prints a markdown link as its text, so each block's link is
 the bare `note_url` at the end of its last line, which a terminal makes
@@ -1102,7 +1102,7 @@ it marks. `law library` is the day of the reply's `corpus_built_at`.
 
 **Which findings get a block.** Three kinds, each once:
 
-- **The lead for each declared place**: its `warn` obligation that is in force
+- **The lead for each declared jurisdiction**: its `warn` obligation that is in force
   (`in_force.state` is `in_force`) and `present`, preferring one with a
   `note_url`, and the newest `effective_date` among those.
 - **Every finding for counsel**, whatever its severity. A finding is for
@@ -1111,14 +1111,14 @@ it marks. `law library` is the day of the reply's `corpus_built_at`.
 - **Every coverage warning.** A declared jurisdiction LexLint holds nothing
   for is never left out of a report, and this is the first report.
 
-Warns first, then infos. A block is the severity upper-cased, the place, the
-law's name (the part of `summary` before its first ": "), a `·` and
+Warns first, then infos. A block is the severity upper-cased, the jurisdiction,
+the law's name (the part of `summary` before its first ": "), a `·` and
 `in_force.words`; then, where a court has acted on the law, its court lines;
 then the rest of `summary`, whole and never cut, wrapped at
 about 76 columns under a six-space indent; then `read against its source` and
 the day of `as_of_date`, `, for counsel` when it is, and the link. A coverage
 warning has no law and no date: its block is its first line with `summary`
-after the place.
+after the jurisdiction.
 
 **The court lines.** A finding carries `court_action` when a court has
 blocked the law, struck it or part of it down, or upheld it after a block, or
@@ -1139,7 +1139,7 @@ reads all of them. A run that printed every finding it returned says "That is
 all of them." there instead. "For code" and "for counsel" are the law library's
 routing, for this first look; the lanes the work goes into are step 5's.
 
-**A law arrives once however many declared places reach it.** A child declared
+**A law arrives once however many declared jurisdictions reach it.** A child declared
 beside its parent mirrors the parent's findings (step 4 says how), so the block
 reads each law once, by its instrument key and the slug it was read from, and
 the count says so: "4 of 90 instruments (94 findings, 4 of them a parent's law
@@ -1589,7 +1589,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.49.2' \
+    --run-at 2026-09-10 --tool 'lexlint 1.49.3' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1603,7 +1603,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.49.2`, and `--summary` is the one sentence you author.
+`lexlint 1.49.3`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2169,7 +2169,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.49.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.49.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2365,7 +2365,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.49.2`, the bundle that ran the lint. The
+- `client_version`: `1.49.3`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

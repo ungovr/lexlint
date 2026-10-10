@@ -5,6 +5,14 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.49.3 (2026-10-10)
+
+- The procedure now names the legal unit a jurisdiction everywhere, never a
+  place: the lead block for each declared jurisdiction, the jurisdiction at
+  the head of each block, and the ISO 3166 code read as the jurisdiction it
+  names. Nothing you declare or call changes, and no field is added, renamed
+  or removed.
+
 ## 1.49.2 (2026-10-10)
 
 - The README shows the LexLint wordmark at the top instead of the LL icon. The

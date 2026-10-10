@@ -53,7 +53,7 @@ Run the LexLint loop against this repository.
    declared activities and jurisdictions, and `public_sector` and
    `regulated_sector` when the profile has them, and show the run before anything else, as the skill's "Then show
    the run" lays it out: what was declared, where it operates by flag and
-   name, the law library's date, a block for each place's lead finding and for every
+   name, the law library's date, a block for each jurisdiction's lead finding and for every
    finding for counsel, and the count.
 5. Merge the findings into the manifest, carrying `state`, `where`, `note` and
    `handled_by` across for every finding id that persists, carrying
