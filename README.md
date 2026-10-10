@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://lexlint.io/static/lexlint/lexlint-mark-dark.svg">
-  <img src="https://lexlint.io/static/lexlint/lexlint-mark.svg" alt="LexLint" width="76">
+  <source media="(prefers-color-scheme: dark)" srcset="https://lexlint.io/static/lexlint/media/logos/lexlint-logo-on-dark.svg">
+  <img src="https://lexlint.io/static/lexlint/media/logos/lexlint-logo.svg" alt="LexLint" width="240">
 </picture>
 
 # LexLint

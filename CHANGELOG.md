@@ -5,6 +5,12 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.49.2 (2026-10-10)
+
+- The README shows the LexLint wordmark at the top instead of the LL icon. The
+  icon is now used for the favicon alone. Nothing about how a run behaves
+  changes.
+
 ## 1.49.1 (2026-10-05)
 
 - When you have not said whether a public body runs or buys the software, or
