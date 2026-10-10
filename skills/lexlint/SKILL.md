@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.49.3"`.
+**Run `check_access` before anything else**, pass `client_version: "1.50.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.49.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.50.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.49.3`.** State it, do not go looking
+**That version string is yours and it is `1.50.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -266,7 +266,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.49.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.50.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -577,7 +577,17 @@ and it went into a comment instead of the declaration.
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`, `statutory_requests`,
-`records_conversations`, `tracks_devices`.
+`records_calls`, `records_text_chat`, `tracks_devices`.
+
+**An activity LexLint has retired** (today `records_conversations`, replaced by
+`records_calls` and `records_text_chat`) cannot start a new run. `set_profile`,
+`run_lint` and `upload_lint_run` refuse it by name, ahead of any quota spend,
+and the refusal names what replaced it and defines each replacement. When you
+meet that refusal, or a `lexlint.yml` that still names a retired activity, ask
+the developer which replacement applies, and never pick one yourself: a call and
+a typed chat differ in law, so the choice is the clarification. Then declare the
+one they name, rewrite `lexlint.yml`, and run again. Old runs that name the
+retired activity still read.
 
 **Who runs it?** Five more values are roles rather than activities, and a
 sector-gated statute reaches the app through them and through nothing else:
@@ -657,7 +667,7 @@ Declaring `trains_models` because you saw a model import, when the app only
 calls an API, produces findings for obligations that do not apply, and the
 evidence column is there so the developer can catch exactly that.
 
-**Three facts carry communications law, and each has a near neighbour.**
+**Four facts carry communications law, and each has a near neighbor.**
 `automated_outreach` is software that sends people messages or places calls:
 marketing email, SMS alerts, notifications, an agent that texts. It returns the
 consent, sender-identification, opt-out and calling-hour rules (CAN-SPAM, the
@@ -667,13 +677,25 @@ or `deploys_chatbot` beside it, because the AI-disclosure rules attach there
 and not to the sending. A request filed with a public body under a records or
 freedom-of-information law is `statutory_requests` instead, and it exists so
 that a records-request sender does not collect marketing law it does not owe.
-`records_conversations` is recording, transcribing or monitoring a call, a
-meeting or a chat, or letting a vendor read it as it happens (a chat widget, a
-session-replay script); it returns the one-party and all-party recording
-consent rules, which `processes_voice` alone does not. `tracks_devices` is any
-cookie, pixel, SDK identifier or fingerprint the service does not strictly need
-to deliver what the user asked for, which is almost every site running
-analytics or advertising; it returns the cookie-consent rule.
+`records_calls` is recording, transcribing or monitoring people talking to each
+other: a phone or video call, or a meeting held in person or online, including
+a notetaker that joins one; it returns the one-party and all-party consent
+rules for recording speech, which `processes_voice` alone does not. A voice
+assistant a caller talks to is `processes_voice`, not this: `records_calls` is
+for people talking to each other.
+`records_text_chat` is keeping what users type in a chat, or letting a vendor
+receive it as it is typed, whether a person or an assistant answers (live chat,
+a chat widget, stored transcripts, a session-replay script that captures
+typing); it returns the interception rules for electronic communications,
+which `deploys_chatbot` alone does not. An assistant that answers the chat is
+`deploys_chatbot` beside it, and one that keeps no transcript and passes
+nothing to a vendor is `deploys_chatbot` alone. They are separate because a
+telephone-only statute reaches a call and not a chat, and because a chat widget
+whose vendor reads the transcript has no voice in it. A form the app merely
+saves is neither. `tracks_devices` is any cookie, pixel, SDK identifier or
+fingerprint the service does not strictly need to deliver what the user asked
+for, which is almost every site running analytics or advertising; it returns
+the cookie-consent rule.
 
 **Ask about voices and faces even when nothing here is AI.** `processes_voice`
 and `processes_biometrics` reach privacy law rather than AI law, so they attach
@@ -882,7 +904,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.49.3"
+  client_version="1.50.0"
 )
 ```
 
@@ -1589,7 +1611,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.49.3' \
+    --run-at 2026-09-10 --tool 'lexlint 1.50.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1603,7 +1625,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.49.3`, and `--summary` is the one sentence you author.
+`lexlint 1.50.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2169,7 +2191,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.49.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.50.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2365,7 +2387,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.49.3`, the bundle that ran the lint. The
+- `client_version`: `1.50.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

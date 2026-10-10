@@ -5,6 +5,25 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.50.0 (2026-10-10)
+
+- Recording a call and recording a text chat are now two activities, because
+  the law treats them differently. `records_conversations` is replaced by
+  `records_calls` (people talking to each other: a phone or video call, or a
+  meeting held in person or online, including a notetaker that joins one; a
+  voice assistant a caller talks to is `processes_voice`) and `records_text_chat`
+  (keeping what users type in a chat, or having a vendor receive it as it is
+  typed, with a person or an assistant answering: live chat, a chat widget,
+  stored transcripts, session replay of typing). Declare the one that matches,
+  or both. A statute that
+  covers only the telephone, such as a telephone-only recording law, now
+  reaches a call recorder and not a chat widget. The old name is retired, not
+  deleted: runs and declarations that already name it still read, marked
+  "(retired)", but a new run that names it is refused, with the two
+  replacements and their definitions. Ask the developer which one applies,
+  because a call and a typed chat differ in law, then update the manifest or
+  saved declaration. Nothing else you declare or call changes.
+
 ## 1.49.3 (2026-10-10)
 
 - The procedure now names the legal unit a jurisdiction everywhere, never a

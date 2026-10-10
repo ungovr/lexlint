@@ -60,7 +60,7 @@
                      "handles_health_records", "provides_financial_services",
                      "operates_essential_service", "is_listed_company",
                      "provides_telecom_services", "statutory_requests",
-                     "records_conversations", "tracks_devices"]
+                     "records_calls", "records_text_chat", "tracks_devices"]
           }
         },
         "jurisdictions": {
