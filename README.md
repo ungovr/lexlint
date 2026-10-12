@@ -5,8 +5,8 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law.
-All eight topics are matched by run_lint, not reference-only. Declare what your app does
+A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law.
+All nine topics are matched by run_lint, not reference-only. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 
@@ -300,5 +300,6 @@ does not mean you are in the clear.
 - Relevant law in the press: https://lexlint.io/news
 - Docs and tool reference: https://mcp.lexlint.io/#tools
 - A worked example, end to end: https://mcp.lexlint.io/example
+- Privacy policy: https://www.ungovr.org/privacy
 
 Powered by UnGovr. https://www.ungovr.org

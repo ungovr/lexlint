@@ -1,5 +1,5 @@
 ---
-description: Lint this app against the AI, scraping, privacy, and cybersecurity law of the jurisdictions it operates in, drawn from LexLint's law library of AI, scraping, privacy, cybersecurity, communications, content-moderation, age-gating, and reuse law
+description: Lint this app against the AI, scraping, privacy, and cybersecurity law of the jurisdictions it operates in, drawn from LexLint's law library of AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law
 ---
 
 Run the LexLint loop against this repository.

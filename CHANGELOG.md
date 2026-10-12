@@ -5,6 +5,20 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.50.2 (2026-10-12)
+
+- The bundle's descriptions now name product-liability law among the topics the
+  lint reads: who answers in damages for harm a product, software or an AI
+  system causes, starting with the EU Product Liability Directive, which makes
+  software a product from 9 December 2026. Until a jurisdiction's liability law
+  is researched, a run there says so as a coverage warning. Nothing you declare
+  or call changes.
+
+## 1.50.1 (2026-10-11)
+
+- The README links UnGovr's privacy policy, which applies to LexLint, under
+  "More". Nothing about how a run behaves changes.
+
 ## 1.50.0 (2026-10-10)
 
 - Recording a call and recording a text chat are now two activities, because
