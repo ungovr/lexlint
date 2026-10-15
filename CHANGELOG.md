@@ -5,6 +5,22 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.52.0 (2026-10-15)
+
+- `provides_financial_services` has five license classes under it: `is_bank`,
+  `is_lender`, `is_insurer`, `is_securities_firm` and `is_payment_provider`.
+  Declare the class or classes your software's financial law comes from (a
+  bank that lends declares two), and the role comes with it. A rule that binds
+  one class of firm then reaches only that class, so a lender is not told a
+  broker-dealer's rules.
+- A declaration that names the role and no class is answered exactly as
+  before, with every class's rules, and each jurisdiction where a class would
+  narrow them has an `info` line, `<slug>:financial-class-undeclared`, counting
+  those findings. The skill now asks for the class together with
+  `regulated_sector`.
+- The role's definition says what it always meant: a license held, or software
+  supplied to a firm that holds one. Moving money alone is not it.
+
 ## 1.51.0 (2026-10-15)
 
 - The bundle ships `schema/activities.schema.json`, the schema for

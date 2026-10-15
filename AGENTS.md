@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.51.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.52.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.51.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.52.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.51.0`.** State it, do not go looking
+**That version string is yours and it is `1.52.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.51.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.52.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -784,14 +784,32 @@ retired activity still read.
 sector-gated statute reaches the app through them and through nothing else:
 `handles_health_records` (a HIPAA covered entity or business associate, or a
 health-sector entity under a national regime), `provides_financial_services`
-(a bank, insurer, payment, credit or investment firm, or a designated critical
-ICT provider to one), `operates_essential_service` (an essential or important
+(holds a financial-services license, or supplies software to a firm that
+does), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
 regulator) and `provides_telecom_services`. These rows are always `ask`, and
 they are the rows `ask` is for; never mark a role `include` from the code. A health app is not a covered
 entity because it stores health data, and a fintech is not a bank because it
 moves money.
+
+**Which license class?** `provides_financial_services` has five children, one
+per license class whose rulebook does not cross into the others: `is_bank` (a
+deposit-taker), `is_lender` (anyone who regularly extends or arranges credit as
+a business, licensed or not), `is_insurer` (an insurer, reinsurer or insurance
+producer, or a utilization-review organization acting for a health insurer),
+`is_securities_firm` (a broker-dealer, investment firm or adviser, or fund
+manager) and `is_payment_provider` (a payment or e-money institution, a money
+transmitter or a crypto-asset service provider). A class implies the role, so
+declare the class and the role comes with it; a bank that lends declares
+`is_bank` and `is_lender`, and a vendor whose customers are banks and insurers
+declares both of those classes. Ask it as one row with the role: which class or
+classes the software's financial law comes from, the developer's answer and
+never the code's. A row that binds one class reaches only that class, so a
+lender is not told a broker-dealer's rules. A profile that declares the role
+and no class is answered with every class's rules, and each jurisdiction where
+a class would narrow them has an `info` coverage line,
+`<slug>:financial-class-undeclared`, counting those findings.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
@@ -821,17 +839,17 @@ one session and not the next would otherwise show the same law at two
 severities.
 
 **Whose duty is the financial law?** A second answer, asked only when
-`provides_financial_services` is a declared activity. A bank and a vendor whose
+`provides_financial_services` or one of its classes is a declared activity. A bank and a vendor whose
 customers are banks both declare that role, and the lint cannot tell them
 apart. Ask whether this software is run by a bank, insurer or other regulated
 financial entity (`body`), supplied to such entities (`supplier`), or neither
 (`none`), and send the answer as `regulated_sector`, keyed by sector:
 `{"financial": "supplier"}`. A fraud-prevention vendor is `supplier`, a bank's
 own system is `body`. It moves duties and never matches them, so a supplier
-still declares `provides_financial_services` to be linted against financial
+still declares the classes of its customers to be linted against financial
 law. The same rule governs when to ask: whenever the profile is declared or
 re-declared, once on the next interactive run when a manifest's `profile`
-declares the role and has no `regulated_sector`, never
+declares the role or a class and has no `regulated_sector`, never
 `{"financial": "none"}` on the developer's behalf, and left out of every call
 when it cannot be had. A run sent without it says so: each jurisdiction where
 the answer would move a matched financial-law duty off the caller, a whole
@@ -1063,7 +1081,7 @@ set_profile(
   activities=["crawls_web", "generates_content"],
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the developer's answer, not a default; omit if not given
-  regulated_sector={"financial": "none"}  # likewise; only with provides_financial_services
+  regulated_sector={"financial": "none"}  # likewise; only with provides_financial_services or a class
 )
 ```
 
@@ -1095,7 +1113,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.51.0"
+  client_version="1.52.0"
 )
 ```
 
@@ -1802,7 +1820,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.51.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.52.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1816,7 +1834,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.51.0`, and `--summary` is the one sentence you author.
+`lexlint 1.52.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2233,10 +2251,11 @@ here too, beside the `<slug>:public-sector-undeclared` line that counts the
 findings carrying a duty that binds only public bodies: some have `applies_to`
 `government`, others are `both` with a public body's duty among their lines, and
 the answer is what would route those duties. The same goes for a run with
-`provides_financial_services` declared and no `regulated_sector`: name it
-beside the `<slug>:regulated-sector-undeclared` line, which counts the
+`provides_financial_services` or a class declared and no `regulated_sector`:
+name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its
-suppliers.
+suppliers. And for a run with the role and no class: name the class as the
+open question beside the `<slug>:financial-class-undeclared` line.
 
 **Policy and guidance are context, never findings.** A `<slug>:soft-law` line
 names the records that matched the declaration but are a strategy, a charter or
@@ -2382,7 +2401,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.51.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.52.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2578,7 +2597,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.51.0`, the bundle that ran the lint. The
+- `client_version`: `1.52.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
