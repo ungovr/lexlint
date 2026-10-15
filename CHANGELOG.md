@@ -5,6 +5,19 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.51.0 (2026-10-15)
+
+- The bundle ships `schema/activities.schema.json`, the schema for
+  `ACTIVITIES.md`: a file at a repository's root that declares which legal
+  activities each package it ships performs or enables, which it rules out, and
+  which counterparties it necessarily talks to. The activities are the 24 the
+  lint already accepts, each with a page in the registry at
+  https://lexlint.io/activities
+- The bundle carries its own `ACTIVITIES.md`: a library that performs none of
+  the activities and talks to mcp.lexlint.io for every run.
+- Four activity definitions the lint shows are spelled in US English. Their
+  meaning is unchanged. Nothing you declare or call changes.
+
 ## 1.50.2 (2026-10-12)
 
 - The bundle's descriptions now name product-liability law among the topics the
