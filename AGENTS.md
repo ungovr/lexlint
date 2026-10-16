@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.52.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.53.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.52.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.53.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.52.0`.** State it, do not go looking
+**That version string is yours and it is `1.53.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.52.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.53.1) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -768,7 +768,8 @@ and it went into a comment instead of the declaration.
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`, `statutory_requests`,
-`records_calls`, `records_text_chat`, `tracks_devices`.
+`records_calls`, `records_text_chat`, `tracks_devices`, and the decision
+domains below.
 
 **An activity LexLint has retired** (today `records_conversations`, replaced by
 `records_calls` and `records_text_chat`) cannot start a new run. `set_profile`,
@@ -810,6 +811,27 @@ lender is not told a broker-dealer's rules. A profile that declares the role
 and no class is answered with every class's rules, and each jurisdiction where
 a class would narrow them has an `info` coverage line,
 `<slug>:financial-class-undeclared`, counting those findings.
+
+**Which decisions?** `high_risk_decisions` has eight children, one per domain
+of decision about a person: `employment_decisions` (hiring, promotion, pay,
+termination, task allocation, or monitoring and rating workers),
+`credit_decisions` (credit, a loan or another financial service offered to
+the person), `insurance_decisions`, `housing_decisions` (a tenancy, a rental
+application, tenant screening), `education_decisions` (admission, grading,
+proctoring), `health_care_decisions` (coverage, prior authorization,
+utilization review, triage), `public_services_decisions` (public assistance
+and benefits, emergency dispatch) and `justice_decisions` (law enforcement,
+migration, asylum and border control, the courts, legal services). They are
+activities, not roles, so the code can settle one: a model that scores job
+applicants is `include` for `employment_decisions` with that file as its
+evidence, while a "risk score" whose use the code does not state is `ask`. A
+domain implies `high_risk_decisions`, so declare the domain and the parent
+comes with it, and declare every domain the software decides in. A row written
+for one kind of decision reaches only that kind, so a hiring tool is not told a
+border-control rule. A profile that declares `high_risk_decisions` and no
+domain is answered with every domain's rules, and each jurisdiction where a
+domain would narrow them has an `info` coverage line,
+`<slug>:decision-domain-undeclared`, counting those findings.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
@@ -1113,7 +1135,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.52.0"
+  client_version="1.53.1"
 )
 ```
 
@@ -1820,7 +1842,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.52.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.53.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1834,7 +1856,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.52.0`, and `--summary` is the one sentence you author.
+`lexlint 1.53.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2401,7 +2423,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.52.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.53.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2501,13 +2523,24 @@ The shape:
 If the call fails, say plainly that nothing was sent. Never report a submission
 you did not get a receipt for. One submission per session.
 
-One other thing is sent automatically, and it is the whole of the rest of the
-list: which plugin version you are running. It rides the `check_access`
-preflight LexLint already makes, and is stored on its own, in a place that holds
-nothing but version numbers. It is how we tell whether anyone is still on a
-bundle old enough that retiring an old tool name would break them. A version
-string and nothing else: not the key, not an address, and no record of what was
-linted.
+Two other things are recorded automatically, and they are the whole of the
+rest of the list.
+
+Which plugin version is running. It rides the `check_access` preflight LexLint
+already makes, and is stored on its own, in a place that holds nothing but
+version numbers. It is how we tell whether anyone is still on a bundle old
+enough that retiring an old tool name would break them. A version string and
+nothing else: not the key, not an IP address, and no record of what was linted.
+
+A record of each request to the LexLint server: what the request was (which
+tool, or a step of connecting), which coding tool sent it (never the model),
+what kind of credential it carried and whether it succeeded, plus the country
+and region Cloudflare reports for the connection. That location is the
+connection's, which for a VPN or a cloud-hosted agent is a data center, and it
+plays no part in which laws a lint applies; those come only from the
+jurisdictions the developer declares. The record holds no IP address, key or
+account, and nothing from what was linted. Each record is kept three months,
+then only as daily totals.
 
 Nothing else about a session is collected automatically by LexLint. The key is
 an UnGovr Open Data key, and that API keeps a request log of its own, set out
@@ -2597,7 +2630,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.52.0`, the bundle that ran the lint. The
+- `client_version`: `1.53.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

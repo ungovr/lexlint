@@ -228,13 +228,32 @@ key move to your account, where the portal's delete button is yours. To have a
 trial's run deleted without an account, write to hello@ungovr.org quoting the
 share link and we delete the run, or the link alone, within one working day.
 
-One other thing is sent, automatically, and it is the whole of the rest of
-the list: **which plugin version you are running**. It rides the preflight
-LexLint already makes, and we store it on its own, in a place that holds
-nothing but version numbers. It is how we tell whether anyone is still on a
-bundle old enough that retiring an old tool name would break them. A version
-string and nothing else: not your key, not your address, and no record of what
-you linted.
+Two other things are recorded automatically, and they are the whole of the
+rest of the list.
+
+**Which plugin version you are running.** It rides the preflight LexLint
+already makes, and we store it on its own, in a place that holds nothing but
+version numbers. It is how we tell whether anyone is still on a bundle old
+enough that retiring an old tool name would break them. A version string and
+nothing else: not your key, not your IP address, and no record of what you
+linted.
+
+**A record of each request to the LexLint server.** Each one says what the
+request was (which tool was called, or a step of connecting, such as listing
+the tools), which coding tool sent it (Claude Code, Codex, Cursor or another,
+never the model behind it), what kind of credential it carried, if any, and
+whether it succeeded. It is how we count how often LexLint runs, and from which
+coding tools.
+
+It also holds the country and region (a US state or a Canadian province, for
+example) that Cloudflare reports for the connection. That is where the
+connection came from, which for a VPN or a cloud-hosted agent is a data center.
+It plays no part in which laws a lint applies; those come only from the
+jurisdictions you declare.
+
+The record holds no IP address, key or account, and nothing from what you
+linted: not your declarations, your code or your repository. We keep each
+record for three months and daily totals after that.
 
 Nothing else about your sessions is collected automatically by LexLint. Your
 key is an UnGovr Open Data key, and that API keeps a request log of its own,

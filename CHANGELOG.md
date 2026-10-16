@@ -5,6 +5,30 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.53.1 (2026-10-15)
+
+- LexLint's server now keeps a record of each request: what it was, which
+  coding tool sent it, what kind of credential it carried, whether it
+  succeeded, and the country and region of the connection. It holds no IP
+  address, key or account, and nothing from what you linted. The README sets
+  it out in full, under Feedback. Nothing you declare or call changes.
+
+## 1.53.0 (2026-10-15)
+
+- `high_risk_decisions` has eight decision domains under it:
+  `employment_decisions`, `credit_decisions`, `insurance_decisions`,
+  `housing_decisions`, `education_decisions`, `health_care_decisions`,
+  `public_services_decisions` and `justice_decisions`. Declare each kind of
+  decision your software makes or scores about people, and `high_risk_decisions`
+  comes with it. A rule written for one kind of decision, such as a hiring law,
+  then reaches only software that makes that kind.
+- A declaration that names `high_risk_decisions` and no domain is answered
+  exactly as before, with every domain's rules, and each jurisdiction where a
+  domain would narrow them has an `info` line, `<slug>:decision-domain-undeclared`,
+  counting those findings. `set_profile` asks for the domains.
+- A domain is something your software does, not who you are, so a library or
+  framework may declare one in its ACTIVITIES.md.
+
 ## 1.52.0 (2026-10-15)
 
 - `provides_financial_services` has five license classes under it: `is_bank`,
