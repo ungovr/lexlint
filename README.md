@@ -39,9 +39,9 @@ Thin by design, so you can see exactly what you are installing:
 
 ## Get a key
 
-Take the key first. The plugin reads `UNGOVR_API_KEY` at process start, the
-same moment it loads, so a key that is in your shell profile before you
-install costs one restart, and a key taken afterwards costs a second one.
+The plugin reads `UNGOVR_API_KEY` when Claude Code starts, the same moment
+it loads, so a key already saved where it looks when you install costs one
+restart, and a key saved afterwards costs a second one.
 The restart is the inconvenience and the server is the decision: once
 installed, every later session in this client carries LexLint's server and can
 call its tools, until you remove it.
@@ -59,11 +59,18 @@ one. Neither is a fallback for the other:
   lifetime total, so pick this route if you plan to keep using LexLint past
   the trial.
 
-Then put it in your shell profile as `UNGOVR_API_KEY`. That is
-`export UNGOVR_API_KEY=<your-key>` in bash and zsh,
+Then save it where Claude Code reads it. Once the plugin is installed, run
+`/lexlint-key` with the key: it puts it in your user settings file, which
+every start of Claude Code reads, the Claude desktop app included, and a
+restart carries it to the server.
+
+A shell profile works only for a Claude Code you start from a terminal, and
+only from a terminal opened after the line is in: the desktop app never reads
+one. For that route, or for another tool that reads `UNGOVR_API_KEY` from its
+environment, the line is `export UNGOVR_API_KEY=<your-key>` in bash and zsh,
 `set -gx UNGOVR_API_KEY <your-key>` in fish, and
-`$env:UNGOVR_API_KEY = '<your-key>'` in PowerShell. The value is read at
-process start, so a key exported into a running session is read by nothing.
+`$env:UNGOVR_API_KEY = '<your-key>'` in PowerShell. A key exported into a
+running session is read by nothing.
 
 **An account can hold several keys**, so creating one here leaves any key you
 already have on another machine working. They share one daily allowance between
@@ -117,10 +124,11 @@ bundle's server configuration reads the key from at session start.
 Full setup for every client, including Codex and the plain JSON block:
 https://mcp.lexlint.io/#setup
 
-**Restart your session after installing.** Plugins load at process start, and
-so does the key, which is why it went into your profile first: one restart
-covers both. A `/clear` is not a restart. Until you restart, the status
-commands will report the server healthy while the plugin is absent.
+**Restart your session after installing.** Plugins load when Claude Code
+starts, and so does the key. A key already saved where Claude Code reads it
+arrives with that restart; otherwise run `/lexlint-key` with it in the new
+session and restart once more. A `/clear` is not a restart. Until you restart,
+the status commands will report the server healthy while the plugin is absent.
 
 **What installing adds is a server, not a restart.** The restart happens once.
 From then on, every later session in this client carries LexLint's server and

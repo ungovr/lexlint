@@ -5,6 +5,15 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.53.2 (2026-10-15)
+
+- `/lexlint` and `/lexlint-key` now say that the Claude desktop app never reads
+  a shell profile, not even after a full quit and reopen. A key saved only in
+  `~/.zshrc` or another profile is diagnosed as such, and the fix offered is
+  `/lexlint-key`, which saves the key where every start of Claude Code reads
+  it. The README's "Get a key" says the same. Nothing you declare or call
+  changes.
+
 ## 1.53.1 (2026-10-15)
 
 - LexLint's server now keeps a record of each request: what it was, which

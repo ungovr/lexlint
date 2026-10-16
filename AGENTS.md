@@ -78,17 +78,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.53.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.53.2"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.53.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.53.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.53.1`.** State it, do not go looking
+**That version string is yours and it is `1.53.2`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -237,7 +237,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.53.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.53.2) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -413,9 +413,13 @@ running, and never offer a command from another entry.
     entry into the user settings file themselves, takes it out of the project
     file, then restarts.
   - The name is in a shell profile, and no settings file. A key is saved
-    there, and this client was not started from a shell that read that file.
-    Open a new terminal and start the client from it, or have the developer
-    move the key into the user settings file.
+    there, and this client was not started from a shell that read that file. A
+    terminal reads its profile only when it opens, and the Claude desktop app
+    never reads one, not even after a full quit and reopen (measured
+    2026-10-15). The developer runs `/lexlint-key` with the key, which saves
+    it where every start of Claude Code reads it, the desktop app included,
+    then restarts. A developer who starts Claude Code from a terminal can
+    instead open a new terminal and start it from there.
   - The name is in none of them. There really is no key on this machine. Run
     the setup flow above.
 
@@ -433,10 +437,11 @@ running, and never offer a command from another entry.
   3. The `env` block is nested in the wrong place. It is a top-level key of
      the file, as `{"env": {"UNGOVR_API_KEY": "..."}}`, and the same block one
      level down, inside `permissions` for instance, is read by nothing.
-  4. This surface does not expand a plugin's header variables. The Claude
-     desktop app's agentic mode refuses every variable that is not one of its
-     own, so a plugin server there is sent no key wherever it is saved. Run
-     LexLint from Claude Code in a terminal or an IDE instead.
+  4. This surface does not expand a plugin's header variables. Cowork, the
+     Claude desktop app's agentic mode, refuses every variable that is not one
+     of its own, so a plugin server there is sent no key wherever it is saved.
+     Claude Code in the desktop app is a different surface and reads the user
+     settings file. Run LexLint from Claude Code instead.
   5. This Claude Code build sends a plugin's header variable empty whatever it
      holds, which some builds have done. Update Claude Code, then restart.
 
@@ -521,20 +526,21 @@ running, and never offer a command from another entry.
 
   Nothing is installed there to update.
 
-**Claude desktop app, agentic mode**
+**Cowork, the Claude desktop app's agentic mode**
 
 - **Install** not available here.
 
-  The Claude desktop app's agentic mode is the one Claude surface the plugin
-  cannot be keyed on: the bundle's server entry sends
-  `X-API-Key: ${UNGOVR_API_KEY:-}`, and this surface never expands a plugin's
-  header variable, whatever the value is saved in, and shows nothing when it
-  declines to (upstream report anthropics/claude-code#94395, open on
-  2026-09-19). What it sends in the header's place is unmeasured, so there is
-  no version of these steps LexLint can stand behind here. Set LexLint up in
-  Claude Code in a terminal or an IDE, which is the Claude Code entry, or
-  paste the first-run line into a Claude Code session there; the document is
-  https://lexlint.io/first-run either way.
+  Cowork, the Claude desktop app's agentic mode, is the one Claude surface the
+  plugin cannot be keyed on, and Claude Code inside the desktop app is not it:
+  the bundle's server entry sends `X-API-Key: ${UNGOVR_API_KEY:-}`, and this
+  surface never expands a plugin's header variable, whatever the value is
+  saved in, and shows nothing when it declines to (upstream report
+  anthropics/claude-code#94395, open on 2026-09-19). What it sends in the
+  header's place is unmeasured, so there is no version of these steps LexLint
+  can stand behind here. Set LexLint up in Claude Code in a terminal or an
+  IDE, which is the Claude Code entry, or paste the first-run line into a
+  Claude Code session there; the document is https://lexlint.io/first-run
+  either way.
 - **Key** not available here.
 
   There is nowhere on this surface a key can reach the plugin from: the header
@@ -1135,7 +1141,7 @@ run_lint(
   jurisdictions=["us", "de", "eu", "kr"],
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
-  client_version="1.53.1"
+  client_version="1.53.2"
 )
 ```
 
@@ -1842,7 +1848,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.53.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.53.2' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1856,7 +1862,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.53.1`, and `--summary` is the one sentence you author.
+`lexlint 1.53.2`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2423,7 +2429,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.53.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.53.2 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2630,7 +2636,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.53.1`, the bundle that ran the lint. The
+- `client_version`: `1.53.2`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

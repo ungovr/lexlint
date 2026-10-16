@@ -132,7 +132,11 @@ whole, so a stray comma loses the key and every other setting in the file with
 it. Fix it before going on.
 
 If the developer would rather have the key in their environment for other tools
-too, the shell profile is the alternative, and it is theirs to run.
+too, the shell profile is the alternative, and it is theirs to run. It reaches
+only a client started from a terminal opened after the line is in. The Claude
+desktop app never reads a shell profile, not even after a full quit and reopen
+(measured 2026-10-15), so a developer who uses it keeps the key in the user
+settings file above.
 
 **Read the profile off their actual shell, never off a guess.** A line appended
 to `~/.zshrc` for someone running bash is sourced by nothing, so the restart
