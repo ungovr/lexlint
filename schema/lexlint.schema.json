@@ -100,6 +100,30 @@
             }
           },
           "description": "Whose duty a bound-party role's law is, keyed by sector. Only financial exists, and it is asked only when provides_financial_services is declared. It moves duties between you and your customer and never adds or removes a match. Absent means never asked."
+        },
+        "roles": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "ai_system": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "enum": ["provider", "deployer", "importer", "distributor", "product_manufacturer", "authorised_representative", "none"] },
+              "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
+              "description": "The roles the maker of this software holds under the EU AI Act (its operators, W3C DPV terms), or none alone. The developer's answer, never read from the code."
+            },
+            "personal_data": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "enum": ["controller", "processor", "none"] },
+              "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
+              "description": "The roles the maker of this software holds under the GDPR, controller or processor (W3C DPV terms), or none alone. The developer's answer, never read from the code."
+            }
+          },
+          "description": "Which role the maker of this software holds under each regime, keyed by axis. A duty line tagged for a role you do not hold moves to requires_elsewhere. An axis absent means never asked."
         }
       }
     },
@@ -205,12 +229,20 @@
         "owed": {
           "type": "string",
           "enum": ["yours", "customer", "elsewhere"],
-          "description": "With public_sector or regulated_sector declared: whose duty this is for this caller. Absent otherwise."
+          "description": "With public_sector, regulated_sector or roles declared: whose duty this is for this caller. Absent otherwise."
         },
         "requires_elsewhere": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "With public_sector or regulated_sector declared: this instrument's lines owed by a party the caller is not. Context, never work."
+          "description": "With public_sector, regulated_sector or roles declared: this instrument's lines owed by a party the caller is not. Context, never work."
+        },
+        "role": {
+          "type": "object",
+          "description": "With roles declared: the declared roles each axis that routed a line of this instrument was judged under, e.g. {\"ai_system\": [\"provider\"]}. Absent when no role answer moved a line."
+        },
+        "reading": {
+          "type": "object",
+          "description": "Whose reading requires and summary are, and as of when: by, as_of, checked (a staff review of the summary, or null) and outside (readings of this law by others, each with on, the day they made it, or as_of, the day LexLint recorded it)."
         },
         "customer_duty_id": {
           "type": "string",

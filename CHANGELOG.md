@@ -5,6 +5,23 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.54.0 (2026-10-17)
+
+- A new declaration question, `roles`: which role the maker of your software
+  holds under the EU AI Act (provider, deployer, importer, distributor,
+  product manufacturer or authorised representative) and under the GDPR
+  (controller or processor). Write it into `lexlint.yml` under
+  `profile.roles`, for example `{"ai_system": ["provider"], "personal_data":
+  ["processor"]}`. A duty line that binds a role you do not hold now sits in
+  `requires_elsewhere` instead of `requires`, and the finding names the roles
+  it was judged under in `role`. A run without it says how many findings an
+  answer would move, in a coverage line per regime. Only the European Union's
+  own rows are tagged by role so far.
+- Each instrument finding carries `reading`: whose reading its lines are
+  (LexLint's), the day research read the source, and the guidance and court
+  rulings that also read the law, each with the day it was issued or the day
+  LexLint recorded it.
+
 ## 1.53.2 (2026-10-15)
 
 - `/lexlint` and `/lexlint-key` now say that the Claude desktop app never reads
