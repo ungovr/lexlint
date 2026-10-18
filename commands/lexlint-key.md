@@ -71,14 +71,14 @@ continuation: `\` continues a line in bash and zsh and does not in PowerShell,
 where this same command otherwise breaks apart.
 
 ```
-curl -sS --fail-with-body -X POST https://mcp.lexlint.io/rpc -H "X-API-Key: <the-key>" -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}'
+curl -sS --fail-with-body --max-time 120 -X POST https://mcp.lexlint.io/rpc -H "X-API-Key: <the-key>" -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}'
 ```
 
 On Windows PowerShell, `curl` is usually an alias for `Invoke-WebRequest`,
 which does not take these flags at all. Use its own form there:
 
 ```
-(Invoke-RestMethod -Method Post -Uri https://mcp.lexlint.io/rpc -Headers @{'X-API-Key'='<the-key>'} -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}').result.structuredContent | Format-List key_valid, notice
+(Invoke-RestMethod -Method Post -TimeoutSec 120 -Uri https://mcp.lexlint.io/rpc -Headers @{'X-API-Key'='<the-key>'} -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_access","arguments":{}}}').result.structuredContent | Format-List key_valid, notice
 ```
 
 Read `key_valid` and `notice` from the answer:

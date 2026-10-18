@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.54.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.54.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.54.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.54.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.54.0`.** State it, do not go looking
+**That version string is yours and it is `1.54.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -267,7 +267,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.54.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.54.1) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -971,7 +971,7 @@ run_lint(
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
-  client_version="1.54.0"
+  client_version="1.54.1"
 )
 ```
 
@@ -1678,7 +1678,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.54.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.54.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1692,7 +1692,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.54.0`, and `--summary` is the one sentence you author.
+`lexlint 1.54.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2098,6 +2098,14 @@ section's failure rule asks for. A report with none of these has skipped the
 close, and a headless or CI session, where nothing is asked and nothing is
 sent, says that instead.
 
+That line is the close in place as well as in name: it ends the report, below
+the findings, the sections that follow here and anything else you say about
+the run. The link is what the developer opens once they have read to the end,
+and one printed above a long table has scrolled away by then. Put the URL on a
+line of its own, in full, with nothing after it, since a terminal takes a
+trailing full stop or bracket into the link. A question still to ask comes
+after the report, not inside it.
+
 **After the findings, say which findings rest on exactly one declared
 activity.** The `run_lint` response groups them for you in
 `declaration_sensitivity`, keyed by activity with the finding ids, so the
@@ -2264,7 +2272,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.54.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.54.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2472,7 +2480,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.54.0`, the bundle that ran the lint. The
+- `client_version`: `1.54.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
@@ -2531,7 +2539,8 @@ being us changes nothing about that.
 **Report what came back.** On success, print the returned `run_url` and say
 the run is stored. Print `share_url` too when it came back: that is a trial
 key's own way in, since its account has no email to sign in with, and the
-link works for 30 days. If `duplicate` came back true, say the run was
+link works for 30 days. Either link goes last in what you say, on a line of
+its own with nothing after it, for the reason the report section gives. If `duplicate` came back true, say the run was
 already stored under that URL rather than uploaded again: the portal keys on
 the account and the payload hash together, so re-sending the same run is
 always safe and never files a second copy.

@@ -5,6 +5,13 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.54.1 (2026-10-17)
+
+- A LexLint report now ends with the link to the stored run, on a line of its
+  own, so it is the last thing you read instead of sitting above the findings.
+- `/lexlint-key`'s check of a key now sets its own time limit, so it runs as
+  written on a Mac. Nothing you declare or call changes.
+
 ## 1.54.0 (2026-10-17)
 
 - A new declaration question, `roles`: which role the maker of your software

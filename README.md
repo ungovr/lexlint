@@ -327,6 +327,7 @@ does not mean you are in the clear.
 - Relevant law in the press: https://lexlint.io/news
 - Docs and tool reference: https://mcp.lexlint.io/#tools
 - A worked example, end to end: https://mcp.lexlint.io/example
+- Terms of service: https://www.ungovr.org/terms
 - Privacy policy: https://www.ungovr.org/privacy
 
 Powered by UnGovr. https://www.ungovr.org
