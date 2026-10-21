@@ -71,17 +71,17 @@ Key button. The value is read at process start, so a key set inside a running
 session is read by nothing, which is why the restart is a step rather than a
 footnote.
 
-**Run `check_access` before anything else**, pass `client_version: "1.54.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.56.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.54.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.56.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.54.1`.** State it, do not go looking
+**That version string is yours and it is `1.56.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -95,6 +95,10 @@ anything about keys. Do not ask what the app does first: they cannot act on
 the answer.
 
 ### When the preflight says there is no key
+
+**If the same response reports `credential: "none"`, this section is not
+yours.** That install signs in instead of using a key: go to "When this
+install signs in instead of using a key", below.
 
 If `key_present` is false, stop. **And do not offer a route to a key yet.**
 The server cannot tell a key that does not exist from a key that is saved on
@@ -175,6 +179,42 @@ still sitting in the file.
 **There really is no key only on the last line of that list**, where nothing
 that could hold one names the variable. Then run the setup flow above, and ask
 before starting either route.
+
+### When this install signs in instead of using a key
+
+Some installs carry no key at all. The copy of LexLint listed in a client's
+directory connects with no key header, and the person signs in to a LexLint
+account when a tool asks them to. `check_access` reports that as
+`credential: "none"`.
+
+**When it does, skip the key routes above and never call `claim_trial_key`.**
+There is no saved key to look for and no trial to mint from this install, and
+`key_present: false` is the expected answer here, not a problem to report. The
+tools that need sign-in are the ones in `sign_in.needed_for`.
+
+**Law lookups work straight away.** `get_law` and
+`resolve_domain_jurisdiction` answer with no account, up to the limit
+`free_lookups` reports: `free_lookups.remaining` of `free_lookups.limit` are
+left, and the count resets at `free_lookups.resets`. A null `remaining` means
+the server could not count, never that none are left. Show it on the preflight
+line where the key would go:
+
+```
+lexlint 1.56.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+```
+
+Do not ask anyone to sign in before a tool asks for it: a person who only came
+to read a law never needs to.
+
+**When a tool answers that sign-in is needed, stop and say how to sign in.** A
+tool in `sign_in.needed_for` answers that way every time on this install, and
+a lookup does once the free ones are used up. Give the person the step for the
+client they are in:
+
+- In Claude Code, run `/mcp`, choose lexlint, and sign in.
+- In the Claude apps, approve the Connect prompt.
+
+Once they have signed in, run the same step again.
 
 ### When you cannot reach the server
 
@@ -267,7 +307,7 @@ question at all.
   footnote to their lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.54.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.56.0) is available
     claude plugin update lexlint@lexlint     (then restart Claude Code)
   ```
 
@@ -604,14 +644,16 @@ they are the rows `ask` is for; never mark a role `include` from the code. A hea
 entity because it stores health data, and a fintech is not a bank because it
 moves money.
 
-**Which license class?** `provides_financial_services` has five children, one
+**Which license class?** `provides_financial_services` has six children, one
 per license class whose rulebook does not cross into the others: `is_bank` (a
 deposit-taker), `is_lender` (anyone who regularly extends or arranges credit as
 a business, licensed or not), `is_insurer` (an insurer, reinsurer or insurance
 producer, or a utilization-review organization acting for a health insurer),
 `is_securities_firm` (a broker-dealer, investment firm or adviser, or fund
-manager) and `is_payment_provider` (a payment or e-money institution, a money
-transmitter or a crypto-asset service provider). A class implies the role, so
+manager), `is_payment_provider` (a payment or e-money institution or a money
+transmitter) and `is_crypto_asset_provider` (a crypto-asset or virtual-asset
+service provider: an exchange, custodian, broker, transfer service or token
+issuer). A class implies the role, so
 declare the class and the role comes with it; a bank that lends declares
 `is_bank` and `is_lender`, and a vendor whose customers are banks and insurers
 declares both of those classes. Ask it as one row with the role: which class or
@@ -971,7 +1013,7 @@ run_lint(
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
-  client_version="1.54.1"
+  client_version="1.56.0"
 )
 ```
 
@@ -1678,7 +1720,7 @@ Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.54.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.56.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1692,7 +1734,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.54.1`, and `--summary` is the one sentence you author.
+`lexlint 1.56.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 
@@ -2272,7 +2314,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.54.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.56.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2480,7 +2522,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.54.1`, the bundle that ran the lint. The
+- `client_version`: `1.56.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

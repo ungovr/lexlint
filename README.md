@@ -88,6 +88,15 @@ mints the same 30-day trial key and returns it in the result, recorded in the
 transcript the same way a pasted key is. Either way it is the next session
 that has it.
 
+**Installed from a directory?** That install sends no key and needs none to
+read the law: `get_law` and `resolve_domain_jurisdiction` answer without an
+account, up to a daily limit that `check_access` reports as `free_lookups`.
+The lint, the app-profile check, uploads and feedback need an account, so when one
+of them is called the server asks your client to sign in with your UnGovr
+account, and the same happens to a lookup once the day's free ones are used up. In
+Claude Code, run `/mcp`, choose lexlint and sign in, then run the same step
+again. There is no key to save and no trial key to claim.
+
 ## Install
 
 Add the marketplace and install the plugin. Either form works:
@@ -123,6 +132,12 @@ bundle's server configuration reads the key from at session start.
 
 Full setup for every client, including Codex and the plain JSON block:
 https://mcp.lexlint.io/#setup
+
+**A directory install is this same bundle with no key in it.** Its server
+entry carries only the address, so the restart after installing is the only
+one: there is no key to save. Run `/lexlint` and the law lookups work at once;
+when the lint asks you to sign in, run `/mcp`, choose lexlint, sign in with
+your UnGovr account, and run `/lexlint` again.
 
 **Restart your session after installing.** Plugins load when Claude Code
 starts, and so does the key. A key already saved where Claude Code reads it

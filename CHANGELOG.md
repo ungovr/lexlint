@@ -5,6 +5,33 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.56.0 (2026-10-21)
+
+- A sixth license class under `provides_financial_services`:
+  `is_crypto_asset_provider`, for a crypto-asset or virtual-asset service
+  provider (an exchange, custodian, broker, transfer service or token issuer),
+  or software supplied to one. Declare it and the role comes with it, so every
+  rule that binds any financial firm still reaches you; a rule written for
+  crypto businesses alone now reaches only this class.
+- `is_payment_provider` no longer covers crypto-asset service providers: it is a
+  payment or e-money institution or a money transmitter. A crypto business that
+  declared only `is_payment_provider` should add `is_crypto_asset_provider`:
+  MiCA's rule on recording client communications now reaches the new class
+  alone, so that finding stops appearing until you do. Rules that name both
+  kinds of firm, such as Cyprus's DORA designation and Palestine's payments
+  decree, reach either declaration. A business that also transmits money
+  declares both classes.
+
+## 1.55.0 (2026-10-20)
+
+- The procedure now covers an install that signs in instead of using a key.
+  When `check_access` reports `credential: "none"`, your agent skips the key
+  steps and never mints a trial, reads the law straight away up to the free
+  lookups `free_lookups` reports, and, when a tool asks for sign-in, tells you
+  how for your client: `/mcp` in Claude Code, or the Connect prompt in the
+  Claude apps. Signing in from Codex is not open yet, so Codex keeps using a
+  key. An install that uses a key changes nothing.
+
 ## 1.54.1 (2026-10-17)
 
 - A LexLint report now ends with the link to the stored run, on a line of its

@@ -62,7 +62,8 @@
                      "provides_telecom_services", "statutory_requests",
                      "records_calls", "records_text_chat", "tracks_devices",
                      "is_bank", "is_lender", "is_insurer", "is_securities_firm",
-                     "is_payment_provider", "employment_decisions",
+                     "is_payment_provider", "is_crypto_asset_provider",
+                     "employment_decisions",
                      "credit_decisions", "insurance_decisions", "housing_decisions",
                      "education_decisions", "health_care_decisions",
                      "public_services_decisions", "justice_decisions"]
