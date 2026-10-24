@@ -27,7 +27,8 @@ you set one up.
 
 Thin by design, so you can see exactly what you are installing:
 
-- **No executables.** The bundle is one skill, three commands, and the schema.
+- **No executables.** The bundle is four skills, the merge script the lint
+  runs with `python3`, and the schema, none of it with an execute bit.
   Everything that runs here runs in your own agent, where you can read it.
 - **One execution path.** The lint is deterministic and happens in one place,
   a stateless worker; the law data behind it updates server-side, not in this
@@ -60,7 +61,7 @@ one. Neither is a fallback for the other:
   the trial.
 
 Then save it where Claude Code reads it. Once the plugin is installed, run
-`/lexlint-key` with the key: it puts it in your user settings file, which
+`/lexlint:lexlint-key` with the key: it puts it in your user settings file, which
 every start of Claude Code reads, the Claude desktop app included, and a
 restart carries it to the server.
 
@@ -81,7 +82,7 @@ asked for it).
 A key you paste into a session is recorded in that session's transcript. Treat
 it the way you would any other secret in a log.
 
-**Already installed and no key yet?** Run `/lexlint-key` and it hands you the
+**Already installed and no key yet?** Run `/lexlint:lexlint-key` and it hands you the
 sign-in link, takes the key you paste back, and puts it where your next
 session will read it. Or ask your session to call `claim_trial_key`, which
 mints the same 30-day trial key and returns it in the result, recorded in the
@@ -135,13 +136,13 @@ https://mcp.lexlint.io/#setup
 
 **A directory install is this same bundle with no key in it.** Its server
 entry carries only the address, so the restart after installing is the only
-one: there is no key to save. Run `/lexlint` and the law lookups work at once;
-when the lint asks you to sign in, run `/mcp`, choose lexlint, sign in with
-your UnGovr account, and run `/lexlint` again.
+one: there is no key to save. Run `/lexlint:lexlint` and the law lookups work
+at once; when the lint asks you to sign in, run `/mcp`, choose lexlint, sign in
+with your UnGovr account, and run `/lexlint:lexlint` again.
 
 **Restart your session after installing.** Plugins load when Claude Code
 starts, and so does the key. A key already saved where Claude Code reads it
-arrives with that restart; otherwise run `/lexlint-key` with it in the new
+arrives with that restart; otherwise run `/lexlint:lexlint-key` with it in the new
 session and restart once more. A `/clear` is not a restart. Until you restart,
 the status commands will report the server healthy while the plugin is absent.
 
@@ -155,12 +156,12 @@ it:
 claude plugin uninstall lexlint@lexlint
 ```
 
-Then run `/lexlint` and read the preflight line. It reports whether the key
+Then run `/lexlint:lexlint` and read the preflight line. It reports whether the key
 reached LexLint, whether it is valid, and how much of today's allowance is
 left, which is the check the next three steps depend on.
 
 **If it reads `key: not set` and you did save a key, do not take another
-one.** A key that is saved and did not arrive is not a missing key: `/lexlint`
+one.** A key that is saved and did not arrive is not a missing key: the lint
 looks for it by file name, never by value, and says where it is and why it did
 not reach the server. A second trial key spends one of the limited mints your
 address gets each day and leaves the first one stranded.
@@ -170,7 +171,7 @@ address gets each day and leaves the first one stranded.
 **LexLint moves, and your installed copy does not.** The law data behind the
 lint updates server-side and reaches you without doing anything. The bundle in
 this repository is the other half, and it is frozen at the version you
-installed until you update it: the skill's instructions, the command, and
+installed until you update it: the four skills' instructions and
 `lexlint.schema.json` all sit on your machine.
 
 That matters more here than for most plugins, because the skill is the product.
@@ -183,6 +184,18 @@ claude plugin update lexlint@lexlint
 
 **Then restart your session.** Plugins load at process start, so an update
 applied inside a running session is read by nothing until the next one.
+
+**1.57.0 changed what you type.** The plugin's four commands are skills now:
+`/lexlint:lexlint` runs the lint, `/lexlint:lexlint-key` puts a key in place,
+`/lexlint:lexlint-upload` stores a finished run and `/lexlint:lexlint-feedback`
+sends feedback, and asking in your own words loads the same skills. Those are
+the names Claude Code lists after the update and a restart; `/lexlint`,
+`/lexlint-key`, `/lexlint-upload` and `/lexlint-feedback` are no longer
+commands. A typed short name can still reach its skill (`/lexlint-key` did, in
+a measured run), but the listed names are the ones to use. The reason is reach: a command was a
+Claude Code convention, while every client that reads a skill folder, Codex
+among them, now gets all four, and the old `/lexlint` command was what Claude
+Code loaded in place of the skill it shared a name with.
 
 Two things worth knowing when an update looks like it did not take:
 
@@ -218,7 +231,7 @@ which costs one to four more requests per domain not already recorded in
 
 ## Use
 
-Run `/lexlint` in any repo. The skill runs a preflight, asks what your app does
+Run `/lexlint:lexlint` in any repo, or ask for a lint. The skill runs a preflight, asks what your app does
 and where it operates, previews what the law library holds for those jurisdictions,
 runs the lint, collapses the findings into a short plan you approve, and then
 works that plan: shipping diffs, drafting the documents your findings call for,
@@ -226,7 +239,7 @@ and routing what is not yours to act on alone.
 
 ## Feedback
 
-`/lexlint-feedback` sends your feedback on LexLint to the people who build it,
+`/lexlint:lexlint-feedback` sends your feedback on LexLint to the people who build it,
 recorded against your UnGovr account so we can write back. It runs only when
 you ask for it, it shows you the exact text before it sends anything, and it
 sends nothing you have not approved.
@@ -303,7 +316,7 @@ profile:
 
 lint:
   run_at: "2026-08-14"
-  tool: lexlint/1.1.0
+  tool: 'lexlint 1.57.0'
   summary: "2 warnings, 1 info: no basic issues found"
   findings:
     - id: eu:dsm-directive-art-4-3

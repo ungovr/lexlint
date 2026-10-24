@@ -18,7 +18,7 @@ components:
 
 # What this plugin does, by feature
 
-This plugin is a skill, four commands, two schemas and a server address. It runs
+This plugin is four skills, two schemas and a server address. It runs
 no code of its own, so it performs none of the activities listed at
 https://lexlint.io/activities and declares none. It is published as a package, so it distributes
 software, which a validator adds from the package URL above.
@@ -29,5 +29,5 @@ LexLint server at mcp.lexlint.io, which returns the findings. Nothing is sent
 until the developer has answered. The server is the one party every run talks
 to, so its jurisdiction is in every run that uses the plugin.
 
-**The upload.** `/lexlint-upload` sends a completed run to the developer's
-LexLint portal, after showing exactly what leaves the repository.
+**The upload.** The `lexlint-upload` skill sends a completed run to the
+developer's LexLint portal, after showing exactly what leaves the repository.

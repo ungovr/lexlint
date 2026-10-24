@@ -39,6 +39,10 @@ and reports exactly the same thing when a key is saved on this machine and did
 not reach the server. Look before you offer either route: "When the preflight
 says there is no key", below, is one command, and it comes first.
 
+**The lint is advisory and never blocks the work.** If the developer declines a
+key, the sign-in, or the lint itself, say in one line that the lint was offered
+and declined, then go back to the request that brought you here and do it.
+
 **There are two routes to a key and the developer picks, so ask BEFORE you
 start either one.** Neither is a fallback for the other. One needs an account,
 which is free; the other needs none: `claim_trial_key`, called from this
@@ -78,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.56.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.57.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.56.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.57.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.56.0`.** State it, do not go looking
+**That version string is yours and it is `1.57.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -170,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.56.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.57.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -280,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.56.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.57.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -416,18 +420,27 @@ running, and never offer a command from another entry.
 - **Install**
   `claude plugin marketplace add ungovr/lexlint && claude plugin install lexlint@lexlint`
 
-  The bundle carries the skill, the three commands, and this server already
-  configured.
-- **Key** `/lexlint-key`, which persists it to the `env` block of the user
-  settings file, which is `$CLAUDE_CONFIG_DIR/settings.json` when
+  The bundle carries the four skills and this server already configured.
+- **Key** `/lexlint:lexlint-key`, which persists it to the `env` block of the
+  user settings file, which is `$CLAUDE_CONFIG_DIR/settings.json` when
   `CLAUDE_CONFIG_DIR` is set and `~/.claude/settings.json` otherwise
 
-  The command hands over the sign-in link, takes the paste, and writes the
-  value where the next session reads it: never into a file that gets
-  committed, and never into `.claude/settings.json` or
-  `.claude/settings.local.json`, because Claude Code opens two connections to
-  each server and an `env` value from either of those files reaches only one
-  of them.
+  That skill hands over the sign-in link, checks the key, and writes it into
+  the user settings file as a top-level `{"env": {"UNGOVR_API_KEY": "..."}}`,
+  merged into the existing JSON with every other key kept, then runs
+  `chmod 600` on the file. Ask before choosing the file:
+  `echo "${CLAUDE_CONFIG_DIR:+set}"` prints `set` or an empty line, and with
+  the variable set a key written to `~/.claude/settings.json` is saved in a
+  file this client never reads. The user file and no other scope: never
+  `.claude/settings.json`, never `.claude/settings.local.json` and never
+  `.env`. `.claude/settings.local.json` is gitignored, so it passes that test,
+  and it is still the wrong place: Claude Code opens two connections to each
+  server, and an `env` value from the project or the local settings file
+  reaches the server on one of them and arrives empty on the other (measured
+  on Claude Code 2.1.278). A shell profile reaches only a Claude Code started
+  from a terminal opened after the line is in, and the Claude desktop app
+  never reads one, not even after a full quit and reopen (measured
+  2026-10-15).
 
 - **Saved-key check**
   `grep -l UNGOVR_API_KEY "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" ~/.claude/settings.json .claude/settings.json .claude/settings.local.json ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile ~/.config/fish/config.fish 2>/dev/null`
@@ -459,10 +472,10 @@ running, and never offer a command from another entry.
     there, and this client was not started from a shell that read that file. A
     terminal reads its profile only when it opens, and the Claude desktop app
     never reads one, not even after a full quit and reopen (measured
-    2026-10-15). The developer runs `/lexlint-key` with the key, which saves
-    it where every start of Claude Code reads it, the desktop app included,
-    then restarts. A developer who starts Claude Code from a terminal can
-    instead open a new terminal and start it from there.
+    2026-10-15). The developer runs `/lexlint:lexlint-key` with the key, which
+    saves it where every start of Claude Code reads it, the desktop app
+    included, then restarts. A developer who starts Claude Code from a
+    terminal can instead open a new terminal and start it from there.
   - The name is in none of them. There really is no key on this machine. Run
     the setup flow above.
 
@@ -497,6 +510,18 @@ running, and never offer a command from another entry.
   `--scope` defaults to `user`, so a project that installed LexLint locally
   needs `claude plugin update lexlint@lexlint --scope local` run from that
   project's directory or it keeps loading the old copy.
+- **Restart** after a key is saved or the bundle is updated: restart Claude
+  Code.
+- **Skills** `/lexlint:lexlint`, `/lexlint:lexlint-key`,
+  `/lexlint:lexlint-upload` and `/lexlint:lexlint-feedback`, the only names
+  Claude Code lists (measured on Claude Code 2.1.309, 2026-10-23, off the init
+  message of one headless run). A typed short name can still reach its skill:
+  `/lexlint-key` loaded the key skill in a second measured run. Use the listed
+  names; a developer can also just ask, and the skill whose description fits
+  loads.
+- **One run's scope** `/lexlint:lexlint <path>` passes the path with the
+  request: the manifest when it ends `.yml` or `.yaml`, the scope for one run
+  otherwise, as step 1 says.
 
 **Codex**
 
@@ -547,6 +572,8 @@ running, and never offer a command from another entry.
   There is no installed client to update: the tools are served remotely and
   are always current. What goes stale is this procedure itself. Re-read it
   from the current bundle at https://github.com/ungovr/lexlint
+- **Restart** after a key is saved or the bundle is updated: restart the Codex
+  session.
 
 **Codex in the browser**
 
@@ -633,6 +660,8 @@ running, and never offer a command from another entry.
   There is no installed client to update: the tools are served remotely and
   are always current. What goes stale is this procedure itself. Re-read it
   from the current bundle at https://github.com/ungovr/lexlint
+- **Restart** after a key is saved or the bundle is updated: restart the
+  session.
 
 ## Two tools that make this cheaper, and neither of them required
 
@@ -781,6 +810,17 @@ If the repo has one, read it. If not, work the declaration out **with** the
 developer, never for them and never without them: read the code, build a
 candidate for each of the two lists below, show the candidates, and ask the
 developer to confirm or correct them. **Nothing unconfirmed is ever sent.**
+
+**A path given with the request is the manifest or the scope, read off the
+path itself**, and your client's entry in Client setup says how to pass one.
+One that ends `.yml` or `.yaml` is the manifest to use instead of the
+repo-root one, and anything else is the scope for this run, narrowing which
+files you read to that subtree under the same rules as `app.scope`. Both at
+once is two arguments, manifest first. A path that is neither an existing file
+nor an existing directory is a typo worth stopping on, because the alternative
+is linting the whole repository while reporting a scope. A scope from the
+request is not written to the manifest: say in the report that it came from
+the request, and what it was.
 
 Show each candidate as a table of three columns: the value, your evidence (a
 file and line, a store listing, a README sentence, or `none found`), and your
@@ -1126,11 +1166,6 @@ coverage claim and says `whole repository` when it is absent, so a scoped run
 uploaded without it is not an omission, it is a false claim about what was
 read.
 
-The developer may also narrow one run without editing the manifest, by naming
-a path when they ask for the lint. It is the same narrowing under the same
-rules, and it is not written to the manifest, so say in the report that the
-scope came from the request rather than from the file.
-
 ### 2. Resolve any domains the app talks to
 
 ```
@@ -1212,7 +1247,7 @@ run_lint(
   public_sector=["none"],  # the same answer set_profile was given
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
-  client_version="1.56.0"
+  client_version="1.57.0"
 )
 ```
 
@@ -1251,10 +1286,11 @@ one you took:
    and the slicing below needs `jq`.
 2. **Make the same call over plain HTTPS and write the body to disk
    yourself.** These tools are JSON-RPC over HTTPS, so an ordinary HTTP client
-   can make any call they make. The recipe, the headers, and the one common
-   client that does not work are in "Uploading a run" below. Needs a shell and
-   an HTTP client. This also spends the upstream requests a second time, which
-   is the real price of the route, so say so on the quota line.
+   can make any call they make. This procedure ships no recipe for that call, so
+   take this route only if you already know how to make it, and otherwise take
+   route 3. Needs a shell and an HTTP client. This also spends the upstream
+   requests a second time, which is the real price of the route, so say so on
+   the quota line.
 3. **Split the declaration across several `run_lint` calls and union the
    results.** Needs no shell and no tools beyond the ones already in front of
    you, so this is the route when you cannot run a command at all.
@@ -1285,11 +1321,16 @@ backwards produces a coverage warning about law LexLint actually holds,
 which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
-Fourteen activities can raise it, because the law library maps them on the flag
-axis alone: `processes_voice`, `processes_biometrics`, `serves_minors`,
-`ships_mobile_app`, `operates_app_store`, `publishes_adult_content`,
-`operates_social_platform`, `aggregates_content`,
-`distributes_software_product` and the five roles. Those are ordinary
+These activities can raise it, because the law library maps them on the flag
+axis alone: `automated_outreach`, `processes_voice`, `processes_biometrics`,
+`publishes_adult_content`, `operates_social_platform`, `serves_minors`,
+`operates_app_store`, `ships_mobile_app`, `aggregates_content`,
+`distributes_software_product`, `handles_health_records`,
+`provides_financial_services`, `operates_essential_service`,
+`is_listed_company`, `provides_telecom_services`, `statutory_requests`,
+`records_calls`, `records_text_chat`, `tracks_devices`, the license classes
+`is_bank`, `is_lender`, `is_insurer`, `is_securities_firm`,
+`is_payment_provider` and `is_crypto_asset_provider`. Those are ordinary
 declarations rather than exotic ones, so expect the case rather than treating
 it as a corner. Say in the report that the run was split and that these were
 intersected, so a reader can tell this run from a single-call one.
@@ -1648,10 +1689,63 @@ run it, delete it. **Never into the repository**, which is a working tree you
 are about to ask the developer to commit.
 
 ```python
-#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.9"
+# dependencies = ["PyYAML>=6.0"]
+# ///
 """Merge a LexLint run into lexlint.yml. Needs python3 with PyYAML."""
-import argparse, json, os, re, sys
-import yaml
+import argparse
+import json
+import os
+import re
+import sys
+
+try:
+    import yaml
+except ImportError:  # --help still works; a merge says what to do instead
+    yaml = None
+
+# Exit codes, one per way the merge stops; --help lists them for the agent.
+EXIT_OK = 0
+EXIT_USAGE = 2
+EXIT_NO_RUNS = 3
+EXIT_MANIFEST = 4
+EXIT_RUN_SHAPE = 5
+
+DESCRIPTION = """\
+Merge one LexLint run into lexlint.yml, the way step 4 of the procedure says.
+
+Each finding's triage (state, where, note, handled_by) is carried across by
+id; lint.work_items is kept as it was; an acknowledged finding the run no
+longer returns moves to lint.vanished; only the lint: block is rewritten, and
+everything above and below it is kept byte for byte. stdout carries exactly
+one JSON object of counts for the report; every diagnostic goes to stderr."""
+
+EPILOG = """\
+examples:
+  one run_lint call, merged into the manifest in place:
+    python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
+        --run-at 2026-10-22 --tool 'lexlint 1.57.0' \\
+        --summary 'Six findings, five instruments, across three jurisdictions.'
+
+  a split run of three calls, counted without writing anything:
+    python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
+        --manifest lexlint.yml -o lexlint.yml \\
+        --run-at 2026-10-22 --tool 'lexlint 1.57.0' --dry-run
+
+  On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
+  arguments: the script's own header declares the dependency.
+
+exit codes:
+  0  merged, or under --dry-run, counted
+  2  usage: a flag missing or malformed, or no PyYAML for this python3
+  3  no run: a run file is not there, or the run has no findings
+     (--allow-empty if that is really the run)
+  4  manifest: lexlint.yml or --previous cannot be read, is not YAML, has no
+     profile block, or cannot be written
+  5  run shape: a run file is not JSON, carries no findings list, holds a
+     finding with no id, or comes from a different corpus build than the rest
+"""
 
 CARRY = ("state", "where", "note", "handled_by")
 KEYS = {
@@ -1668,9 +1762,9 @@ KEYS = {
     "vanished": ("id", "last_seen") + CARRY,
 }
 
-def die(msg):
-    sys.stderr.write("lexlint merge: %s\n" % msg)
-    raise SystemExit(1)
+def die(msg, code):
+    sys.stderr.write(f"lexlint merge: {msg}\n")
+    raise SystemExit(code)
 
 def scalar(v):
     """One shape per value, so a client with no python3 can match it by hand."""
@@ -1688,23 +1782,23 @@ def scalar(v):
     if any(ord(c) < 0x20 or ord(c) == 0x7F for c in s):
         s = s.replace("\\", "\\\\").replace('"', '\\"')
         s = s.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
-        s = "".join(c if 0x20 <= ord(c) != 0x7F else "\\x%02X" % ord(c) for c in s)
-        return '"%s"' % s
-    return "'%s'" % s.replace("'", "''")
+        s = "".join(c if 0x20 <= ord(c) != 0x7F else f"\\x{ord(c):02X}" for c in s)
+        return f'"{s}"'
+    return "'" + s.replace("'", "''") + "'"
 
 def emit_map(d, ind, out, prefer=()):
     for k in [k for k in prefer if k in d] + sorted(set(d) - set(prefer)):
         v, pad = d[k], " " * ind
         if isinstance(v, dict) and v:
-            out.append("%s%s:" % (pad, k))
+            out.append(f"{pad}{k}:")
             emit_map(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, list) and v:
-            out.append("%s%s:" % (pad, k))
+            out.append(f"{pad}{k}:")
             emit_seq(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, (dict, list)):
-            out.append("%s%s: %s" % (pad, k, "{}" if isinstance(v, dict) else "[]"))
+            out.append(f"{pad}{k}: " + ("{}" if isinstance(v, dict) else "[]"))
         else:
-            out.append("%s%s: %s" % (pad, k, scalar(v)))
+            out.append(f"{pad}{k}: {scalar(v)}")
 
 def emit_seq(items, ind, out, prefer=()):
     pad = " " * ind
@@ -1724,7 +1818,8 @@ def emit_seq(items, ind, out, prefer=()):
 def split(text):
     """The manifest either side of the top-level lint: block, kept verbatim."""
     lines = text.split("\n")
-    at = next((i for i, l in enumerate(lines) if re.match(r"^lint[ \t]*:", l)), None)
+    at = next((i for i, line in enumerate(lines) if re.match(r"^lint[ \t]*:", line)),
+              None)
     if at is None:
         return text, ""
     end = next((j for j in range(at + 1, len(lines))
@@ -1743,23 +1838,39 @@ def load_run(paths):
     calls = []
     for p in paths:
         try:
-            with open(p, encoding="utf-8") as fh:
-                calls.append(json.load(fh))
-        except Exception as exc:
-            die("%s is not readable JSON: %s" % (p, exc))
-    stamps = sorted({str(c.get("corpus_built_at")) for c in calls})
+            with open(p, "rb") as fh:
+                raw = fh.read()
+        except OSError as exc:
+            die(f"no run file at {p} ({exc.strerror or exc}); pass the files "
+                f"step 3 wrote, one per run_lint call", EXIT_NO_RUNS)
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            die(f"{p} is not UTF-8 text ({exc.reason} at byte {exc.start}); "
+                f"re-save it as UTF-8 JSON, the run_lint response as it came",
+                EXIT_RUN_SHAPE)
+        try:
+            call = json.loads(text)
+        except ValueError as exc:
+            die(f"{p} is not readable JSON: {exc}", EXIT_RUN_SHAPE)
+        # The shape is checked before anything is read off the call, so a
+        # root that is a list, a string or null stops here with its name.
+        if not isinstance(call, dict) or not isinstance(call.get("findings"), list):
+            die(f"{p} carries no findings list: expected the run_lint response "
+                f"object with a findings array, so unwrap it first", EXIT_RUN_SHAPE)
+        calls.append((p, call))
+    stamps = sorted({str(c.get("corpus_built_at")) for _p, c in calls})
     if len(stamps) > 1:
-        die("the calls report different corpus_built_at (%s): the law library "
-            "rebuilt mid-run, so start again from the first call" % ", ".join(stamps))
+        die("the calls report different corpus_built_at (" + ", ".join(stamps) +
+            "): the law library rebuilt mid-run, so start again from the first call",
+            EXIT_RUN_SHAPE)
     merged, per_call = {}, []
-    for c in calls:
-        if not isinstance(c.get("findings"), list):
-            die("a run file carries no findings list; unwrap it first")
+    for p, c in calls:
         acts = set()
         for f in c["findings"]:
             fid = f.get("id") if isinstance(f, dict) else None
             if not isinstance(fid, str) or not fid:
-                die("a finding carries no usable id: %r" % (fid,))
+                die(f"{p}: a finding carries no usable id: {fid!r}", EXIT_RUN_SHAPE)
             if fid.startswith("activity:"):
                 acts.add(fid)
             merged.setdefault(fid, f)
@@ -1768,31 +1879,78 @@ def load_run(paths):
     return ([f for i, f in merged.items() if not i.startswith("activity:") or i in keep],
             sorted(set.union(*per_call) - keep), stamps[0], len(calls))
 
+def read_manifest(path):
+    """A manifest's text and its parsed document, or a stop with EXIT_MANIFEST."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except (OSError, UnicodeDecodeError) as exc:
+        die(f"cannot read {path}: {exc}", EXIT_MANIFEST)
+    try:
+        doc = yaml.safe_load(text)
+    except (yaml.YAMLError, ValueError) as exc:
+        # ValueError too: PyYAML raises it, not YAMLError, building a value
+        # such as an impossible date (2026-02-30).
+        die(f"{path} is not YAML this script can read: {exc}", EXIT_MANIFEST)
+    return text, doc
+
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("runs", nargs="+")
-    ap.add_argument("--manifest", required=True)
-    ap.add_argument("--previous", help="manifest to take triage from, if not --manifest")
-    ap.add_argument("--run-at", required=True)
-    ap.add_argument("--tool", required=True)
-    ap.add_argument("--summary")
-    ap.add_argument("-o", "--output", required=True)
-    ap.add_argument("--allow-empty", action="store_true")
+    ap = argparse.ArgumentParser(
+        description=DESCRIPTION, epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("runs", nargs="+", metavar="runs",
+                    help="the run_lint response files step 3 wrote, one per call; "
+                         "a split run passes every call, and activity: findings "
+                         "are intersected across them")
+    ap.add_argument("--manifest", required=True,
+                    help="the manifest to merge into, normally lexlint.yml")
+    ap.add_argument("--previous",
+                    help="a manifest to take the previous triage from instead of "
+                         "--manifest, such as one recovered with "
+                         "git show HEAD:lexlint.yml")
+    ap.add_argument("--run-at", required=True,
+                    help="today's date, written to lint.run_at; the script never "
+                         "reads a clock")
+    ap.add_argument("--tool", required=True,
+                    help="this bundle's own name and version, written to "
+                         "lint.tool, such as 'lexlint 1.57.0'")
+    ap.add_argument("--summary",
+                    help="the one sentence you author, written to lint.summary")
+    ap.add_argument("-o", "--output", required=True,
+                    help="where to write the merged manifest; the same path as "
+                         "--manifest merges in place")
+    ap.add_argument("--allow-empty", action="store_true",
+                    help="accept a run with no findings, which otherwise stops "
+                         "the merge rather than overwrite triage with an empty block")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="merge and print the counts, but write nothing")
     a = ap.parse_args()
+    if yaml is None:
+        die("PyYAML is not installed for this python3; run the script with "
+            "`uv run`, which reads the dependency from its header, or write the "
+            "lint: block by hand as step 4 describes", EXIT_USAGE)
 
     findings, act_gone, corpus, calls = load_run(a.runs)
     if not findings and not a.allow_empty:
         die("this run has no findings: refusing to overwrite a manifest with an "
-            "empty lint block (--allow-empty if that is really the run)")
-    try:
-        text = open(a.manifest, encoding="utf-8").read()
-    except OSError as exc:
-        die("cannot read %s: %s" % (a.manifest, exc))
-    doc = yaml.safe_load(text) or {}
+            "empty lint block (--allow-empty if that is really the run)",
+            EXIT_NO_RUNS)
+    text, doc = read_manifest(a.manifest)
     if not isinstance(doc, dict) or not isinstance(doc.get("profile"), dict):
-        die("%s carries no profile block" % a.manifest)
-    prev_text = open(a.previous, encoding="utf-8").read() if a.previous else text
-    prev = (yaml.safe_load(prev_text) or {}).get("lint") or {}
+        die(f"{a.manifest} carries no profile block, so it is not a lexlint.yml",
+            EXIT_MANIFEST)
+    prev_doc = doc
+    if a.previous:
+        _prev_text, prev_doc = read_manifest(a.previous)
+        if prev_doc is None:
+            prev_doc = {}
+        if not isinstance(prev_doc, dict):
+            die(f"{a.previous} is not a manifest: expected a mapping at the top",
+                EXIT_MANIFEST)
+    prev = prev_doc.get("lint") or {}
+    if not isinstance(prev, dict):
+        die(f"the lint: block of {a.previous or a.manifest} is not a mapping, so "
+            f"its triage cannot be read", EXIT_MANIFEST)
     # A hand-edited manifest can hold anything. An entry with no string id is
     # skipped rather than crashing the merge or matching something by accident.
     prev_f = {f["id"]: f for f in prev.get("findings") or []
@@ -1855,9 +2013,23 @@ def main():
     doc_out = (head + "\n\n" if head else "") + "\n".join(body) + "\n"
     if tail.strip():
         doc_out += "\n" + tail.strip("\n") + "\n"
-    with open(a.output + ".lexlint-tmp", "w", encoding="utf-8") as fh:
-        fh.write(doc_out)
-    os.replace(a.output + ".lexlint-tmp", a.output)
+    if not a.dry_run:
+        tmp = a.output + ".lexlint-tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as fh:
+                fh.write(doc_out)
+            os.replace(tmp, a.output)
+        except (OSError, ValueError) as exc:
+            # ValueError covers UnicodeEncodeError: a lone surrogate is valid
+            # in JSON and cannot be written as UTF-8. Either way the temp
+            # file goes, so nothing is left beside the manifest.
+            if os.path.exists(tmp):
+                os.remove(tmp)
+            if isinstance(exc, ValueError):
+                die(f"the merged manifest cannot be written as UTF-8 ({exc}); a "
+                    f"finding in the run carries a character that is not text, "
+                    f"so {a.output} was left as it was", EXIT_MANIFEST)
+            die(f"cannot write {a.output}: {exc}", EXIT_MANIFEST)
 
     # `jurisdiction` is the slug a finding was READ FROM. `resolved_from`, set
     # only when a parent answered, is the slug that was DECLARED. A mirror's
@@ -1909,17 +2081,21 @@ def main():
         "work_items": len(lint.get("work_items") or []),
         "jurisdictions_missing": [j for j in doc["profile"].get("jurisdictions") or []
                                   if j not in seen],
+        "output": None if a.dry_run else a.output,
+        "dry_run": a.dry_run,
     }, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
+    return EXIT_OK
 
-main()
+if __name__ == "__main__":
+    sys.exit(main())
 ```
 
 Run it against the manifest in place, then remove the script:
 
 ```bash
 python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.56.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.57.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm /tmp/lexlint_merge.py
 ```
@@ -1933,9 +2109,17 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.56.0`, and `--summary` is the one sentence you author.
+`lexlint 1.57.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
+
+`--dry-run` does the whole merge and prints the same counts but writes
+nothing, so a merge you are unsure of can be read before it touches the
+manifest. Its stdout is only ever that one JSON object, and every diagnostic
+goes to stderr. When it stops, the exit code says why: 3 for a run file that
+is not there or a run with no findings, 4 for a manifest it cannot read or
+write, 5 for a run file of the wrong shape, and 2 for a flag missing. `--help`
+lists them.
 
 **It stops rather than guesses, in three places**, each of them a way the
 merge could otherwise delete triage without saying so:
@@ -2513,7 +2697,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.56.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.57.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2606,12 +2790,40 @@ The shape:
    lint ran, omit it rather than inventing one. When one did, put each run's
    `replay` value in it, verbatim: it lets us rebuild exactly the run the
    feedback is about, and it carries nothing the developer did not send.
-2. Ask what they want to say.
-3. Print the exact payload, in full, and wait for an explicit yes.
+   Cover only what you can answer, and drop any line you cannot: whether
+   `lexlint.yml` already existed or was written this session, the activities
+   and jurisdictions declared, how many findings came back by severity, how
+   many work items by lane, which lanes were actually worked, and anything
+   that got stuck, and where. Work from what you did, never from what was
+   said, and never paste a log.
+2. Ask what they want to say: one open question, what was useful, what was
+   not, what is missing. Say that a person reads it.
+3. Print the exact payload, in full, and wait for an explicit yes. Say that
+   this is all of it:
+
+   ```
+   LexLint will send exactly this:
+
+     usage:    <the drafted summary, or "none: no lint ran this session">
+     comments: <their words>
+     client:   <the client you are running in, such as claude-code or codex>
+     version:  1.57.0
+   ```
+
+   Editing is expected, not exceptional, and the payload shown last is the one
+   they approve. If they say no, say that nothing was sent, and stop.
 4. Call `submit_feedback(comments, usage_summary?)` and report the receipt.
+   Send exactly what you displayed, `client` and `plugin_version` as the
+   payload shows them: not a superset, not a re-rendered version.
 
 If the call fails, say plainly that nothing was sent. Never report a submission
-you did not get a receipt for. One submission per session.
+you did not get a receipt for. One submission per session: if they think of
+something afterwards, it belongs in the same submission rather than a second
+one.
+
+If the server refuses the payload because something in it is shaped like an
+API key or a token, do not strip it silently and retry. Say what was caught,
+and let the developer decide what to do about it.
 
 Two other things are recorded automatically, and they are the whole of the
 rest of the list.
@@ -2657,7 +2869,7 @@ output: the whole call is a few hundred bytes plus whatever triage the
 developer has written. That is the route, and the only one this procedure
 gives.
 
-**Preconditions.** The `run_lint` response from a completed `/lexlint` run in
+**Preconditions.** The `run_lint` response from a completed LexLint run in
 this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
 `app` and `profile` supplies the name and the declaration when it exists. On a
 first run with no manifest yet, the name is the repository's own (its package
@@ -2665,8 +2877,8 @@ manifest's name, else its directory), and the declaration is the one the run
 was made with, `activities`, `jurisdictions` and, when the run sent them,
 `public_sector`, `regulated_sector` and `roles`, exactly as sent.
 
-Missing the `run_lint` response, say so, run `/lexlint`, and stop: it lints
-again against today's law library and closes by uploading. That includes a session
+Missing the `run_lint` response, say so, run the loop again from Setup, and
+stop: it lints again against today's law library and closes by uploading. That includes a session
 opened after a first run whose upload was refused. The first-run procedure at
 https://lexlint.io/first-run sends the declaration and not the findings and
 writes no record of its own, so there is no file waiting for a later session
@@ -2688,11 +2900,11 @@ file:
   read, whenever that was not the whole repository: one directory as a
   string, or the manifest's `scope` object, `{include: [...], exclude:
   [...]}`, when it read several. The server stores the object either way, and
-  refuses any other shape by name. A `/lexlint <path>` scope is deliberately
-  never written to the manifest, so copying `app` wholesale uploads a run over
-  one directory carrying no scope at all, and the portal captions it `whole
-  repository`. Leave `app_scope` out only when the run read the whole
-  repository.
+  refuses any other shape by name. A one-run scope, named when the developer
+  asked for the lint, is deliberately never written to the manifest, so
+  copying `app` wholesale uploads a run over one directory carrying no scope
+  at all, and the portal captions it `whole repository`. Leave `app_scope` out
+  only when the run read the whole repository.
 - `activities`, `jurisdictions` and `public_sector`: the lists `run_lint` was
   called with, exactly as sent, and never the manifest's where they differ. The
   server rebuilds from what you send, so a declaration the run did not use
@@ -2721,7 +2933,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.56.0`, the bundle that ran the lint. The
+- `client_version`: `1.57.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
@@ -2738,12 +2950,17 @@ what the server stores is the app name, the declaration, the findings it
 rebuilt, the triage you sent and the law library's date.
 
 **Show the consent preview, then wait for the approval.** Before calling the
-tool, print exactly what is about to leave the repository:
+tool, print exactly what is about to leave the repository, in the conversation
+and never as a file: write nothing into the repository but the manifest, and a
+preview saved under `docs/` is a file the next `git add` commits.
 
 | Field | Value |
 |---|---|
 | Findings | 31, rebuilt by the server from the declaration below |
+| Activities | the declared activities, exactly as sent |
 | Jurisdictions | `us` `us/ca` `eu` +3 more |
+| Public sector | the declared answer; leave this row out when the run has none |
+| Regulated sector | the declared answer; leave this row out when the run has none |
 | Work items | 5 |
 | Triage carried | 12 findings with a state, place, note or owner |
 | Destination | the account of key `ung_live_<prefix>...` |
@@ -2763,7 +2980,11 @@ persists, say the destination is unknown rather than guessing at it.
 
 Then ask for an explicit yes. **No yes, no call.** Not because the plugin is
 installed, not because a previous session said yes, and never in a headless
-or CI session, where there is nobody to give one.
+or CI session, where there is nobody to give one. Where your client asks
+before it runs the tool call, that prompt is the developer's yes and there is
+no second question to ask; where it will not ask, ask once yourself, in one
+line, and wait. Either way, what was shown is what was approved: do not change
+it after the yes.
 
 **A refusal is a reply, not a failed call.** The server answers a refusal as
 JSON-RPC, HTTP 200 with an `error` member in place of a `result`, and your
@@ -2790,7 +3011,8 @@ If the call fails outright, say plainly that nothing was stored, give the
 reason, and offer to try again. If the connection drops after the request was
 sent, the state is unknown rather than failed: say that plainly too, and offer
 to retry rather than assuming either outcome, because the upload is
-idempotent per payload hash and a retry never creates a duplicate.
+idempotent per payload hash and a retry never creates a duplicate. For a trial
+key the retry replaces the share link, so read the newest reply's `share_url`.
 
 **Record nothing about the upload in the repo.** No run URL, run code, or
 receipt goes into `lexlint.yml` or anywhere else in the working tree. The

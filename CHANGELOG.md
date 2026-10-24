@@ -5,6 +5,100 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.57.0 (2026-10-22)
+
+- The `lexlint` skill is now a directory: a short `SKILL.md` that your agent
+  loads when the skill starts, and a `references/` folder of files it reads
+  only when a step needs one, each named in `SKILL.md` with the moment to read
+  it. That is the shape the Agent Skills standard asks for, which keeps
+  `SKILL.md` under its size budget. A client that reads a long file in slices
+  could miss a step of the old single file; now an agent loads the loop and
+  its rules up front and the detail of each step as it reaches it. No rule has
+  changed, only which file states it, except as listed here: the key, update,
+  sign-in and one-run scope steps are now worded for any client, with each
+  client's own command in `references/clients.md`, and `SKILL.md` gains a
+  short list of the rules to know before a run starts. One step's wording
+  changed as well: route 2 of the large-response step, in the skill and in
+  `AGENTS.md` alike, now says that no recipe for that call ships and to take
+  route 3 otherwise, instead of pointing at a recipe that does not ship.
+- The split-run paragraph of the large-response step, in the skill and in
+  `AGENTS.md` alike, now lists every activity that can raise an `activity:`
+  coverage warning on a split run; it named 9 of the 25 by name.
+- The commands each client declares (install, key, update, restart, sign-in
+  and one-run scope) appear in the skill only in `references/clients.md`, its
+  per-client setup steps, so the same skill reads correctly in every client
+  that loads a skill folder. `AGENTS.md` stays one file.
+- Each client's entry under Client setup, in `references/clients.md` and in
+  `AGENTS.md` alike, now gives that client's restart step, which the key and
+  update steps both end on.
+- `SKILL.md` declares its license, what it needs to run (network access to
+  the LexLint server, and python3 with PyYAML for the merge step) and this
+  bundle's version in its frontmatter.
+- The merge step's script ships as a file, `skills/lexlint/scripts/merge.py`,
+  so your agent runs it where the skill is installed instead of writing a few
+  hundred lines to a temporary file on every run. It is the same program
+  `AGENTS.md` carries inline, byte for byte, has no execute bit, and makes no
+  network call. The skill runs it with `python3` by its installed path, from
+  your repository root, or with `uv run` the same way where python3 has no
+  PyYAML: its header declares the dependency. If your client loads the
+  skill's text without its files, the skill takes the same script from
+  `AGENTS.md` instead.
+- The merge script has a `--help` with worked examples, a `--dry-run` that
+  prints the counts and writes nothing, and a distinct exit code for each way
+  it stops (3 for a missing run file or an empty run, 4 for a manifest it
+  cannot read or write, 5 for a run file of the wrong shape), with only its
+  JSON summary on stdout and every message on stderr. An unreadable
+  `--previous` manifest or a manifest that is not YAML now stops with a
+  message instead of a Python traceback.
+- `lint.tool` in your manifest is the `--tool` value the procedure passes,
+  this bundle's own version, and the README's sample manifest shows that
+  value instead of a long-stale one.
+- The skill's `description`, the text your agent reads to decide whether to
+  load the skill, is rewritten and measured. It now tells the agent to load
+  the skill first, before touching code, when a change adds or alters what
+  the app does with people, their data or other sites (collecting personal
+  data, automated email or messages, a chatbot or other generative AI
+  feature, training on user data, crawling, voice or face capture, decisions
+  about people), even when the request never mentions law, and says what it
+  is not for. On 22 labeled requests the old text loaded the skill on none,
+  and the new one loaded it on every request it should and on none it should
+  not. That was measured on the bundle without its commands, which is the
+  shape this release ships (the next entry): until now, in Claude Code the
+  `/lexlint` command shared the skill's name and its description was the one
+  the agent read.
+- If you decline a key, the sign-in or the lint itself, the skill now says in
+  one line that the lint was offered and declined, and goes back to the
+  request that brought it in. The lint is advisory and never blocks the work.
+  `AGENTS.md` says the same.
+- The plugin's four commands are skills now, and their names changed. In
+  Claude Code lists them as `/lexlint:lexlint` (the lint),
+  `/lexlint:lexlint-key`, `/lexlint:lexlint-upload` and
+  `/lexlint:lexlint-feedback`, and asking in your own words loads the same
+  skills. After `claude plugin update lexlint@lexlint` and a restart,
+  `/lexlint`, `/lexlint-key`, `/lexlint-upload` and `/lexlint-feedback` are no
+  longer commands. A typed short name can still reach its skill, as
+  `/lexlint-key` did in a measured run, but the listed names are the ones to
+  use.
+  The reason is reach: a command was a Claude Code convention, while every
+  client that reads a skill folder, Codex among them, now gets all four, and
+  in Claude Code the old `/lexlint` command loaded in place of the skill it
+  shared a name with.
+- The key, upload and feedback skills are written from the same source as
+  the lint, so their rules cannot drift from it. The key skill looks for a
+  saved key before it offers a route, checks a key against the server before
+  saving it, and sends your agent to your client's own entry in
+  `references/clients.md` for where the key goes and how to restart.
+- Passing a path with the request is now step 1 of the lint, for every
+  client: a path ending in `.yml` or `.yaml` is the manifest, any other path
+  is the scope for that run, both at once is the manifest first, a path that
+  does not exist stops the run, and a scope from the request is never written
+  to the manifest. In Claude Code that is `/lexlint:lexlint <path>`.
+- The upload's consent preview, in the skill and in `AGENTS.md` alike, now
+  lists the declared activities and, when the run carries them, the
+  public-sector and regulated-sector answers, since the call sends them. The
+  feedback step shows its payload in a block before it sends. `AGENTS.md` no
+  longer names a Claude Code command in its upload section.
+
 ## 1.56.0 (2026-10-21)
 
 - A sixth license class under `provides_financial_services`:
