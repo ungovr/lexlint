@@ -45,7 +45,16 @@ findings carrying a duty that binds only a regulated financial entity or its
 suppliers. And for a run with the role and no class: name the class as the
 open question beside the `<slug>:financial-class-undeclared` line. And for a
 run with a `roles` axis unanswered: name the role question beside the
-`<slug>:ai-role-undeclared` or `<slug>:data-role-undeclared` line.
+`<slug>:ai-role-undeclared` or `<slug>:data-role-undeclared` line. And for a
+run with no `flows`, or a route declared with basis `unknown`: name the
+question beside the `<slug>:transfer-flows` line.
+
+**Report a derived finding by its counts.** For each finding whose `kind` is
+`derived`, print its `summary`, then one line with three counts: `stated_by`,
+the laws that name the record themselves; `inferred_from`, the laws LexLint
+infers it from; and the laws it rests on in all, the length of
+`derived_from`. Never print the list of those laws. It can run long,
+`lexlint.yml` holds it, and the uploaded run shows each law with its basis.
 
 **Policy and guidance are context, never findings.** A `<slug>:soft-law` line
 names the records that matched the declaration but are a strategy, a charter or

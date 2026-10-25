@@ -125,6 +125,26 @@
             }
           },
           "description": "Which role the maker of this software holds under each regime, keyed by axis. A duty line tagged for a role you do not hold moves to requires_elsewhere. An axis absent means never asked."
+        },
+        "flows": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "data", "basis"],
+            "additionalProperties": false,
+            "properties": {
+              "from": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|urn:ungovr:[a-z0-9-]+(?:/[a-z0-9-]+)*)$", "description": "The jurisdiction slug the personal data is collected in or held under, as profile.jurisdictions takes it (\"eu\", \"us/ca\")." },
+              "to": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|urn:ungovr:[a-z0-9-]+(?:/[a-z0-9-]+)*)$", "description": "The jurisdiction slug it is stored in or sent to. Never the same as from or inside it: a flow is a route that leaves a jurisdiction." },
+              "data": { "type": "string", "enum": ["personal", "sensitive"], "description": "personal, or sensitive for a special category (health, biometrics and the like)." },
+              "basis": { "type": "string", "enum": ["adequacy", "contract_clauses", "binding_rules", "certification", "authority_approval", "consent", "derogation", "unknown"], "description": "The transfer mechanism the route relies on, in regime-neutral words: an adequacy decision, standard contract clauses, binding corporate rules, a certification, an authority's approval or security assessment, the person's consent, a derogation, or unknown." }
+            }
+          },
+          "description": "Where this software stores or sends personal data across a border, one entry per route. The developer's answer, never read from the code; [] means asked, and no personal data leaves the jurisdiction it was collected in. Each cross-border transfer finding names the declared flows that leave its jurisdiction. No finding is dropped or downgraded on a flow. Absent means never asked."
+        },
+        "derived": {
+          "type": "boolean",
+          "description": "true adds derived findings: the records an app holds to meet the deadlines the matched laws set, inferred by LexLint and traced to each law. false leaves them out. Absent, the server default applies. Stored with an uploaded run, so its rebuild carries the same findings."
         }
       }
     },
@@ -163,12 +183,12 @@
         "severity": {
           "type": "string",
           "enum": ["warn", "info"],
-          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which it is: an instrument LexLint cannot say is in force today (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), a note about what was not reported (coverage), a duty your public-sector customer owes (customer_duty), or an instrument whose owed is not yours (obligation). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
+          "description": "warn: a live obligation applies (obligation), a posture finding needs attention (posture), or LexLint lacks current data for a declared jurisdiction (coverage). info: context rather than a live duty, and kind says which it is: an instrument LexLint cannot say is in force today (pending), a jurisdiction-wide statement of how the local law treats crawling as a whole, binding nobody on its own (posture), a note about what was not reported (coverage), a duty your public-sector customer owes (customer_duty), an instrument whose owed is not yours (obligation), or a record an app holds to meet the matched laws' deadlines, inferred by LexLint (derived). LexLint never reports error: a lint cannot be sure something is prohibited, so it will not say so."
         },
         "kind": {
           "type": "string",
-          "enum": ["obligation", "coverage", "posture", "pending", "customer_duty"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on. customer_duty: with public_sector or regulated_sector declared, a duty your customer owes, a public body or a financial institution, and meets through your software."
+          "enum": ["obligation", "coverage", "posture", "pending", "customer_duty", "derived"],
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on. customer_duty: with public_sector or regulated_sector declared, a duty your customer owes, a public body or a financial institution, and meets through your software. derived: with profile.derived true, from bundle 1.59.0, one finding per record an app holds to meet the deadlines the matched laws set, run-level (jurisdiction null, citation null) and always info. It is LexLint's inference, not a law's statement, except where a listed law's basis is record; triage it in the code lane."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {
@@ -209,7 +229,7 @@
         },
         "basis": {
           "type": ["string", "null"],
-          "description": "On kind: posture, the law library value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds. On kind: customer_duty, why the duty is your customer's: it binds your public-sector customer and is discharged through the software you supply."
+          "description": "On kind: posture, the law library value this finding rests on, as field = value, or the researcher's note for an access-matrix verdict. Not a citation: it names the attribute read, not an instrument that binds. On kind: customer_duty, why the duty is your customer's: it binds your public-sector customer and is discharged through the software you supply. On kind: derived, what the listed laws state and what LexLint infers from them."
         },
         "citation": { "type": ["string", "null"] },
         "url": { "type": ["string", "null"] },
@@ -241,6 +261,11 @@
           "type": "object",
           "description": "With roles declared: the declared roles each axis that routed a line of this instrument was judged under, e.g. {\"ai_system\": [\"provider\"]}. Absent when no role answer moved a line."
         },
+        "flows": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "With flows declared, on a cross-border transfer finding: the declared flows that leave this finding's jurisdiction, or [] when none does. Context: no finding is dropped or downgraded on a flow."
+        },
         "reading": {
           "type": "object",
           "description": "Whose reading requires and summary are, and as of when: by, as_of, checked (a staff review of the summary, or null) and outside (readings of this law by others, each with on, the day they made it, or as_of, the day LexLint recorded it)."
@@ -252,6 +277,45 @@
         "instrument_id": {
           "type": "string",
           "description": "On a customer_duty finding: the instrument finding it was split from."
+        },
+        "capability": {
+          "type": "object",
+          "description": "On a derived finding, from bundle 1.59.0: the record it names. key is a log_contents noun (event_time, jurisdiction_signal); words says it in a sentence.",
+          "required": ["key"],
+          "additionalProperties": false,
+          "properties": {
+            "key": { "type": "string" },
+            "words": { "type": "string" }
+          }
+        },
+        "stated_by": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "On a derived finding: how many of the listed laws name the record themselves."
+        },
+        "inferred_from": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "On a derived finding: how many of the listed laws imply the record by a deadline or a hook alone, which is LexLint's inference."
+        },
+        "derived_from": {
+          "type": "array",
+          "description": "On a derived finding: each law it rests on, stated first, then by shortest deadline. Each carries id, citation, jurisdiction, note_url, its bases (clock, hook, record), its clocks, and the hook or record where that basis applies. Left open: a key the law library adds to a parent later cannot make this file invalid. The brief form keeps the first three, by id.",
+          "items": { "type": "object", "required": ["id"] }
+        },
+        "moments": {
+          "type": "array",
+          "description": "On derived:event_time: each start a deadline counts from, with how many numeric deadlines and how many standards count from it and the shortest one's label.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "anchor": { "type": "string" },
+              "words": { "type": "string" },
+              "clocks": { "type": "integer", "minimum": 0 },
+              "standards": { "type": "integer", "minimum": 0 },
+              "shortest_label": { "type": ["string", "null"] }
+            }
+          }
         },
         "effective_date": { "type": ["string", "null"] },
         "lifecycle": {

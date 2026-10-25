@@ -173,6 +173,24 @@ findings. Only the European Union's own rows are tagged by role so far; a
 jurisdiction where no matched line is tagged by role has an `info`
 line, `<slug>:role-not-applied`, saying its duties are shown as yours.
 
+**Where does personal data go?** Asked of every declaration, like `roles`, and
+never answered from the code: a region in a deploy file can prompt the
+question, never settle it. Ask whether the app stores or sends personal data
+outside the jurisdiction it collects it in, and for each route where it starts
+(`from`), where it goes (`to`), whether it is `personal` or `sensitive` data,
+and the transfer mechanism it relies on (`basis`): `adequacy`,
+`contract_clauses`, `binding_rules`, `certification`, `authority_approval`,
+`consent`, `derogation`, or `unknown` when the developer does not know. Send
+the answers as `flows`, one entry per route, `[{"from": "eu", "to": "us",
+"data": "personal", "basis": "contract_clauses"}]`, or `[]` when none leaves.
+`from` and `to` are jurisdiction slugs, and `eu` covers its member states. Each
+cross-border transfer finding then names, in `flows`, the declared routes that
+leave its jurisdiction. Nothing is dropped or downgraded on a flow: a
+jurisdiction with such findings has an `info` line, `<slug>:transfer-flows`,
+counting them and saying what was declared, which asks for `flows` when it was
+not sent and for the basis of a route declared `unknown`. Ask when you would
+ask for `roles`, and leave `flows` out when the answer cannot be had.
+
 Four of these are wider than they sound. `serves_minors` is not only for
 apps built for children: design codes bind a service that is merely **likely
 to be accessed** by them, which catches general-purpose apps that were never
@@ -301,6 +319,16 @@ A slug with `held: false` returns a coverage warning, never a pass. Say so
 here, not after the run, and give it a row of its own rather than dropping it
 from the table: a jurisdiction missing from the preview reads as one nobody
 declared.
+
+**`derived` is a profile key you never ask about.** `derived: true` in the
+`profile` of `lexlint.yml` adds `derived` findings to the run: the records an
+app holds to meet the deadlines the matched laws set, each traced to the laws
+it rests on. The severity model (`references/severity.md`) says what one is. It is off by
+default while its wording is under legal review, so do not ask the developer
+about it, do not put it in the table, and do not write it into `lexlint.yml`
+yourself. A developer who wants these findings adds `derived: true` to the
+manifest's `profile`, or asks you to; `derived: false`, or no key at all,
+leaves them out.
 
 **Scope: which files you read, never which law applies.** By default the lint
 reads the whole repository. A manifest narrows that with `app.scope`:

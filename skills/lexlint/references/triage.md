@@ -34,7 +34,9 @@ moves do, and a government-only finding carries none: it keeps the `applies_to`
 reading below, which that answer says nothing about. With `roles` declared, a
 finding whose lines a role answer moved carries `owed` and `role`, the declared
 roles each regime's lines were judged under; a line tagged for a role the
-developer does not hold sits in `requires_elsewhere`.
+developer does not hold sits in `requires_elsewhere`. With `flows` declared, a
+cross-border transfer finding carries `flows`, the declared routes that leave
+its jurisdiction (`[]` when none does), and nothing else about it changes.
 
 An instrument can be partly yours and partly your customer's. It then keeps its
 own lines, carries `customer_duty_id`, and its `customer_duty` finding follows
@@ -125,6 +127,21 @@ question, and you note the unsettled state in the work item.
 those questions verbatim wherever you show the finding, and never rewrite one
 into a recommendation: the question is the research's, and the answer is the
 lawyer's.
+
+**Each `derived` finding is a `code` work item of its own.** Make one per
+derived finding, titled with its `capability.words`, citing the derived
+finding's `id` in the item's `findings`, and set the finding's `handled_by` to
+it. The record it names is a change to this repository, a field or a
+timestamp kept per incident or per person, which is why it is code. Never
+write a `jurisdictions` key on an item whose only finding is derived: the
+finding has no jurisdiction of its own, the portal reads the item's
+jurisdictions from the laws in `derived_from`, and the upload warns on an
+item whose `jurisdictions` differ from those of the findings it cites.
+In the plan table, the Jurisdictions cell of an item whose only finding is
+derived shows the distinct `jurisdiction` values of its `derived_from`, each
+by its `jurisdiction_name` where the entry carries one and as the slug where
+it does not, the same way the portal derives them; that is display only, and
+the item still writes no `jurisdictions` key.
 
 Write the plan to `lint.work_items` and point each finding at its item with
 `handled_by`, except the `topic:` tool-coverage notices, which answer to no

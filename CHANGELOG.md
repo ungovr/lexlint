@@ -5,6 +5,61 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.59.0 (2026-10-24)
+
+- A new finding kind, `derived`, off by default. Add `derived: true` to the
+  `profile` in your `lexlint.yml` and a run adds one finding per record an app
+  holds to meet the deadlines the matched laws set: a recorded moment for each
+  start an incident-notification deadline counts from (`derived:event_time`),
+  and a recorded jurisdiction of residence or location for each affected
+  person (`derived:jurisdiction_signal`). Each is always `info`, is about the
+  run rather than one jurisdiction, and lists every law it rests on, with
+  whether that law states the record or LexLint infers it. It stays off unless
+  you ask for it while its wording is under legal review.
+- `derived` is a new optional profile key, `true` or `false`, accepted by
+  `set_profile`, `run_lint` and `upload_lint_run` and by the schema's
+  `profile`. With no key the server default applies, which is off.
+- Six fields on a derived finding, all additive. Five are new: `capability`
+  (the record, as `key` and `words`), `stated_by` and `inferred_from` (how many
+  of the listed laws name the record themselves, and how many LexLint infers it
+  from), `derived_from` (each law it rests on, with its bases) and `moments`
+  (on `derived:event_time` only, each start a deadline counts from). The sixth
+  is `basis`, which posture and customer-duty findings already carry; here it
+  says what the listed laws state and what LexLint infers. A derived finding's
+  `id` begins `derived:`, and the schema's `kind` enum gains `derived`.
+- The skill and `AGENTS.md` alike describe the kind in the severity model.
+  The skill tells your agent never to ask about `derived`, to send the key
+  through `set_profile`, `run_lint` and the upload exactly as your manifest
+  holds it, to triage each derived finding as one code work item titled by its
+  `capability.words`, with no `jurisdictions` key when it is the item's only
+  finding, and to report its counts rather than its list of laws.
+- The merge script carries the new fields into `lexlint.yml`, in the order the
+  schema declares them.
+- On a split run, where your agent divides one declaration across several
+  `run_lint` calls, a derived finding in `lexlint.yml` covers only the
+  jurisdictions of the first call carrying the id. The run stored on the
+  portal is rebuilt whole and
+  covers them all; run the lint unsplit to have the whole-run finding locally.
+
+## 1.58.0 (2026-10-24)
+
+- A new declaration question, `flows`: where your software stores or sends
+  personal data across a border. Write it into `lexlint.yml` under
+  `profile.flows`, one entry per route, for example `[{"from": "eu", "to":
+  "us", "data": "personal", "basis": "contract_clauses"}]`, or `[]` when no
+  personal data leaves the jurisdiction it was collected in. `data` is
+  `personal` or `sensitive`, and `basis` is the transfer mechanism the route
+  relies on: `adequacy`, `contract_clauses`, `binding_rules`,
+  `certification`, `authority_approval`, `consent`, `derogation`, or
+  `unknown`. Each cross-border transfer finding then names, in `flows`, the
+  declared routes that leave its jurisdiction. No finding is dropped or
+  downgraded on a flow yet, so a run shows the same findings with or without
+  it.
+- A jurisdiction with cross-border transfer findings carries one coverage
+  line, `<slug>:transfer-flows`, counting them and saying what was declared:
+  it asks for `flows` when they were not sent, and for the basis of any route
+  declared as `unknown`.
+
 ## 1.57.0 (2026-10-22)
 
 - The `lexlint` skill is now a directory: a short `SKILL.md` that your agent
