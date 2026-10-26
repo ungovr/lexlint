@@ -4,7 +4,7 @@ description: Use this skill first, before reading or editing code, whenever a re
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io and python3 with PyYAML for the merge step.
 metadata:
-  version: "1.59.0"
+  version: "1.60.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -91,17 +91,17 @@ already stuck.
 Read `references/clients.md` before any install, key, update, restart or
 sign-in step, or to scope one run by path, to find your own client.
 
-**Run `check_access` before anything else**, pass `client_version: "1.59.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.60.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.59.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.60.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.59.0`.** State it, do not go looking
+**That version string is yours and it is `1.60.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -277,6 +277,19 @@ If the repo has one, read it. If not, work the declaration out **with** the
 developer, never for them and never without them: read the code, build a
 candidate for each of the two lists below, show the candidates, and ask the
 developer to confirm or correct them. **Nothing unconfirmed is ever sent.**
+
+**Lint only an app whose code you can open.** When the developer asks for a
+lint without saying which app, as in "lint one of my apps", ask which one, and
+offer the open folder first when there is one rather than assuming it. A
+request to change this repository's code already names its app. When no repository is
+open in this session, as in a chat on a phone or on the web, also ask where
+the app's code is: a public repository, one the developer has connected, or
+the code itself pasted into the chat.
+If you cannot open its code, say so, say that
+connecting the repository is the way in, and do not build a declaration from a
+description of the app: with no code behind it, every row is a guess the lint
+then reports as the app. Where you can open the code but not write to it, show
+the confirmed `lexlint.yml` for the developer to commit.
 
 **A path given with the request is the manifest or the scope, read off the
 path itself**, and your client's entry in Client setup says how to pass one.

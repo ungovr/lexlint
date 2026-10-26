@@ -1,6 +1,6 @@
 {
   "name": "lexlint",
-  "version": "1.59.0",
+  "version": "1.60.0",
   "description": "A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "author": { "name": "UnGovr", "url": "https://www.ungovr.org" },
   "homepage": "https://lexlint.io",
@@ -13,6 +13,11 @@
     "shortDescription": "Lint an app against AI, privacy and cybersecurity law",
     "developerName": "UnGovr",
     "category": "Coding",
-    "websiteURL": "https://lexlint.io"
+    "websiteURL": "https://lexlint.io",
+    "defaultPrompt": [
+      "Lint one of my apps against the AI, privacy and cybersecurity law where it operates",
+      "What AI laws apply in Colorado, and which are in force today?",
+      "Which jurisdiction's law governs the operator of stadt-koeln.de?"
+    ]
   }
 }

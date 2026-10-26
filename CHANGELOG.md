@@ -5,6 +5,21 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.60.0 (2026-10-26)
+
+- Three starter prompts in the Codex manifest (`interface.defaultPrompt`), the
+  ones a client shows before the first message. The first asks for a lint and
+  names no app, so your agent asks which app to lint; the other two look up
+  the law and need no account.
+- The skill and `AGENTS.md` alike say to lint only an app whose code your
+  agent can open: the folder you have open, a public repository, one you
+  connected, or code you paste into the chat. When you ask for a lint without
+  saying which app, your agent asks, offering the
+  open folder first when there is one. When no repository is open, as in a
+  chat on a phone or on the web, it also asks where the code is, and it does
+  not build a declaration from a description. Where it can open the code but not write
+  to it, it shows the confirmed `lexlint.yml` for you to commit.
+
 ## 1.59.0 (2026-10-24)
 
 - A new finding kind, `derived`, off by default. Add `derived: true` to the

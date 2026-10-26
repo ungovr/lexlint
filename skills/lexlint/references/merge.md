@@ -134,7 +134,7 @@ run it against the manifest in place:
 ```bash
 SKILL_DIR='<the base directory your client named for this skill>'
 python3 "$SKILL_DIR/scripts/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.59.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.60.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 ```
 
@@ -161,7 +161,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.59.0`, and `--summary` is the one sentence you author.
+`lexlint 1.60.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
 

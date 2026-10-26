@@ -4,7 +4,7 @@ description: Use when the developer needs an UnGovr Open Data key put in place f
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io to check the key, and a browser for the sign-in at https://ungovr.org when the developer takes an account key
 metadata:
-  version: "1.59.0"
+  version: "1.60.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
