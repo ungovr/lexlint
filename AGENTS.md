@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.61.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.62.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.61.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.62.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.61.0`.** State it, do not go looking
+**That version string is yours and it is `1.62.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.61.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.62.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.61.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.62.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -782,7 +782,9 @@ Two more rules are about the words in the cells rather than the layout:
   the instrument's name, a colon, and one sentence, and puts the whole
   research summary in `detail`. Show the sentence in every list. Read
   `detail` before acting on a warn, and show it when the developer asks for
-  a finding, never in place of the sentence.
+  a finding, never in place of the sentence. Wherever the name stands apart
+  from its sentence, it is the finding's `name`, whole: a name can hold ": "
+  itself, so cutting `summary` at a colon prints half of one.
 - **`why` comes before the law.** Every instrument finding carries `why`, one
   sentence in basic language saying which declared activity reached it and
   what the law library tags it for ("Pulled in because the app records and
@@ -1310,7 +1312,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.61.0"
+  client_version="1.62.0"
 )
 ```
 
@@ -1555,13 +1557,16 @@ it marks. `law library` is the day of the reply's `corpus_built_at`.
   for is never left out of a report, and this is the first report.
 
 Warns first, then infos. A block is the severity upper-cased, the jurisdiction,
-the law's name (the part of `summary` before its first ": "), a `·` and
-`in_force.words`; then, where a court has acted on the law, its court lines;
-then the rest of `summary`, whole and never cut, wrapped at
-about 76 columns under a six-space indent; then `read against its source` and
-the day of `as_of_date`, `, for counsel` when it is, and the link. A coverage
-warning has no law and no date: its block is its first line with `summary`
-after the jurisdiction.
+the law's name, a `·` and `in_force.words`; then, where a court has acted on
+the law, its court lines; then the rest of `summary`, whole and never cut,
+wrapped at about 76 columns under a six-space indent; then `read against its
+source` and the day of `as_of_date`, `, for counsel` when it is, and the link.
+The law's name is the finding's `name`, whole, and the rest of `summary` is
+what follows that name and its ": ". Never find the name by cutting `summary`
+at a colon: a name can hold ": " itself ("High-Risk AI: Public-Authority
+Deployer Obligations"), and the cut prints half of it. The command below
+writes the two apart. A coverage warning has no law and no date: its block is
+its first line with `summary` after the jurisdiction.
 
 **The court lines.** A finding carries `court_action` when a court has
 blocked the law, struck it or part of it down, or upheld it after a block, or
@@ -1590,7 +1595,12 @@ again)", never a bare total. A split run (step 3) is one run here too: read
 every call's file at once, as the command below does for `lint-*.json`.
 
 This prints the blocks' rows from the unwrapped `lint.json`, then the two
-count lines, so the run is read in one slice rather than whole. For a split
+count lines, so the run is read in one slice rather than whole. A row's
+columns are the severity, the flag, the jurisdiction, the law's name,
+`in_force.words`, the rest of `summary`, `as_of_date`, `note_url` and the
+lane, then one court line per column. A finding from a run recorded before
+`name` existed has none, and the command takes the part of `summary` before
+its first ": " for it, as this step used to. For a split
 run, feed it `jq -s '{findings: map(.findings) | add}' lint-*.json` instead of
 the file:
 
@@ -1598,6 +1608,9 @@ the file:
 jq -r '
   def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
   def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
+  def lawname: if .kind == "coverage" then ""
+               else .name // (.summary | split(": ") | if length > 1 then .[0] else "" end) end;
+  def duty: lawname as $n | if $n == "" then .summary else .summary | ltrimstr($n + ": ") end;
   def ruling: ((.provisions // []) | join(", ") | if . == "" then "" else . + " " end)
               + ({"enjoins": "blocked", "invalidates": "struck down", "upholds": "upheld"}[.role] // .role)
               + (if .decided then " \(.decided)" else "" end)
@@ -1617,7 +1630,7 @@ jq -r '
      + [$all[] | select(.kind == "coverage" and .severity == "warn")]
      | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown
   | ($shown[] | [.severity, (.jurisdiction_flag // ""), (.jurisdiction_name // .jurisdiction),
-                 (.in_force.words // ""), .summary, (.as_of_date // ""), (.note_url // ""),
+                 lawname, (.in_force.words // ""), duty, (.as_of_date // ""), (.note_url // ""),
                  (if counsel then "counsel" else "code" end)] + courtlines | @tsv),
     ("\($shown | length) of \($all | length) "
      + (if $total > ($all | length)
@@ -1800,13 +1813,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.61.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.62.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.61.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.62.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -1827,7 +1840,7 @@ KEYS = {
     "lint": ("run_at", "tool", "summary", "findings", "work_items", "vanished"),
     "findings": (
         "id", "severity", "kind", "jurisdiction", "jurisdiction_name",
-        "jurisdiction_flag", "summary", "detail", "why", "matched_by", "posture", "basis",
+        "jurisdiction_flag", "summary", "name", "detail", "why", "matched_by", "posture", "basis",
         "citation", "url", "note_url", "status", "requires", "applies_to",
         "owed", "requires_elsewhere", "role", "flows", "reading", "customer_duty_id", "instrument_id",
         "capability", "stated_by", "inferred_from", "derived_from", "moments",
@@ -2007,7 +2020,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.61.0'")
+                         "lint.tool, such as 'lexlint 1.62.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2213,7 +2226,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.61.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.62.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2231,7 +2244,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.61.0`, and `--summary` is the one sentence you author.
+`lexlint 1.62.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2585,8 +2598,8 @@ their repository beside the doc-lane drafts. It carries, in this order:
    first the finding's
    `why`, in the lint's words, so counsel reads the reason before the law;
    then the finding's `summary` exactly as the lint gave it (the instrument's
-   name and one sentence), the name linked to the LexLint page where
-   `note_url` exists,
+   name and one sentence), the name, which is the finding's `name`, linked to
+   the LexLint page where `note_url` exists,
    then **where in the code** the question arises: the `where` the developer
    recorded on the finding (a path and line, an issue, a document), as a
    link into the repository when the manifest declares one and plain
@@ -2855,7 +2868,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.61.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.62.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2966,7 +2979,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.61.0
+     version:  1.62.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3093,7 +3106,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.61.0`, the bundle that ran the lint. The
+- `client_version`: `1.62.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

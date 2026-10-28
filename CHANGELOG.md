@@ -5,6 +5,17 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.62.0 (2026-10-28)
+
+- A law's name now arrives whole, as its own `name` field on every instrument
+  finding. Some names hold a colon themselves, such as "High-Risk AI:
+  Public-Authority Deployer Obligations", and the run's first look used to cut
+  the name at its first colon, so half of it opened the sentence beneath. The
+  first look now prints `name` whole and the rest of `summary` under it.
+- `summary` is unchanged, and so is every finding id. The next merge writes
+  each instrument finding's `name` into `lexlint.yml`, one line beside its
+  `summary`, and moves nothing else.
+
 ## 1.61.0 (2026-10-27)
 
 - `generates_content` has four media kinds under it: `generates_text`,

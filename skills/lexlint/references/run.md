@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.61.0"
+  client_version="1.62.0"
 )
 ```
 
@@ -307,13 +307,16 @@ it marks. `law library` is the day of the reply's `corpus_built_at`.
   for is never left out of a report, and this is the first report.
 
 Warns first, then infos. A block is the severity upper-cased, the jurisdiction,
-the law's name (the part of `summary` before its first ": "), a `·` and
-`in_force.words`; then, where a court has acted on the law, its court lines;
-then the rest of `summary`, whole and never cut, wrapped at
-about 76 columns under a six-space indent; then `read against its source` and
-the day of `as_of_date`, `, for counsel` when it is, and the link. A coverage
-warning has no law and no date: its block is its first line with `summary`
-after the jurisdiction.
+the law's name, a `·` and `in_force.words`; then, where a court has acted on
+the law, its court lines; then the rest of `summary`, whole and never cut,
+wrapped at about 76 columns under a six-space indent; then `read against its
+source` and the day of `as_of_date`, `, for counsel` when it is, and the link.
+The law's name is the finding's `name`, whole, and the rest of `summary` is
+what follows that name and its ": ". Never find the name by cutting `summary`
+at a colon: a name can hold ": " itself ("High-Risk AI: Public-Authority
+Deployer Obligations"), and the cut prints half of it. The command below
+writes the two apart. A coverage warning has no law and no date: its block is
+its first line with `summary` after the jurisdiction.
 
 **The court lines.** A finding carries `court_action` when a court has
 blocked the law, struck it or part of it down, or upheld it after a block, or
@@ -342,7 +345,12 @@ again)", never a bare total. A split run (step 3) is one run here too: read
 every call's file at once, as the command below does for `lint-*.json`.
 
 This prints the blocks' rows from the unwrapped `lint.json`, then the two
-count lines, so the run is read in one slice rather than whole. For a split
+count lines, so the run is read in one slice rather than whole. A row's
+columns are the severity, the flag, the jurisdiction, the law's name,
+`in_force.words`, the rest of `summary`, `as_of_date`, `note_url` and the
+lane, then one court line per column. A finding from a run recorded before
+`name` existed has none, and the command takes the part of `summary` before
+its first ": " for it, as this step used to. For a split
 run, feed it `jq -s '{findings: map(.findings) | add}' lint-*.json` instead of
 the file:
 
@@ -350,6 +358,9 @@ the file:
 jq -r '
   def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
   def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
+  def lawname: if .kind == "coverage" then ""
+               else .name // (.summary | split(": ") | if length > 1 then .[0] else "" end) end;
+  def duty: lawname as $n | if $n == "" then .summary else .summary | ltrimstr($n + ": ") end;
   def ruling: ((.provisions // []) | join(", ") | if . == "" then "" else . + " " end)
               + ({"enjoins": "blocked", "invalidates": "struck down", "upholds": "upheld"}[.role] // .role)
               + (if .decided then " \(.decided)" else "" end)
@@ -369,7 +380,7 @@ jq -r '
      + [$all[] | select(.kind == "coverage" and .severity == "warn")]
      | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown
   | ($shown[] | [.severity, (.jurisdiction_flag // ""), (.jurisdiction_name // .jurisdiction),
-                 (.in_force.words // ""), .summary, (.as_of_date // ""), (.note_url // ""),
+                 lawname, (.in_force.words // ""), duty, (.as_of_date // ""), (.note_url // ""),
                  (if counsel then "counsel" else "code" end)] + courtlines | @tsv),
     ("\($shown | length) of \($all | length) "
      + (if $total > ($all | length)

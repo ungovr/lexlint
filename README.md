@@ -316,7 +316,7 @@ profile:
 
 lint:
   run_at: "2026-08-14"
-  tool: 'lexlint 1.61.0'
+  tool: 'lexlint 1.62.0'
   summary: "2 warnings, 1 info: no basic issues found"
   findings:
     - id: eu:dsm-directive-art-4-3

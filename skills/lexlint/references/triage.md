@@ -222,8 +222,8 @@ their repository beside the doc-lane drafts. It carries, in this order:
    first the finding's
    `why`, in the lint's words, so counsel reads the reason before the law;
    then the finding's `summary` exactly as the lint gave it (the instrument's
-   name and one sentence), the name linked to the LexLint page where
-   `note_url` exists,
+   name and one sentence), the name, which is the finding's `name`, linked to
+   the LexLint page where `note_url` exists,
    then **where in the code** the question arises: the `where` the developer
    recorded on the finding (a path and line, an issue, a document), as a
    link into the repository when the manifest declares one and plain

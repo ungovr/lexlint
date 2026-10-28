@@ -35,13 +35,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.61.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.62.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.61.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.62.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -62,7 +62,7 @@ KEYS = {
     "lint": ("run_at", "tool", "summary", "findings", "work_items", "vanished"),
     "findings": (
         "id", "severity", "kind", "jurisdiction", "jurisdiction_name",
-        "jurisdiction_flag", "summary", "detail", "why", "matched_by", "posture", "basis",
+        "jurisdiction_flag", "summary", "name", "detail", "why", "matched_by", "posture", "basis",
         "citation", "url", "note_url", "status", "requires", "applies_to",
         "owed", "requires_elsewhere", "role", "flows", "reading", "customer_duty_id", "instrument_id",
         "capability", "stated_by", "inferred_from", "derived_from", "moments",
@@ -242,7 +242,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.61.0'")
+                         "lint.tool, such as 'lexlint 1.62.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,

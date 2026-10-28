@@ -202,6 +202,10 @@
           "description": "The jurisdiction's flag as an emoji, printed before jurisdiction_name, from the engine since bundle 1.43.0: 🇪🇺, 🇨🇦. Present only with jurisdiction_name, and only on a country, the EU or the UN: a state or a city has none."
         },
         "summary": { "type": "string" },
+        "name": {
+          "type": "string",
+          "description": "The instrument's name, whole, which summary opens with before its \": \" and the sentence, from the engine since bundle 1.62.0. A name can hold \": \" itself, so read this rather than cutting summary. Present on instrument findings."
+        },
         "detail": {
           "type": "string",
           "description": "The whole research summary the one sentence in summary was cut from, from the engine since bundle 1.20.0. Present on instrument findings that have one."
