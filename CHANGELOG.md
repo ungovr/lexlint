@@ -5,6 +5,37 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.61.0 (2026-10-27)
+
+- `generates_content` has four media kinds under it: `generates_text`,
+  `generates_images`, `generates_video` and `generates_audio` (speech, singing,
+  music and other sound). Declare each kind of output your software makes, and
+  `generates_content` comes with it. A rule written for one medium, such as a
+  voice-cloning law, then reaches only software that makes that medium.
+- A declaration that names `generates_content` and no kind is answered exactly
+  as before, with every kind's rules, and each jurisdiction where a kind would
+  narrow them has an `info` line, `<slug>:medium-undeclared`, counting those
+  findings. `set_profile` asks which kinds.
+- A kind is something your software does, not who you are, so a library or
+  framework may declare one in its ACTIVITIES.md.
+
+## 1.60.1 (2026-10-26)
+
+- Step 4's merge script now writes its temporary file under a new name it
+  creates for itself, so a link committed in a repository under the old fixed
+  name can no longer send the write to a different file. Update if you run
+  LexLint in repositories you did not write.
+- A finding whose text carries a control character, such as the residue of a
+  statute extracted from a PDF, is written so that the next merge can read
+  `lexlint.yml` back. Before, one such character could leave the file
+  unreadable until it was edited by hand.
+- A key inside a finding's nested fields is quoted whenever YAML would read it
+  as something else, so no key can add a line of its own to `lexlint.yml`.
+- Where the merge script has to be fetched rather than run from the skill,
+  step 4 puts it in a new private directory from `mktemp -d` instead of a
+  fixed name in `/tmp`, and runs it only when it names this bundle's own
+  version. Nothing you declare or call changes.
+
 ## 1.60.0 (2026-10-26)
 
 - Three starter prompts in the Codex manifest (`interface.defaultPrompt`), the

@@ -134,7 +134,7 @@ run it against the manifest in place:
 ```bash
 SKILL_DIR='<the base directory your client named for this skill>'
 python3 "$SKILL_DIR/scripts/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.60.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.61.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 ```
 
@@ -146,9 +146,16 @@ lists every flag.
 **If `scripts/merge.py` is not on disk beside `SKILL.md`**, because your
 client handed you the skill's text without its files, fetch the published
 bundle's `AGENTS.md` from https://github.com/ungovr/lexlint/blob/main/AGENTS.md
-and write its one Python block to `/tmp/lexlint_merge.py`: it is the same
-script, byte for byte, and a test holds the two together. Run that with the
-same arguments, then delete it.
+and write its one Python block to `merge.py` inside a new private directory
+from `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, never a fixed name in a
+shared directory. **Check its version before you run it.** That page follows
+the newest bundle, not this one, and the block's `--tool` examples name the
+bundle it belongs to: they must read `lexlint 1.61.0`, this skill's own.
+Then it is the same script, byte for byte, and a test holds the two together;
+run it with the same arguments, then delete the directory. If they name any
+other version, do not run it: delete the directory, write the block by hand as
+below, and
+tell the developer that the plugin has a newer version to update to.
 Never retype it from memory: a script rebuilt from recall is a program nobody
 tested, run against the developer's triage.
 
@@ -161,9 +168,12 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.60.0`, and `--summary` is the one sentence you author.
+`lexlint 1.61.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
-which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
+which is the recovery above written to a file: make a private directory with
+`mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
+HEAD:lexlint.yml` into `previous.yml` inside it, pass that full path, and
+remove the directory once the merge is done.
 
 `--dry-run` does the whole merge and prints the same counts but writes
 nothing, so a merge you are unsure of can be read before it touches the
@@ -218,7 +228,14 @@ them gets you the same bytes:
   judgment call.
 - A string containing a newline or a control character is double-quoted on one
   line instead, with `\n`, `\r`, `\t` and `\xNN` escapes, because a
-  single-quoted scalar folds newlines into spaces and would lose them.
+  single-quoted scalar folds newlines into spaces and would lose them. A
+  control character here is any of U+0000 to U+001F and U+007F to U+009F;
+  U+2028, U+2029, U+FFFE and U+FFFF count too, escaped as `\uNNNN`. Raw, the
+  first range and the last two make the whole file unreadable to PyYAML.
+- A key is written bare when it starts with an ASCII letter or `_`, holds
+  only ASCII letters, digits and `_ . / -`, and is not `true`, `false`, `yes`, `no`,
+  `on`, `off` or `null` in any case. Any other key is quoted the way a value
+  is, so a key can never start a line of its own.
 - `null`, `true`, `false` and numbers are bare. An empty list is `[]` and an
   empty mapping is `{}`.
 - Keys go in the order `lexlint.schema.json` declares them, for the four

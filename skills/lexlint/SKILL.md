@@ -4,7 +4,7 @@ description: Use this skill first, before reading or editing code, whenever a re
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io and python3 with PyYAML for the merge step.
 metadata:
-  version: "1.60.0"
+  version: "1.61.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -91,17 +91,17 @@ already stuck.
 Read `references/clients.md` before any install, key, update, restart or
 sign-in step, or to scope one run by path, to find your own client.
 
-**Run `check_access` before anything else**, pass `client_version: "1.60.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.61.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.60.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.61.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.60.0`.** State it, do not go looking
+**That version string is yours and it is `1.61.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.

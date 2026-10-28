@@ -8,6 +8,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 
 try:
     import yaml
@@ -34,13 +35,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.60.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.61.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.60.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.61.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -89,26 +90,44 @@ def scalar(v):
     if isinstance(v, float):
         return repr(v)
     s = str(v)
-    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in s):
+    if any(escaped(c) for c in s):
         s = s.replace("\\", "\\\\").replace('"', '\\"')
         s = s.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
-        s = "".join(c if 0x20 <= ord(c) != 0x7F else f"\\x{ord(c):02X}" for c in s)
+        s = "".join(c if not escaped(c) else f"\\x{ord(c):02X}" if ord(c) <= 0xFF
+                    else f"\\u{ord(c):04X}" for c in s)
         return f'"{s}"'
     return "'" + s.replace("'", "''") + "'"
+
+def escaped(c):
+    """A character YAML cannot carry raw: a control (C0, DEL, C1), U+FFFE and
+    U+FFFF, which PyYAML refuses, and U+2028 and U+2029, which it reads as a
+    line break (U+0085 is C1)."""
+    o = ord(c)
+    return o < 0x20 or 0x7F <= o <= 0x9F or o in (0x2028, 0x2029, 0xFFFE, 0xFFFF)
+
+# A key YAML reads back as the same string, written bare; any other key
+# (a newline in it, a leading digit, a boolean or null word) is quoted.
+BARE_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_./-]*")
+NOT_BARE = {"true", "false", "yes", "no", "on", "off", "null"}
+
+def key(k):
+    if isinstance(k, str) and BARE_KEY.fullmatch(k) and k.lower() not in NOT_BARE:
+        return k
+    return scalar(k)
 
 def emit_map(d, ind, out, prefer=()):
     for k in [k for k in prefer if k in d] + sorted(set(d) - set(prefer)):
         v, pad = d[k], " " * ind
         if isinstance(v, dict) and v:
-            out.append(f"{pad}{k}:")
+            out.append(f"{pad}{key(k)}:")
             emit_map(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, list) and v:
-            out.append(f"{pad}{k}:")
+            out.append(f"{pad}{key(k)}:")
             emit_seq(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, (dict, list)):
-            out.append(f"{pad}{k}: " + ("{}" if isinstance(v, dict) else "[]"))
+            out.append(f"{pad}{key(k)}: " + ("{}" if isinstance(v, dict) else "[]"))
         else:
-            out.append(f"{pad}{k}: {scalar(v)}")
+            out.append(f"{pad}{key(k)}: {scalar(v)}")
 
 def emit_seq(items, ind, out, prefer=()):
     pad = " " * ind
@@ -223,7 +242,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.60.0'")
+                         "lint.tool, such as 'lexlint 1.61.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -324,16 +343,29 @@ def main():
     if tail.strip():
         doc_out += "\n" + tail.strip("\n") + "\n"
     if not a.dry_run:
-        tmp = a.output + ".lexlint-tmp"
+        # The temp is created exclusively, under a name nobody can predict. A
+        # fixed name let a repository commit a symlink there, and
+        # opening it for writing overwrote whatever file it pointed at.
+        tmp = None
         try:
-            with open(tmp, "w", encoding="utf-8") as fh:
+            try:
+                mode = os.stat(a.output).st_mode & 0o777
+            except FileNotFoundError:
+                mask = os.umask(0)
+                os.umask(mask)
+                mode = 0o666 & ~mask
+            fd, tmp = tempfile.mkstemp(
+                dir=os.path.dirname(os.path.abspath(a.output)),
+                prefix="." + os.path.basename(a.output) + ".", suffix=".lexlint-tmp")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write(doc_out)
+            os.chmod(tmp, mode)
             os.replace(tmp, a.output)
         except (OSError, ValueError) as exc:
             # ValueError covers UnicodeEncodeError: a lone surrogate is valid
             # in JSON and cannot be written as UTF-8. Either way the temp
             # file goes, so nothing is left beside the manifest.
-            if os.path.exists(tmp):
+            if tmp and os.path.lexists(tmp):
                 os.remove(tmp)
             if isinstance(exc, ValueError):
                 die(f"the merged manifest cannot be written as UTF-8 ({exc}); a "

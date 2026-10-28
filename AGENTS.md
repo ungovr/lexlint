@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.60.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.61.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.60.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.61.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.60.0`.** State it, do not go looking
+**That version string is yours and it is `1.61.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.60.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.61.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.60.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.61.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -871,7 +871,7 @@ and it went into a comment instead of the declaration.
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`, `statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, and the decision
-domains below.
+domains and media kinds below.
 
 **An activity LexLint has retired** (today `records_conversations`, replaced by
 `records_calls` and `records_text_chat`) cannot start a new run. `set_profile`,
@@ -936,6 +936,21 @@ border-control rule. A profile that declares `high_risk_decisions` and no
 domain is answered with every domain's rules, and each jurisdiction where a
 domain would narrow them has an `info` coverage line,
 `<slug>:decision-domain-undeclared`, counting those findings.
+
+**What does it generate?** `generates_content` has four children, one per kind
+of output: `generates_text` (articles, messages, summaries, code),
+`generates_images` (pictures, artwork, edits of them), `generates_video` (clips,
+animation, edits and swaps of real footage) and `generates_audio` (speech,
+singing, music and other sound). They are activities, not roles, so the code can
+settle one: a call to a text-to-speech or voice-cloning API, or a music model,
+is `include` for `generates_audio` with that file as its evidence, while output
+whose medium the code does not state is `ask`. A kind implies
+`generates_content`, so declare the kind and the parent comes with it, and
+declare every kind the software makes. A row written for one medium reaches only
+that medium, so an image app is not told a voice-cloning rule. A profile that
+declares `generates_content` and no kind is answered with every kind's rules,
+and each jurisdiction where a kind would narrow them has an `info` coverage
+line, `<slug>:medium-undeclared`, counting those findings.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
@@ -1295,7 +1310,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.60.0"
+  client_version="1.61.0"
 )
 ```
 
@@ -1741,9 +1756,11 @@ does better than you do.
 rule in this step: it reads the run out of the files step 3 left on disk,
 reads the previous triage out of the manifest, rewrites **only** the `lint:`
 block, and prints the numbers your report needs so that counting them never
-costs you a finding read into context. Write it to `/tmp/lexlint_merge.py`,
-run it, delete it. **Never into the repository**, which is a working tree you
-are about to ask the developer to commit.
+costs you a finding read into context. Make a fresh private directory for
+it with `mktemp -d`, write the script into it as `merge.py`, run it, delete
+the directory. Not a fixed name in a shared directory, which another account
+on the machine can create first. **Never into the repository**, which is a
+working tree you are about to ask the developer to commit.
 
 ```python
 # /// script
@@ -1756,6 +1773,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 
 try:
     import yaml
@@ -1782,13 +1800,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.60.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.61.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.60.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.61.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -1837,26 +1855,44 @@ def scalar(v):
     if isinstance(v, float):
         return repr(v)
     s = str(v)
-    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in s):
+    if any(escaped(c) for c in s):
         s = s.replace("\\", "\\\\").replace('"', '\\"')
         s = s.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
-        s = "".join(c if 0x20 <= ord(c) != 0x7F else f"\\x{ord(c):02X}" for c in s)
+        s = "".join(c if not escaped(c) else f"\\x{ord(c):02X}" if ord(c) <= 0xFF
+                    else f"\\u{ord(c):04X}" for c in s)
         return f'"{s}"'
     return "'" + s.replace("'", "''") + "'"
+
+def escaped(c):
+    """A character YAML cannot carry raw: a control (C0, DEL, C1), U+FFFE and
+    U+FFFF, which PyYAML refuses, and U+2028 and U+2029, which it reads as a
+    line break (U+0085 is C1)."""
+    o = ord(c)
+    return o < 0x20 or 0x7F <= o <= 0x9F or o in (0x2028, 0x2029, 0xFFFE, 0xFFFF)
+
+# A key YAML reads back as the same string, written bare; any other key
+# (a newline in it, a leading digit, a boolean or null word) is quoted.
+BARE_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_./-]*")
+NOT_BARE = {"true", "false", "yes", "no", "on", "off", "null"}
+
+def key(k):
+    if isinstance(k, str) and BARE_KEY.fullmatch(k) and k.lower() not in NOT_BARE:
+        return k
+    return scalar(k)
 
 def emit_map(d, ind, out, prefer=()):
     for k in [k for k in prefer if k in d] + sorted(set(d) - set(prefer)):
         v, pad = d[k], " " * ind
         if isinstance(v, dict) and v:
-            out.append(f"{pad}{k}:")
+            out.append(f"{pad}{key(k)}:")
             emit_map(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, list) and v:
-            out.append(f"{pad}{k}:")
+            out.append(f"{pad}{key(k)}:")
             emit_seq(v, ind + 2, out, KEYS.get(k, ()))
         elif isinstance(v, (dict, list)):
-            out.append(f"{pad}{k}: " + ("{}" if isinstance(v, dict) else "[]"))
+            out.append(f"{pad}{key(k)}: " + ("{}" if isinstance(v, dict) else "[]"))
         else:
-            out.append(f"{pad}{k}: {scalar(v)}")
+            out.append(f"{pad}{key(k)}: {scalar(v)}")
 
 def emit_seq(items, ind, out, prefer=()):
     pad = " " * ind
@@ -1971,7 +2007,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.60.0'")
+                         "lint.tool, such as 'lexlint 1.61.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2072,16 +2108,29 @@ def main():
     if tail.strip():
         doc_out += "\n" + tail.strip("\n") + "\n"
     if not a.dry_run:
-        tmp = a.output + ".lexlint-tmp"
+        # The temp is created exclusively, under a name nobody can predict. A
+        # fixed name let a repository commit a symlink there, and
+        # opening it for writing overwrote whatever file it pointed at.
+        tmp = None
         try:
-            with open(tmp, "w", encoding="utf-8") as fh:
+            try:
+                mode = os.stat(a.output).st_mode & 0o777
+            except FileNotFoundError:
+                mask = os.umask(0)
+                os.umask(mask)
+                mode = 0o666 & ~mask
+            fd, tmp = tempfile.mkstemp(
+                dir=os.path.dirname(os.path.abspath(a.output)),
+                prefix="." + os.path.basename(a.output) + ".", suffix=".lexlint-tmp")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write(doc_out)
+            os.chmod(tmp, mode)
             os.replace(tmp, a.output)
         except (OSError, ValueError) as exc:
             # ValueError covers UnicodeEncodeError: a lone surrogate is valid
             # in JSON and cannot be written as UTF-8. Either way the temp
             # file goes, so nothing is left beside the manifest.
-            if os.path.exists(tmp):
+            if tmp and os.path.lexists(tmp):
                 os.remove(tmp)
             if isinstance(exc, ValueError):
                 die(f"the merged manifest cannot be written as UTF-8 ({exc}); a "
@@ -2149,14 +2198,29 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-Run it against the manifest in place, then remove the script:
+Make the directory first. This prints its path:
 
 ```bash
-python3 /tmp/lexlint_merge.py lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.60.0' \
-    --summary 'Six findings, five instruments, across three jurisdictions.'
-rm /tmp/lexlint_merge.py
+mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"
 ```
+
+Write the script above to `merge.py` inside the directory it printed. Then
+run it against the manifest in place and remove the directory, in one block,
+with `LEXLINT_TMP` set to that printed path. A variable set in an earlier
+block is gone by now on most clients, which start each block in a fresh
+shell:
+
+```bash
+LEXLINT_TMP='<the directory mktemp -d printed>'
+python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
+    --run-at 2026-09-10 --tool 'lexlint 1.61.0' \
+    --summary 'Six findings, five instruments, across three jurisdictions.'
+rm -r "$LEXLINT_TMP"
+```
+
+The `.py` name matters where `python3` has no PyYAML: `uv run
+"$LEXLINT_TMP/merge.py"`, with the same arguments, reads the dependency from
+the script's header, and `uv` runs a path without `.py` as a command instead.
 
 **One file per `run_lint` call, and hand it every one of them.** A split run
 (step 3) is several calls, and the intersection rule that makes it safe cannot
@@ -2167,9 +2231,12 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.60.0`, and `--summary` is the one sentence you author.
+`lexlint 1.61.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
-which is the `git show HEAD:lexlint.yml > /tmp/previous.yml` recovery above.
+which is the recovery above written to a file: make a private directory with
+`mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
+HEAD:lexlint.yml` into `previous.yml` inside it, pass that full path, and
+remove the directory once the merge is done.
 
 `--dry-run` does the whole merge and prints the same counts but writes
 nothing, so a merge you are unsure of can be read before it touches the
@@ -2224,7 +2291,14 @@ them gets you the same bytes:
   judgment call.
 - A string containing a newline or a control character is double-quoted on one
   line instead, with `\n`, `\r`, `\t` and `\xNN` escapes, because a
-  single-quoted scalar folds newlines into spaces and would lose them.
+  single-quoted scalar folds newlines into spaces and would lose them. A
+  control character here is any of U+0000 to U+001F and U+007F to U+009F;
+  U+2028, U+2029, U+FFFE and U+FFFF count too, escaped as `\uNNNN`. Raw, the
+  first range and the last two make the whole file unreadable to PyYAML.
+- A key is written bare when it starts with an ASCII letter or `_`, holds
+  only ASCII letters, digits and `_ . / -`, and is not `true`, `false`, `yes`, `no`,
+  `on`, `off` or `null` in any case. Any other key is quoted the way a value
+  is, so a key can never start a line of its own.
 - `null`, `true`, `false` and numbers are bare. An empty list is `[]` and an
   empty mapping is `{}`.
 - Keys go in the order `lexlint.schema.json` declares them, for the four
@@ -2781,7 +2855,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.60.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.61.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2892,7 +2966,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.60.0
+     version:  1.61.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3019,7 +3093,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.60.0`, the bundle that ran the lint. The
+- `client_version`: `1.61.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

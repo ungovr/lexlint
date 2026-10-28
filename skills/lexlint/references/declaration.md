@@ -38,7 +38,7 @@ and it went into a comment instead of the declaration.
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`, `statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, and the decision
-domains below.
+domains and media kinds below.
 
 **An activity LexLint has retired** (today `records_conversations`, replaced by
 `records_calls` and `records_text_chat`) cannot start a new run. `set_profile`,
@@ -103,6 +103,21 @@ border-control rule. A profile that declares `high_risk_decisions` and no
 domain is answered with every domain's rules, and each jurisdiction where a
 domain would narrow them has an `info` coverage line,
 `<slug>:decision-domain-undeclared`, counting those findings.
+
+**What does it generate?** `generates_content` has four children, one per kind
+of output: `generates_text` (articles, messages, summaries, code),
+`generates_images` (pictures, artwork, edits of them), `generates_video` (clips,
+animation, edits and swaps of real footage) and `generates_audio` (speech,
+singing, music and other sound). They are activities, not roles, so the code can
+settle one: a call to a text-to-speech or voice-cloning API, or a music model,
+is `include` for `generates_audio` with that file as its evidence, while output
+whose medium the code does not state is `ask`. A kind implies
+`generates_content`, so declare the kind and the parent comes with it, and
+declare every kind the software makes. A row written for one medium reaches only
+that medium, so an image app is not told a voice-cloning rule. A profile that
+declares `generates_content` and no kind is answered with every kind's rules,
+and each jurisdiction where a kind would narrow them has an `info` coverage
+line, `<slug>:medium-undeclared`, counting those findings.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
