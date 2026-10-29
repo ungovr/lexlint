@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.62.0"
+  client_version="1.63.0"
 )
 ```
 
@@ -143,7 +143,8 @@ axis alone: `automated_outreach`, `processes_voice`, `processes_biometrics`,
 `operates_app_store`, `ships_mobile_app`, `aggregates_content`,
 `distributes_software_product`, `handles_health_records`,
 `provides_financial_services`, `operates_essential_service`,
-`is_listed_company`, `provides_telecom_services`, `statutory_requests`,
+`is_listed_company`, `provides_telecom_services`, `provides_cloud_services`,
+`statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, the license classes
 `is_bank`, `is_lender`, `is_insurer`, `is_securities_firm`,
 `is_payment_provider` and `is_crypto_asset_provider`. Those are ordinary

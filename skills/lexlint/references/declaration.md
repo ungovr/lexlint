@@ -50,7 +50,7 @@ a typed chat differ in law, so the choice is the clarification. Then declare the
 one they name, rewrite `lexlint.yml`, and run again. Old runs that name the
 retired activity still read.
 
-**Who runs it?** Five more values are roles rather than activities, and a
+**Who runs it?** Six more values are roles rather than activities, and a
 sector-gated statute reaches the app through them and through nothing else:
 `handles_health_records` (a HIPAA covered entity or business associate, or a
 health-sector entity under a national regime), `provides_financial_services`
@@ -58,10 +58,13 @@ health-sector entity under a national regime), `provides_financial_services`
 does), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
-regulator) and `provides_telecom_services`. These rows are always `ask`, and
-they are the rows `ask` is for; never mark a role `include` from the code. A health app is not a covered
-entity because it stores health data, and a fintech is not a bank because it
-moves money.
+regulator), `provides_telecom_services` and `provides_cloud_services` (offers
+customers, under a contract, a hosted service that stores or runs their own
+data or workloads; running on somebody else's cloud is not it). These rows are
+always `ask`, and they are the rows `ask` is for; never mark a role `include`
+from the code. A health app is not a covered entity because it stores health
+data, a fintech is not a bank because it moves money, and a web app is not a
+cloud provider because it is hosted.
 
 **Which license class?** `provides_financial_services` has six children, one
 per license class whose rulebook does not cross into the others: `is_bank` (a

@@ -5,6 +5,18 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.63.0 (2026-10-28)
+
+- A sixth role, `provides_cloud_services`: the company behind your app offers
+  it to customers, under a contract, as a hosted service that stores or runs
+  their own data or workloads (infrastructure, platform or software as a
+  service). Running your own app on somebody else's cloud is not this role.
+  Like the other roles it is your answer, never something read from the code.
+- Declaring it today reaches the cybersecurity laws that bind any
+  organization, as every role does. The cloud-provider duties in the EU Data
+  Act, such as the end of switching charges on 12 January 2027, reach it once
+  they are in the law library.
+
 ## 1.62.0 (2026-10-28)
 
 - A law's name now arrives whole, as its own `name` field on every instrument
