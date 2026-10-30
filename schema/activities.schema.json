@@ -134,7 +134,8 @@
                       "operates_social_platform",
                       "serves_minors",
                       "operates_app_store",
-                      "ships_mobile_app"
+                      "ships_mobile_app",
+                      "serves_sanctioned_destination"
                     ]
                   }
                 }
@@ -167,6 +168,9 @@
             "high_risk_decisions",
             "ships_consumer_interface",
             "aggregates_content",
+            "relies_on_digital_identity",
+            "collects_e_signatures",
+            "ships_encryption",
             "statutory_requests",
             "records_calls",
             "records_text_chat",
@@ -188,7 +192,8 @@
             "serves_minors",
             "operates_app_store",
             "ships_mobile_app",
-            "distributes_software_product"
+            "distributes_software_product",
+            "serves_sanctioned_destination"
           ]
         },
         "mentioned": {
@@ -238,7 +243,8 @@
               "serves_minors",
               "operates_app_store",
               "ships_mobile_app",
-              "distributes_software_product"
+              "distributes_software_product",
+              "serves_sanctioned_destination"
             ]
           }
         },
@@ -275,6 +281,9 @@
             "high_risk_decisions",
             "ships_consumer_interface",
             "aggregates_content",
+            "relies_on_digital_identity",
+            "collects_e_signatures",
+            "ships_encryption",
             "statutory_requests",
             "records_calls",
             "records_text_chat",
@@ -296,7 +305,8 @@
             "serves_minors",
             "operates_app_store",
             "ships_mobile_app",
-            "distributes_software_product"
+            "distributes_software_product",
+            "serves_sanctioned_destination"
           ]
         },
         "why": {

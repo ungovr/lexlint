@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.65.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.67.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.65.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.67.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.65.0`.** State it, do not go looking
+**That version string is yours and it is `1.67.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.65.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.67.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.65.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.67.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -872,7 +872,9 @@ and it went into a comment instead of the declaration.
 `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
-`aggregates_content`, `distributes_software_product`, `statutory_requests`,
+`relies_on_digital_identity`, `collects_e_signatures`, `ships_encryption`,
+`serves_sanctioned_destination`, `aggregates_content`, `distributes_software_product`,
+`statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, and the decision
 domains and media kinds below.
 
@@ -966,6 +968,33 @@ console or a tool only the company's own staff use is not this, and neither is
 an API with no screen of its own. It is the trigger for digital-accessibility
 law, and it is separate from `ships_mobile_app`, which is about distributing an
 app through a store: declare both for a mobile app the public uses.
+
+**Does it check a digital identity, or take signatures?**
+`relies_on_digital_identity` is code that accepts a digital identity wallet, a
+verifiable credential or attestation, or an identity-verification service's
+result, to check who a person is, their age or another attribute: an OpenID4VP
+or ISO mdoc verifier, an SD-JWT VC library, an identity-verification SDK. A
+password, or a social sign-in that only links an account, is not this.
+`collects_e_signatures` is code that asks a person to sign an agreement or a
+record electronically, in its own flow or through an e-signature service; a
+checkbox accepting terms is not this. Both are activities, so the code settles
+them, and they are the triggers for digital-identity law.
+
+**Does it ship encryption?** `ships_encryption` is code that implements
+cryptography, or bundles or vendors a library that does, beyond calling the
+operating system's or platform's own TLS or cryptography APIs: a cryptography library
+in the dependency tree or in vendored source, a custom cipher, a bundled TLS
+stack or end-to-end encryption of its own. Calling HTTPS through the platform's
+stock client is not this. It is an activity, so the code settles it, and it is a
+trigger for export-control law.
+
+**A sanctioned destination is set by the lint.** `serves_sanctioned_destination` is
+never asked and never read from the code. The lint sets it itself when the
+declaration lists `cu`, `ir` or `kp` as a jurisdiction, and says so in an `info`
+coverage line, `<slug>:sanctioned-destination`, for each one. Declare it
+yourself only when the app is offered to people in one of those countries and you
+have not listed it as a jurisdiction. It is the trigger for sanctions law on
+exports and services.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
@@ -1339,7 +1368,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.65.0"
+  client_version="1.67.0"
 )
 ```
 
@@ -1419,7 +1448,9 @@ axis alone: `automated_outreach`, `processes_personal_data`, `processes_voice`,
 `processes_biometrics`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
-`aggregates_content`, `distributes_software_product`, `handles_health_records`,
+`relies_on_digital_identity`, `collects_e_signatures`, `ships_encryption`,
+`serves_sanctioned_destination`, `aggregates_content`, `distributes_software_product`,
+`handles_health_records`,
 `provides_financial_services`, `operates_essential_service`,
 `is_listed_company`, `provides_telecom_services`, `provides_cloud_services`,
 `statutory_requests`,
@@ -1842,13 +1873,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.65.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.67.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.65.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.67.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2049,7 +2080,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.65.0'")
+                         "lint.tool, such as 'lexlint 1.67.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2255,7 +2286,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.65.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.67.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2273,7 +2304,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.65.0`, and `--summary` is the one sentence you author.
+`lexlint 1.67.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2897,7 +2928,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.65.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.67.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3008,7 +3039,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.65.0
+     version:  1.67.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3135,7 +3166,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.65.0`, the bundle that ran the lint. The
+- `client_version`: `1.67.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

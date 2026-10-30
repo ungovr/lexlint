@@ -37,7 +37,9 @@ and it went into a comment instead of the declaration.
 `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
-`aggregates_content`, `distributes_software_product`, `statutory_requests`,
+`relies_on_digital_identity`, `collects_e_signatures`, `ships_encryption`,
+`serves_sanctioned_destination`, `aggregates_content`, `distributes_software_product`,
+`statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, and the decision
 domains and media kinds below.
 
@@ -131,6 +133,33 @@ console or a tool only the company's own staff use is not this, and neither is
 an API with no screen of its own. It is the trigger for digital-accessibility
 law, and it is separate from `ships_mobile_app`, which is about distributing an
 app through a store: declare both for a mobile app the public uses.
+
+**Does it check a digital identity, or take signatures?**
+`relies_on_digital_identity` is code that accepts a digital identity wallet, a
+verifiable credential or attestation, or an identity-verification service's
+result, to check who a person is, their age or another attribute: an OpenID4VP
+or ISO mdoc verifier, an SD-JWT VC library, an identity-verification SDK. A
+password, or a social sign-in that only links an account, is not this.
+`collects_e_signatures` is code that asks a person to sign an agreement or a
+record electronically, in its own flow or through an e-signature service; a
+checkbox accepting terms is not this. Both are activities, so the code settles
+them, and they are the triggers for digital-identity law.
+
+**Does it ship encryption?** `ships_encryption` is code that implements
+cryptography, or bundles or vendors a library that does, beyond calling the
+operating system's or platform's own TLS or cryptography APIs: a cryptography library
+in the dependency tree or in vendored source, a custom cipher, a bundled TLS
+stack or end-to-end encryption of its own. Calling HTTPS through the platform's
+stock client is not this. It is an activity, so the code settles it, and it is a
+trigger for export-control law.
+
+**A sanctioned destination is set by the lint.** `serves_sanctioned_destination` is
+never asked and never read from the code. The lint sets it itself when the
+declaration lists `cu`, `ir` or `kp` as a jurisdiction, and says so in an `info`
+coverage line, `<slug>:sanctioned-destination`, for each one. Declare it
+yourself only when the app is offered to people in one of those countries and you
+have not listed it as a jurisdiction. It is the trigger for sanctions law on
+exports and services.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,

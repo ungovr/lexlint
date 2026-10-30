@@ -20,7 +20,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.65.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.67.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came

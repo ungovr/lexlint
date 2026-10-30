@@ -5,6 +5,43 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.67.0 (2026-10-30)
+
+- Two new activities for export-control and sanctions law.
+  `ships_encryption`: your software implements cryptography, or bundles a
+  library that does, beyond calling the operating system's or platform's own
+  TLS or cryptography APIs. The code can show it: a cryptography library in the
+  dependency tree or in vendored source, a custom cipher. Calling HTTPS through
+  the platform's stock client is not this. `serves_sanctioned_destination`:
+  your software is offered to people in a country under comprehensive US
+  sanctions.
+- You do not have to declare the second one. When your declaration lists
+  Cuba (`cu`), Iran (`ir`) or North Korea (`kp`), the lint sets it for you and
+  says so in an info line for each of those jurisdictions. Declare it yourself
+  only when your app is offered to people there and you have not listed them.
+- Each joins the published activity list with the first law that turns on it.
+  Until then, declaring one adds a coverage line and no finding. Neither
+  implies another activity and nothing implies them, so every existing
+  declaration is answered as before, except that a declaration listing `cu`,
+  `ir` or `kp` now carries the info line.
+
+## 1.66.0 (2026-10-30)
+
+- Two new activities for digital identity and e-signature law.
+  `relies_on_digital_identity`: your software accepts a digital identity
+  wallet, a verifiable credential or attestation, or an identity-verification
+  service's result to check who a person is, their age or another attribute.
+  `collects_e_signatures`: your software asks a person to sign an agreement or
+  a record electronically, in its own code or through an e-signature service.
+  Both are things your software does, so the code can show them: a credential
+  verifier, an identity-verification SDK, a signing flow. A password or a
+  social sign-in is not the first, and a checkbox accepting your terms is not
+  the second.
+- Each joins the published activity list with the first law that turns on it.
+  Until then, declaring one adds a coverage line and no finding. Neither
+  implies another activity and nothing implies them, so every existing
+  declaration is answered as before.
+
 ## 1.65.0 (2026-10-29)
 
 - A new activity, `processes_personal_data`: your software collects, stores,

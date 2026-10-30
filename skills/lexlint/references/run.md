@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.65.0"
+  client_version="1.67.0"
 )
 ```
 
@@ -142,7 +142,9 @@ axis alone: `automated_outreach`, `processes_personal_data`, `processes_voice`,
 `processes_biometrics`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
-`aggregates_content`, `distributes_software_product`, `handles_health_records`,
+`relies_on_digital_identity`, `collects_e_signatures`, `ships_encryption`,
+`serves_sanctioned_destination`, `aggregates_content`, `distributes_software_product`,
+`handles_health_records`,
 `provides_financial_services`, `operates_essential_service`,
 `is_listed_company`, `provides_telecom_services`, `provides_cloud_services`,
 `statutory_requests`,
