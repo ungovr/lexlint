@@ -17,7 +17,7 @@ question at all.
   lint, not the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.64.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.65.0) is available
   ```
 
   Where that entry says updating is not available, give its reason instead.

@@ -32,8 +32,9 @@ said yes. Run 22 found California for two operators after the confirmation,
 and it went into a comment instead of the declaration.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
-`generates_content`, `deploys_chatbot`, `processes_voice`,
-`processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
+`generates_content`, `deploys_chatbot`, `processes_personal_data`,
+`processes_voice`, `processes_biometrics`, `automated_outreach`,
+`high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
 `aggregates_content`, `distributes_software_product`, `statutory_requests`,
@@ -275,6 +276,20 @@ with no model anywhere in the product. Developers routinely leave both
 undeclared for that reason. Declared, they return biometric statutes with their
 own consent, retention and destruction duties, and in Illinois a private right
 of action the person whose voiceprint you took can bring directly.
+
+**Does it process personal data?** `processes_personal_data` is information
+about a person who can be identified: accounts and sign-in, a contact or
+sign-up form, analytics that follow visitors, an order or support history.
+Most software does, so read the code for it: a users table, an auth provider,
+an analytics SDK or a form that stores an email address is `include`, with that
+file as its evidence. It is what privacy law turns on; a crawler, a model
+trainer or a chatbot reaches a privacy law only where that law names the
+conduct, so declare this beside them. When the software holds nothing about
+anyone, record that answer: `activities_left_out: [processes_personal_data]` in
+the profile. A declaration that says neither, and declares any activity the
+code settles, is answered as if it processes personal data, and run_lint says
+so in an `info` coverage line, `<slug>:personal-data-undeclared`, wherever a
+finding rests on that alone, until the profile answers.
 
 **Where will it operate?** This question has four plausible readings and
 developers pick the wrong one. It is not where the users are, and it is not

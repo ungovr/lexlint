@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.64.3"
+  client_version="1.65.0"
 )
 ```
 
@@ -138,7 +138,8 @@ which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
 These activities can raise it, because the law library maps them on the flag
-axis alone: `automated_outreach`, `processes_voice`, `processes_biometrics`,
+axis alone: `automated_outreach`, `processes_personal_data`, `processes_voice`,
+`processes_biometrics`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
 `aggregates_content`, `distributes_software_product`, `handles_health_records`,

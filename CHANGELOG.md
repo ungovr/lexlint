@@ -5,6 +5,24 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.65.0 (2026-10-29)
+
+- A new activity, `processes_personal_data`: your software collects, stores,
+  uses or shares information about a person who can be identified, such as an
+  account, a contact form, analytics that follow visitors, or an order history.
+  It is something your software does, so the code can show it: a users table,
+  an auth provider, an analytics SDK, a form that stores an email address.
+- It is what privacy law turns on now. Before, privacy law reached apps through
+  the AI activities, so a crawler or a chatbot was told every general privacy
+  law while an app that only held customer accounts was told none. A privacy
+  law now reaches a crawler, a model trainer, a chatbot, a caller or a
+  biometric system only where its own text names that conduct.
+- Until your declaration answers the question, a run that declares any
+  activity your code settles is answered as if it processes personal data, and
+  says so in a coverage line. Declare `processes_personal_data` if it does; if
+  it holds nothing about anyone, add `activities_left_out:
+  [processes_personal_data]` to the profile.
+
 ## 1.64.3 (2026-10-29)
 
 - The bundle's descriptions now name export-control law among the topics the

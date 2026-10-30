@@ -52,7 +52,8 @@
           "items": {
             "type": "string",
             "enum": ["crawls_web", "trains_models", "generates_content",
-                     "deploys_chatbot", "processes_voice", "processes_biometrics",
+                     "deploys_chatbot", "processes_personal_data", "processes_voice",
+                     "processes_biometrics",
                      "automated_outreach", "high_risk_decisions",
                      "publishes_adult_content", "operates_social_platform",
                      "serves_minors", "operates_app_store", "ships_mobile_app",
@@ -71,6 +72,12 @@
                      "generates_text", "generates_images", "generates_video",
                      "generates_audio"]
           }
+        },
+        "activities_left_out": {
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer.",
+          "items": { "$ref": "#/properties/profile/properties/activities/items" }
         },
         "jurisdictions": {
           "type": "array",

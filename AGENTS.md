@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.64.3"`.
+**Run `check_access` before anything else**, pass `client_version: "1.65.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.64.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.65.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.64.3`.** State it, do not go looking
+**That version string is yours and it is `1.65.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.64.3 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.65.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.64.3) is available
+  lexlint 1.4.0 · a newer LexLint (1.65.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -867,8 +867,9 @@ said yes. Run 22 found California for two operators after the confirmation,
 and it went into a comment instead of the declaration.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
-`generates_content`, `deploys_chatbot`, `processes_voice`,
-`processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
+`generates_content`, `deploys_chatbot`, `processes_personal_data`,
+`processes_voice`, `processes_biometrics`, `automated_outreach`,
+`high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
 `aggregates_content`, `distributes_software_product`, `statutory_requests`,
@@ -1111,6 +1112,20 @@ undeclared for that reason. Declared, they return biometric statutes with their
 own consent, retention and destruction duties, and in Illinois a private right
 of action the person whose voiceprint you took can bring directly.
 
+**Does it process personal data?** `processes_personal_data` is information
+about a person who can be identified: accounts and sign-in, a contact or
+sign-up form, analytics that follow visitors, an order or support history.
+Most software does, so read the code for it: a users table, an auth provider,
+an analytics SDK or a form that stores an email address is `include`, with that
+file as its evidence. It is what privacy law turns on; a crawler, a model
+trainer or a chatbot reaches a privacy law only where that law names the
+conduct, so declare this beside them. When the software holds nothing about
+anyone, record that answer: `activities_left_out: [processes_personal_data]` in
+the profile. A declaration that says neither, and declares any activity the
+code settles, is answered as if it processes personal data, and run_lint says
+so in an `info` coverage line, `<slug>:personal-data-undeclared`, wherever a
+finding rests on that alone, until the profile answers.
+
 **Where will it operate?** This question has four plausible readings and
 developers pick the wrong one. It is not where the users are, and it is not
 where the servers are. **Server location is noise. What matters is the
@@ -1324,7 +1339,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.64.3"
+  client_version="1.65.0"
 )
 ```
 
@@ -1400,7 +1415,8 @@ which is the one kind of false alarm that teaches a developer to skim the
 coverage section.
 
 These activities can raise it, because the law library maps them on the flag
-axis alone: `automated_outreach`, `processes_voice`, `processes_biometrics`,
+axis alone: `automated_outreach`, `processes_personal_data`, `processes_voice`,
+`processes_biometrics`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
 `aggregates_content`, `distributes_software_product`, `handles_health_records`,
@@ -1826,13 +1842,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.64.3' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.65.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.64.3' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.65.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2033,7 +2049,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.64.3'")
+                         "lint.tool, such as 'lexlint 1.65.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2239,7 +2255,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.64.3' \
+    --run-at 2026-09-10 --tool 'lexlint 1.65.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2257,7 +2273,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.64.3`, and `--summary` is the one sentence you author.
+`lexlint 1.65.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2881,7 +2897,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.64.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.65.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2992,7 +3008,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.64.3
+     version:  1.65.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3119,7 +3135,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.64.3`, the bundle that ran the lint. The
+- `client_version`: `1.65.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
