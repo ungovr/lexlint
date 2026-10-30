@@ -35,8 +35,8 @@ and it went into a comment instead of the declaration.
 `generates_content`, `deploys_chatbot`, `processes_voice`,
 `processes_biometrics`, `automated_outreach`, `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
-`operates_app_store`, `ships_mobile_app`, `aggregates_content`,
-`distributes_software_product`, `statutory_requests`,
+`operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
+`aggregates_content`, `distributes_software_product`, `statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, and the decision
 domains and media kinds below.
 
@@ -121,6 +121,15 @@ that medium, so an image app is not told a voice-cloning rule. A profile that
 declares `generates_content` and no kind is answered with every kind's rules,
 and each jurisdiction where a kind would narrow them has an `info` coverage
 line, `<slug>:medium-undeclared`, counting those findings.
+
+**Does the public use a screen of it?** `ships_consumer_interface` is a
+public-facing web or app frontend: pages, screens, a storefront, a booking or
+sign-up flow. It is an activity, so the code can settle it: pages or app screens
+anyone can reach are `include`, with that frontend as the evidence. An admin
+console or a tool only the company's own staff use is not this, and neither is
+an API with no screen of its own. It is the trigger for digital-accessibility
+law, and it is separate from `ships_mobile_app`, which is about distributing an
+app through a store: declare both for a mobile app the public uses.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,

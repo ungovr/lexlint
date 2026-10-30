@@ -83,7 +83,7 @@ never empty, because its last line is always there:
   whose law library does not cover it, and a report that does not say so reads as
   though the question was asked and answered.
 - **The standing line.** LexLint covers AI, scraping, privacy, cybersecurity,
-  communications, content-moderation, product-liability, age-gating and reuse law, in the jurisdictions declared, for the
+  communications, content-moderation, product-liability, digital-accessibility, digital-identity, cloud-service, export-control, age-gating and reuse law, in the jurisdictions declared, for the
   activities declared. Everything else is unlinted, and unlinted is not clean.
 
 Name the instrument where you can ("California's right of publicity, Cal. Civ.

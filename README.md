@@ -5,8 +5,8 @@
 
 # LexLint
 
-A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law.
-All nine topics are matched by run_lint, not reference-only. Declare what your app does
+A compliance lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, digital-accessibility, digital-identity, cloud-service, export-control, age-gating, and reuse law.
+All thirteen topics are matched by run_lint, not reference-only. Declare what your app does
 and where it will operate, and get cited, jurisdiction-specific findings before
 you ship.
 
@@ -316,7 +316,7 @@ profile:
 
 lint:
   run_at: "2026-08-14"
-  tool: 'lexlint 1.63.0'
+  tool: 'lexlint 1.64.3'
   summary: "2 warnings, 1 info: no basic issues found"
   findings:
     - id: eu:dsm-directive-art-4-3

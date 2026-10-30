@@ -1,10 +1,10 @@
 ---
 name: lexlint
-description: Use this skill first, before reading or editing code, whenever a request would add or change what an app does with people, their data, or other sites, even if it never mentions law or compliance. That covers code that collects or stores personal data or device identifiers, sends people automated email or messages, adds a chatbot or other generative AI feature, trains or tunes a model on user data, crawls or scrapes other sites, records or transcribes voices or captures faces, or lets software make decisions about people such as employment, credit or eligibility. It returns cited findings on the AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law of the jurisdictions the app operates in. Not for questions about what a particular law says, edits to legal documents, styling, tests, renames, hardening, or bug fixes that change no data use.
+description: Use this skill first, before reading or editing code, whenever a request would add or change what an app does with people, their data, or other sites, even if it never mentions law or compliance. That covers code that collects or stores personal data or device identifiers, sends people automated email or messages, adds a chatbot or other generative AI feature, trains or tunes a model on user data, crawls or scrapes other sites, records or transcribes voices or captures faces, or lets software make decisions about people such as employment, credit or eligibility. It returns cited findings on the AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, digital-accessibility, digital-identity, cloud-service, export-control, age-gating, and reuse law of the jurisdictions the app operates in. Not for questions about what a particular law says, edits to legal documents, styling, tests, renames, hardening, or bug fixes that change no data use.
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io and python3 with PyYAML for the merge step.
 metadata:
-  version: "1.63.0"
+  version: "1.64.3"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -13,7 +13,7 @@ metadata:
 
 # LexLint
 
-A lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, age-gating, and reuse law,
+A lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, digital-accessibility, digital-identity, cloud-service, export-control, age-gating, and reuse law,
 backed by the LexLint law library, researched jurisdiction by jurisdiction. Like a code linter, it catches basic
 issues early, it certifies nothing, and it replaces neither QA nor legal review.
 
@@ -91,17 +91,17 @@ already stuck.
 Read `references/clients.md` before any install, key, update, restart or
 sign-in step, or to scope one run by path, to find your own client.
 
-**Run `check_access` before anything else**, pass `client_version: "1.63.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.64.3"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.63.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.64.3 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.63.0`.** State it, do not go looking
+**That version string is yours and it is `1.64.3`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.

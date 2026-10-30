@@ -5,6 +5,57 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.64.3 (2026-10-29)
+
+- The bundle's descriptions now name export-control law among the topics the
+  lint reads: what software must clear before it is exported or offered abroad,
+  namely the classification and authorization an encryption item needs, the end
+  users and end uses an export may not reach, and the comprehensively sanctioned
+  destinations it may not go to. The law library holds no laws in it yet, so
+  every run reports it as not yet researched for each jurisdiction until its
+  first laws load. Nothing you declare or call changes.
+
+## 1.64.2 (2026-10-29)
+
+- The bundle's descriptions now name cloud-service law among the topics the lint
+  reads: what a provider of a hosted cloud service owes its customers, namely
+  switching and exit, limits on switching and egress charges, interoperability,
+  and safeguards against foreign governmental access to the data it holds,
+  starting with the EU Data Act. Only a run that declares
+  `provides_cloud_services` is told a jurisdiction's cloud-service law has not
+  been researched; every other run is unchanged. Nothing you declare or call
+  changes.
+
+## 1.64.1 (2026-10-29)
+
+- The topics LexLint reads now include digital identity and e-signature law:
+  the duties a service takes on when it relies on a digital identity wallet, a
+  credential or an attestation, and when an electronic signature or record
+  counts. The law library holds no laws in it yet, so every run reports it as
+  not yet researched for each jurisdiction until its first laws load.
+
+## 1.64.0 (2026-10-29)
+
+- A new activity, `ships_consumer_interface`: your product has a website, app or
+  other screen that members of the public use to buy, book, read or reach a
+  service. It is something your software does, so the code can show it: public
+  pages, app screens, a storefront, a booking or sign-up flow. A tool only your
+  own staff use does not count. Declare it beside `ships_mobile_app` when the
+  app is both.
+- It is the trigger for digital-accessibility law. No law in the library is
+  tagged with it yet, so declaring it today adds a coverage line and no finding;
+  findings arrive once the first documents load. No other activity implies it
+  and it implies nothing, so every existing declaration is answered as before.
+
+## 1.63.1 (2026-10-28)
+
+- The bundle's descriptions now name digital-accessibility law among the topics
+  the lint reads: what a product you sell, or a service you offer to the public,
+  must do so that people with disabilities can use it, starting with the
+  European Accessibility Act, which has applied since 28 June 2025. Until a
+  jurisdiction's accessibility law is researched, a run there says so as a
+  coverage warning. Nothing you declare or call changes.
+
 ## 1.63.0 (2026-10-28)
 
 - A sixth role, `provides_cloud_services`: the company behind your app offers

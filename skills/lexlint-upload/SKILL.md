@@ -4,7 +4,7 @@ description: Use when the developer asks to upload a finished LexLint run to the
 license: MIT
 compatibility: Needs the LexLint MCP server at https://mcp.lexlint.io and nothing else
 metadata:
-  version: "1.63.0"
+  version: "1.64.3"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -141,7 +141,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.63.0`, the bundle that ran the lint. The
+- `client_version`: `1.64.3`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

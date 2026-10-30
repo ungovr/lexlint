@@ -4,7 +4,7 @@ description: Use when the developer wants to send feedback about LexLint, a find
 license: MIT
 compatibility: Needs the LexLint MCP server at https://mcp.lexlint.io and nothing else
 metadata:
-  version: "1.63.0"
+  version: "1.64.3"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -53,7 +53,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.63.0
+     version:  1.64.3
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
