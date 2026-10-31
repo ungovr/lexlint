@@ -5,6 +5,13 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.67.1 (2026-10-30)
+
+- The bundle's description now calls LexLint a lint for the law that governs
+  software, rather than a compliance lint. LexLint gives legal information:
+  each finding is a research summary of published law, not a judgment about
+  your app. Nothing about a run changes.
+
 ## 1.67.0 (2026-10-30)
 
 - Two new activities for export-control and sanctions law.
