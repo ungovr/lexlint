@@ -77,6 +77,7 @@
                      "credit_decisions", "insurance_decisions", "housing_decisions",
                      "education_decisions", "health_care_decisions",
                      "public_services_decisions", "justice_decisions",
+                     "deploys_companion_chatbot", "deploys_mental_health_chatbot",
                      "generates_text", "generates_images", "generates_video",
                      "generates_audio"]
           }
@@ -84,7 +85,7 @@
         "activities_left_out": {
           "type": "array",
           "uniqueItems": true,
-          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer.",
+          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer. It also answers the two chatbot kinds: deploys_chatbot with neither declared nor left out is matched as if it is both, with a coverage line.",
           "items": { "$ref": "#/properties/profile/properties/activities/items" }
         },
         "jurisdictions": {

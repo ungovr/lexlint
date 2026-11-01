@@ -5,6 +5,21 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.69.0 (2026-11-01)
+
+- Two kinds of chatbot under `deploys_chatbot`, so a customer-support bot is not
+  told companion-chatbot or AI-therapy law. `deploys_companion_chatbot` is a
+  chatbot that simulates a personal, social, emotional or romantic relationship
+  or companionship with its user. `deploys_mental_health_chatbot` provides, or
+  is offered as providing, therapy, counseling or mental or behavioral health
+  care. Each implies `deploys_chatbot`.
+- Most chatbots are neither, so a declaration can say so:
+  `activities_left_out: [deploys_companion_chatbot, deploys_mental_health_chatbot]`.
+- Until it is answered, `deploys_chatbot` is matched as if it is both, so nothing
+  you were shown goes away on its own. Each jurisdiction where an answer would
+  narrow the findings has an info line, `<slug>:chatbot-kind-undeclared`,
+  counting them.
+
 ## 1.68.0 (2026-10-31)
 
 - A new question for government software. When the answer to "is this

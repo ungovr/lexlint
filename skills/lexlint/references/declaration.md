@@ -125,6 +125,20 @@ declares `generates_content` and no kind is answered with every kind's rules,
 and each jurisdiction where a kind would narrow them has an `info` coverage
 line, `<slug>:medium-undeclared`, counting those findings.
 
+**What kind of chatbot is it?** `deploys_chatbot` has two children, for the
+chatbots a law singles out: `deploys_companion_chatbot` (simulates a personal,
+social, emotional or romantic relationship or companionship with its user) and
+`deploys_mental_health_chatbot` (provides therapy, counseling or mental or behavioral
+health care, or is offered as doing so). The code can settle one, a companion
+persona in a system prompt for instance, with that file as its evidence. A kind
+implies `deploys_chatbot`, so declare the kind and the parent comes with it. Most
+chatbots are neither, so record that answer too: a support bot is
+`deploys_chatbot` with `activities_left_out: [deploys_companion_chatbot,
+deploys_mental_health_chatbot]`. A profile that declares `deploys_chatbot` and
+answers neither is matched as if it is both, and each jurisdiction where an answer
+would narrow them has an `info` coverage line, `<slug>:chatbot-kind-undeclared`,
+counting those findings.
+
 **Does the public use a screen of it?** `ships_consumer_interface` is a
 public-facing web or app frontend: pages, screens, a storefront, a booking or
 sign-up flow. It is an activity, so the code can settle it: pages or app screens
