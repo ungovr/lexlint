@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.67.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.68.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.67.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.68.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.67.1`.** State it, do not go looking
+**That version string is yours and it is `1.68.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.67.1 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.68.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.67.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.68.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -1023,6 +1023,38 @@ shown as yours, at the severity they would have as yours. A run that asked in
 one session and not the next would otherwise show the same law at two
 severities.
 
+**Which kinds of public body?** Asked only when the answer above is `body` or
+`supplier`, and never answered from the code. Ask which kinds of public body
+run or buy this software, every kind that applies, and send them as
+`public_sector_functions`:
+
+| Value | The public body is |
+|---|---|
+| `general` | a general-purpose one, such as a city hall, a state department or a federal agency |
+| `law_enforcement` | a police department or sheriff's office |
+| `corrections` | a prison, a jail, or a parole or probation agency |
+| `prosecution_courts` | a court, a prosecutor or a public defender |
+| `public_education` | a public school, a school district or a public university |
+| `public_health` | a health department or a public hospital |
+| `elections` | an election office |
+| `public_benefits` | an agency deciding eligibility for welfare, unemployment insurance or Medicaid |
+| `emergency_services` | a 911 center, a fire service or an emergency medical service |
+
+A police-records vendor is `["law_enforcement"]`; one that also sells to city
+halls is `["general", "law_enforcement"]`. A duty that binds only another kind
+of public body is then shown as someone else's (`owed: elsewhere`), and a duty
+that binds every public body always reaches the caller. The same rule governs
+when to ask as for `public_sector`: whenever the profile is declared or
+re-declared, once on the next interactive run when a manifest's `profile` says
+`body` or `supplier` and has no `public_sector_functions`, never on the
+developer's behalf, and left out of every call when it cannot be had. Never send
+it without `public_sector`, or beside `["none"]`: the server refuses both. A run
+sent without it says so: each jurisdiction with a finding whose duty binds only
+one kind of public body has an `info` coverage line,
+`<slug>:public-functions-undeclared`, counting those findings. A run sent with
+it has `<slug>:public-functions-narrowed` wherever it moved a duty, counting the
+duty lines by kind.
+
 **Whose duty is the financial law?** A second answer, asked only when
 `provides_financial_services` or one of its classes is a declared activity. A bank and a vendor whose
 customers are banks both declare that role, and the lint cannot tell them
@@ -1309,8 +1341,8 @@ Two calls. The first validates the declaration and tells you what the law
 library holds for it; the second returns findings.
 
 **Show the developer the two lists before you send them**, and their
-`public_sector`, `regulated_sector`, `roles` and `flows` answers beside them when the
-profile has them, with every value you are unsure of marked as such, and wait for their
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles` and `flows`
+answers beside them when the profile has them, with every value you are unsure of marked as such, and wait for their
 answer. What goes is
 what they would have sent, and a value they strike or add changes the whole
 lint: every finding downstream is drawn by one of these values. That holds on
@@ -1319,7 +1351,7 @@ that they do, and mark any value the code no longer seems to support. In a
 headless or CI session nobody can answer: send the lists as you read them,
 and name the values you were unsure of in the report, in step 7, beside the
 findings each one is carrying. The exceptions are `public_sector`,
-`regulated_sector`, `roles` and `flows`, which are never sent as you read them: send each only when
+`public_sector_functions`, `regulated_sector`, `roles` and `flows`, which are never sent as you read them: send each only when
 the developer or the committed manifest gave it, and otherwise leave it out.
 
 ```
@@ -1347,7 +1379,7 @@ the answer before going on:
 - **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send. It carries `public_sector`,
-  `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
+  `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
 
 **`derived` passes through unchanged.** When the manifest's `profile` holds
 `derived`, send it as it stands, `true` or `false`, to `set_profile` and to
@@ -1368,7 +1400,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.67.1"
+  client_version="1.68.0"
 )
 ```
 
@@ -1422,8 +1454,8 @@ depend on what was declared beside them: a slug returns the same findings
 called alone as it does called with five others, with the same ids. So call
 `run_lint` with one jurisdiction, or a few, until every declared slug has been
 covered exactly once, and treat the union as the run. Every call carries the
-same `activities`, the same `public_sector`, the same `regulated_sector`, the
-same `roles`, the same `flows` and the same `derived`, or the union mixes
+same `activities`, the same `public_sector`, the same `public_sector_functions`,
+the same `regulated_sector`, the same `roles`, the same `flows` and the same `derived`, or the union mixes
 routed and unrouted findings.
 
 **One finding is not per jurisdiction, and it is the reason this route needs a
@@ -1599,8 +1631,8 @@ the bare `note_url` at the end of its last line, which a terminal makes
 clickable. With no `note_url` the line ends at the date: never build the URL.
 
 **The three lines at the top.** `declared` is the activities you sent, in the
-order you sent them, then `public_sector`, `regulated_sector`, `roles` and
-`flows` when the profile carried them.
+order you sent them, then `public_sector`, `public_sector_functions`,
+`regulated_sector`, `roles` and `flows` when the profile carried them.
 `operates` is each jurisdiction you declared, by flag and name, read off a
 finding for that slug; a slug no finding names stays a slug, which is the gap
 it marks. `law library` is the day of the reply's `corpus_built_at`.
@@ -1705,8 +1737,8 @@ jq -r '
 
 Rewrite only the `lint:` block. Never touch `version`, `app`, or `profile`:
 those are the developer's declaration, not yours. The one exception is step 3's
-`public_sector`, `regulated_sector`, `roles` and `flows` answers, which you
-write into `profile` because the developer gave them to you. And **carry
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles` and
+`flows` answers, which you write into `profile` because the developer gave them to you. And **carry
 `lint.work_items` across untouched** if it is there: it is the plan the
 developer approved in the last run's triage, the run does not produce it, and a
 rewrite that drops it deletes their work silently. A work item whose findings
@@ -1873,13 +1905,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.67.1' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.68.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.67.1' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.68.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2080,7 +2112,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.67.1'")
+                         "lint.tool, such as 'lexlint 1.68.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2286,7 +2318,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.67.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.68.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2304,7 +2336,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.67.1`, and `--summary` is the one sentence you author.
+`lexlint 1.68.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2766,7 +2798,10 @@ When the run went out without `public_sector`, name that as an open question
 here too, beside the `<slug>:public-sector-undeclared` line that counts the
 findings carrying a duty that binds only public bodies: some have `applies_to`
 `government`, others are `both` with a public body's duty among their lines, and
-the answer is what would route those duties. The same goes for a run with
+the answer is what would route those duties. When it went out with
+`public_sector` `body` or `supplier` and no `public_sector_functions`, name the
+kinds of public body as the open question beside the
+`<slug>:public-functions-undeclared` line. The same goes for a run with
 `provides_financial_services` or a class declared and no `regulated_sector`:
 name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its
@@ -2928,7 +2963,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.67.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.68.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -2991,7 +3026,7 @@ account cannot be signed in to, so its upload also returns `share_url`, a link
 that opens the run with no sign-in for 30 days; report it. Source, schema,
 data, prompts and git history never leave the repository; what goes is the
 lint's own output, the declaration the developer made (the two lists, and
-`public_sector`, `regulated_sector`, `roles`, `flows` and `derived` when they gave them) and the repository's name.
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when they gave them) and the repository's name.
 
 The developer can delete a run or delete a project at any time from the
 portal. Deleting a run removes it immediately and its stored payload is
@@ -3039,7 +3074,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.67.1
+     version:  1.68.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3107,7 +3142,7 @@ this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
 first run with no manifest yet, the name is the repository's own (its package
 manifest's name, else its directory), and the declaration is the one the run
 was made with, `activities`, `jurisdictions` and, when the run sent them,
-`public_sector`, `regulated_sector`, `roles`, `flows` and `derived`, exactly as sent.
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived`, exactly as sent.
 
 Missing the `run_lint` response, say so, run the loop again from Setup, and
 stop: it lints again against today's law library and closes by uploading. That includes a session
@@ -3145,7 +3180,9 @@ file:
   rebuilt without it and stores an unrouted run: every line of every instrument
   as the app's own, no `owed`, no `customer_duty` findings, which is not what
   the developer was shown. Leave it out only when the run itself was made
-  without it. **Send `regulated_sector` whenever the run being uploaded was
+  without it. **Send `public_sector_functions` with it whenever the run was
+  declared with them**: rebuilt without them, every duty that binds only some
+  other kind of public body comes back as the app's own. **Send `regulated_sector` whenever the run being uploaded was
   declared with it**, for the same reason, exactly as `run_lint` took it, and
   **`roles`, `flows` and `derived` likewise**: a run rebuilt without `derived`
   carries no derived finding, so `findings_state` keyed on one is refused.
@@ -3166,7 +3203,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.67.1`, the bundle that ran the lint. The
+- `client_version`: `1.68.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

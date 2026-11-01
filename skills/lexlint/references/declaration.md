@@ -188,6 +188,38 @@ shown as yours, at the severity they would have as yours. A run that asked in
 one session and not the next would otherwise show the same law at two
 severities.
 
+**Which kinds of public body?** Asked only when the answer above is `body` or
+`supplier`, and never answered from the code. Ask which kinds of public body
+run or buy this software, every kind that applies, and send them as
+`public_sector_functions`:
+
+| Value | The public body is |
+|---|---|
+| `general` | a general-purpose one, such as a city hall, a state department or a federal agency |
+| `law_enforcement` | a police department or sheriff's office |
+| `corrections` | a prison, a jail, or a parole or probation agency |
+| `prosecution_courts` | a court, a prosecutor or a public defender |
+| `public_education` | a public school, a school district or a public university |
+| `public_health` | a health department or a public hospital |
+| `elections` | an election office |
+| `public_benefits` | an agency deciding eligibility for welfare, unemployment insurance or Medicaid |
+| `emergency_services` | a 911 center, a fire service or an emergency medical service |
+
+A police-records vendor is `["law_enforcement"]`; one that also sells to city
+halls is `["general", "law_enforcement"]`. A duty that binds only another kind
+of public body is then shown as someone else's (`owed: elsewhere`), and a duty
+that binds every public body always reaches the caller. The same rule governs
+when to ask as for `public_sector`: whenever the profile is declared or
+re-declared, once on the next interactive run when a manifest's `profile` says
+`body` or `supplier` and has no `public_sector_functions`, never on the
+developer's behalf, and left out of every call when it cannot be had. Never send
+it without `public_sector`, or beside `["none"]`: the server refuses both. A run
+sent without it says so: each jurisdiction with a finding whose duty binds only
+one kind of public body has an `info` coverage line,
+`<slug>:public-functions-undeclared`, counting those findings. A run sent with
+it has `<slug>:public-functions-narrowed` wherever it moved a duty, counting the
+duty lines by kind.
+
 **Whose duty is the financial law?** A second answer, asked only when
 `provides_financial_services` or one of its classes is a declared activity. A bank and a vendor whose
 customers are banks both declare that role, and the lint cannot tell them

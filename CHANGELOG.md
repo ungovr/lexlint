@@ -5,6 +5,23 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.68.0 (2026-10-31)
+
+- A new question for government software. When the answer to "is this
+  software run by a public body, sold to public bodies, both, or neither?" is
+  body or supplier, the lint now also asks which kinds of public body: general
+  (a city hall, a state department, a federal agency), law enforcement,
+  corrections, courts and prosecutors, public education, public health,
+  elections, public benefits, or emergency services. Send the answer as
+  `public_sector_functions`. A duty that binds only another kind of public body
+  is then shown as someone else's, so a vendor to police no longer sees, as its
+  own, a duty that binds only school districts. Duties that bind every public
+  body always reach you.
+- Until it is answered, each jurisdiction with such a duty has an info line,
+  `<slug>:public-functions-undeclared`, counting the findings an answer would
+  move. With it answered, `<slug>:public-functions-narrowed` counts the duties
+  it moved, by kind.
+
 ## 1.67.1 (2026-10-30)
 
 - The bundle's description now calls LexLint a lint for the law that governs

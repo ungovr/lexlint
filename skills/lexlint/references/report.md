@@ -38,7 +38,10 @@ When the run went out without `public_sector`, name that as an open question
 here too, beside the `<slug>:public-sector-undeclared` line that counts the
 findings carrying a duty that binds only public bodies: some have `applies_to`
 `government`, others are `both` with a public body's duty among their lines, and
-the answer is what would route those duties. The same goes for a run with
+the answer is what would route those duties. When it went out with
+`public_sector` `body` or `supplier` and no `public_sector_functions`, name the
+kinds of public body as the open question beside the
+`<slug>:public-functions-undeclared` line. The same goes for a run with
 `provides_financial_services` or a class declared and no `regulated_sector`:
 name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its

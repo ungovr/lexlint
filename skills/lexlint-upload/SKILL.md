@@ -4,7 +4,7 @@ description: Use when the developer asks to upload a finished LexLint run to the
 license: MIT
 compatibility: Needs the LexLint MCP server at https://mcp.lexlint.io and nothing else
 metadata:
-  version: "1.67.1"
+  version: "1.68.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -41,7 +41,7 @@ account cannot be signed in to, so its upload also returns `share_url`, a link
 that opens the run with no sign-in for 30 days; report it. Source, schema,
 data, prompts and git history never leave the repository; what goes is the
 lint's own output, the declaration the developer made (the two lists, and
-`public_sector`, `regulated_sector`, `roles`, `flows` and `derived` when they gave them) and the repository's name.
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when they gave them) and the repository's name.
 
 The developer can delete a run or delete a project at any time from the
 portal. Deleting a run removes it immediately and its stored payload is
@@ -82,7 +82,7 @@ this session, which is the run being uploaded. A `lexlint.yml` on disk carrying
 first run with no manifest yet, the name is the repository's own (its package
 manifest's name, else its directory), and the declaration is the one the run
 was made with, `activities`, `jurisdictions` and, when the run sent them,
-`public_sector`, `regulated_sector`, `roles`, `flows` and `derived`, exactly as sent.
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived`, exactly as sent.
 
 Missing the `run_lint` response, say so, run the `lexlint` skill again, and
 stop: it lints again against today's law library and closes by uploading. That includes a session
@@ -120,7 +120,9 @@ file:
   rebuilt without it and stores an unrouted run: every line of every instrument
   as the app's own, no `owed`, no `customer_duty` findings, which is not what
   the developer was shown. Leave it out only when the run itself was made
-  without it. **Send `regulated_sector` whenever the run being uploaded was
+  without it. **Send `public_sector_functions` with it whenever the run was
+  declared with them**: rebuilt without them, every duty that binds only some
+  other kind of public body comes back as the app's own. **Send `regulated_sector` whenever the run being uploaded was
   declared with it**, for the same reason, exactly as `run_lint` took it, and
   **`roles`, `flows` and `derived` likewise**: a run rebuilt without `derived`
   carries no derived finding, so `findings_state` keyed on one is refused.
@@ -141,7 +143,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.67.1`, the bundle that ran the lint. The
+- `client_version`: `1.68.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

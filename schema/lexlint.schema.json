@@ -44,6 +44,12 @@
       "description": "Your declaration. LexLint never infers this from your code.",
       "required": ["activities", "jurisdictions"],
       "additionalProperties": false,
+      "dependentSchemas": {
+        "public_sector_functions": {
+          "required": ["public_sector"],
+          "properties": { "public_sector": { "contains": { "enum": ["body", "supplier"] } } }
+        }
+      },
       "properties": {
         "activities": {
           "type": "array",
@@ -100,6 +106,13 @@
           "items": { "type": "string", "enum": ["body", "supplier", "none"] },
           "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
           "description": "Whether a public body runs this software (body), it is sold to or run for public bodies (supplier), both, or neither (none). none is only ever alone. The developer's answer, never read from the code. Absent means never asked."
+        },
+        "public_sector_functions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["general", "law_enforcement", "corrections", "prosecution_courts", "public_education", "public_health", "elections", "public_benefits", "emergency_services"] },
+          "description": "Which kinds of public body run or buy this software, from bundle 1.68.0, asked only when public_sector is body or supplier: general (a general-purpose public body, such as a city hall, a state department or a federal agency), law_enforcement (police and sheriffs), corrections (prisons, jails, parole and probation), prosecution_courts (courts, prosecutors and public defenders), public_education (public schools, school districts and public universities), public_health (health departments and public hospitals), elections (election offices), public_benefits (agencies deciding welfare, unemployment or Medicaid eligibility), emergency_services (911 centers, fire and emergency medical services). A duty that binds only another kind is shown as someone else's; a duty that binds every public body always reaches you. The developer's answer, never read from the code. Absent means never asked."
         },
         "regulated_sector": {
           "type": "object",

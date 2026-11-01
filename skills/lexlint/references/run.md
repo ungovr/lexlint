@@ -3,8 +3,8 @@
 # Step 3 in detail: set the profile, then run the lint
 
 **Show the developer the two lists before you send them**, and their
-`public_sector`, `regulated_sector`, `roles` and `flows` answers beside them when the
-profile has them, with every value you are unsure of marked as such, and wait for their
+`public_sector`, `public_sector_functions`, `regulated_sector`, `roles` and `flows`
+answers beside them when the profile has them, with every value you are unsure of marked as such, and wait for their
 answer. What goes is
 what they would have sent, and a value they strike or add changes the whole
 lint: every finding downstream is drawn by one of these values. That holds on
@@ -13,7 +13,7 @@ that they do, and mark any value the code no longer seems to support. In a
 headless or CI session nobody can answer: send the lists as you read them,
 and name the values you were unsure of in the report, in step 7, beside the
 findings each one is carrying. The exceptions are `public_sector`,
-`regulated_sector`, `roles` and `flows`, which are never sent as you read them: send each only when
+`public_sector_functions`, `regulated_sector`, `roles` and `flows`, which are never sent as you read them: send each only when
 the developer or the committed manifest gave it, and otherwise leave it out.
 
 ```
@@ -41,7 +41,7 @@ the answer before going on:
 - **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send. It carries `public_sector`,
-  `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
+  `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
 
 **`derived` passes through unchanged.** When the manifest's `profile` holds
 `derived`, send it as it stands, `true` or `false`, to `set_profile` and to
@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.67.1"
+  client_version="1.68.0"
 )
 ```
 
@@ -116,8 +116,8 @@ depend on what was declared beside them: a slug returns the same findings
 called alone as it does called with five others, with the same ids. So call
 `run_lint` with one jurisdiction, or a few, until every declared slug has been
 covered exactly once, and treat the union as the run. Every call carries the
-same `activities`, the same `public_sector`, the same `regulated_sector`, the
-same `roles`, the same `flows` and the same `derived`, or the union mixes
+same `activities`, the same `public_sector`, the same `public_sector_functions`,
+the same `regulated_sector`, the same `roles`, the same `flows` and the same `derived`, or the union mixes
 routed and unrouted findings.
 
 **One finding is not per jurisdiction, and it is the reason this route needs a
@@ -293,8 +293,8 @@ the bare `note_url` at the end of its last line, which a terminal makes
 clickable. With no `note_url` the line ends at the date: never build the URL.
 
 **The three lines at the top.** `declared` is the activities you sent, in the
-order you sent them, then `public_sector`, `regulated_sector`, `roles` and
-`flows` when the profile carried them.
+order you sent them, then `public_sector`, `public_sector_functions`,
+`regulated_sector`, `roles` and `flows` when the profile carried them.
 `operates` is each jurisdiction you declared, by flag and name, read off a
 finding for that slug; a slug no finding names stays a slug, which is the gap
 it marks. `law library` is the day of the reply's `corpus_built_at`.
