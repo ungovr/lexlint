@@ -139,6 +139,19 @@ answers neither is matched as if it is both, and each jurisdiction where an answ
 would narrow them has an `info` coverage line, `<slug>:chatbot-kind-undeclared`,
 counting those findings.
 
+**Which channels does it reach people on?** `automated_outreach` has four
+children, because the law draws its lines by channel: `places_automated_calls` (voice calls the
+software initiates, by autodialer or with a prerecorded or AI-generated voice among
+them), `sends_automated_texts` (SMS and MMS), `sends_commercial_email` (marketing or other commercial
+email; a receipt or a password reset alone is not this) and `sends_faxes`. The code can
+settle one: an SMS or email provider's client, or a dialing API, with that file as its
+evidence. A channel implies `automated_outreach`, so declare the channel and the parent
+comes with it, and declare every channel the software uses. A row written for one channel
+reaches only that channel, so a newsletter sender is not told telemarketing law. A
+profile that declares `automated_outreach` and no channel is answered with every
+channel's rules, and each jurisdiction where a channel would narrow them has an `info`
+coverage line, `<slug>:channel-undeclared`, counting those findings.
+
 **Does the public use a screen of it?** `ships_consumer_interface` is a
 public-facing web or app frontend: pages, screens, a storefront, a booking or
 sign-up flow. It is an activity, so the code can settle it: pages or app screens

@@ -5,6 +5,16 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.70.0 (2026-11-01)
+
+- Four channels under `automated_outreach`, so a newsletter sender is not told
+  telemarketing law: `places_automated_calls`, `sends_automated_texts`,
+  `sends_commercial_email` and `sends_faxes`. Each implies `automated_outreach`.
+  Declare every channel your software uses.
+- A declaration that names `automated_outreach` and no channel keeps every law it
+  was shown. Each jurisdiction where a channel would narrow the findings has an info
+  line, `<slug>:channel-undeclared`, counting them.
+
 ## 1.69.0 (2026-11-01)
 
 - Two kinds of chatbot under `deploys_chatbot`, so a customer-support bot is not
