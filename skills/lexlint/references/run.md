@@ -62,7 +62,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.70.0"
+  client_version="1.71.0"
 )
 ```
 
@@ -139,7 +139,8 @@ coverage section.
 
 These activities can raise it, because the law library maps them on the flag
 axis alone: `automated_outreach`, `places_automated_calls`, `sends_automated_texts`,
-`sends_commercial_email`, `sends_faxes`, `processes_personal_data`, `processes_voice`,
+`sends_commercial_email`, `sends_faxes`, `processes_personal_data`,
+`processes_deidentified_data`, `processes_voice`,
 `processes_biometrics`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,

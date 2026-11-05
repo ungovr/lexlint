@@ -5,6 +5,22 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.71.0 (2026-11-04)
+
+- A new activity for de-identification, pseudonymization and re-identification
+  law: `processes_deidentified_data`. Your software strips or replaces the
+  identifiers in personal data to de-identify, pseudonymize or anonymize it, or
+  receives, shares or links data that has been through that with other
+  datasets. It is something your software does, so the code can show it: a
+  tokenizing or masking step, a k-anonymity or differential-privacy library.
+  Encryption alone is not this.
+- Pseudonymized data usually stays personal data, so declare
+  `processes_personal_data` beside it.
+- It joins the published activity list with the first law that turns on it.
+  Until then, declaring it adds a coverage line and no finding. It implies no
+  other activity and nothing implies it, so every existing declaration is
+  answered as before.
+
 ## 1.70.0 (2026-11-01)
 
 - Four channels under `automated_outreach`, so a newsletter sender is not told

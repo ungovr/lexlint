@@ -33,7 +33,8 @@ and it went into a comment instead of the declaration.
 
 **What does this app do?** One or more of: `crawls_web`, `trains_models`,
 `generates_content`, `deploys_chatbot`, `processes_personal_data`,
-`processes_voice`, `processes_biometrics`, `automated_outreach`,
+`processes_deidentified_data`, `processes_voice`, `processes_biometrics`,
+`automated_outreach`,
 `high_risk_decisions`,
 `publishes_adult_content`, `operates_social_platform`, `serves_minors`,
 `operates_app_store`, `ships_mobile_app`, `ships_consumer_interface`,
@@ -187,6 +188,15 @@ coverage line, `<slug>:sanctioned-destination`, for each one. Declare it
 yourself only when the app is offered to people in one of those countries and you
 have not listed it as a jurisdiction. It is the trigger for sanctions law on
 exports and services.
+
+**Does it de-identify data?** `processes_deidentified_data` is code that strips
+or replaces the identifiers in personal data to de-identify, pseudonymize or
+anonymize it (a tokenizing or masking step on names and ids, a k-anonymity or
+differential-privacy library), or that receives, shares or links data that has
+been through that with other datasets. Encryption alone is not this. It is an
+activity, so the code settles it, and it is a trigger for de-identification and
+re-identification law. Pseudonymized data usually stays personal data, so an app
+that does this declares `processes_personal_data` beside it.
 
 **Is it government software?** One more question, never answered from the
 code: is this software run by a public body, sold to or run for public bodies,
