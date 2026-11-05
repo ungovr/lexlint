@@ -5,6 +5,13 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.72.1 (2026-11-05)
+
+- The merge step now says what to do on a client that has python3 but no
+  `mktemp` to make the working directory: write the block yourself, the same
+  by-hand route it already gave for a client without python3 and PyYAML.
+  Nothing about a run changes.
+
 ## 1.72.0 (2026-11-05)
 
 - Two roles for the companies that build the largest AI models:
