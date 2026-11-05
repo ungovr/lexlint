@@ -81,13 +81,14 @@
                      "deploys_companion_chatbot", "deploys_mental_health_chatbot",
                      "places_automated_calls", "sends_automated_texts", "sends_commercial_email", "sends_faxes",
                      "generates_text", "generates_images", "generates_video",
-                     "generates_audio"]
+                     "generates_audio",
+                     "provides_general_purpose_ai_model", "is_frontier_developer"]
           }
         },
         "activities_left_out": {
           "type": "array",
           "uniqueItems": true,
-          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer. It also answers the two chatbot kinds: deploys_chatbot with neither declared nor left out is matched as if it is both, with a coverage line.",
+          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer. It also answers the two chatbot kinds: deploys_chatbot with neither declared nor left out is matched as if it is both, with a coverage line. And it answers the two model-provider roles: trains_models with a role neither declared nor left out is asked about it, and the laws that bind it are left off, with a coverage line counting them.",
           "items": { "$ref": "#/properties/profile/properties/activities/items" }
         },
         "jurisdictions": {

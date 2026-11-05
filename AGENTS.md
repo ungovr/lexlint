@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.71.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.72.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.71.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.72.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.71.0`.** State it, do not go looking
+**That version string is yours and it is `1.72.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.71.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.72.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.71.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.72.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -889,7 +889,7 @@ a typed chat differ in law, so the choice is the clarification. Then declare the
 one they name, rewrite `lexlint.yml`, and run again. Old runs that name the
 retired activity still read.
 
-**Who runs it?** Six more values are roles rather than activities, and a
+**Who runs it?** Eight more values are roles rather than activities, and a
 sector-gated statute reaches the app through them and through nothing else:
 `handles_health_records` (a HIPAA covered entity or business associate, or a
 health-sector entity under a national regime), `provides_financial_services`
@@ -897,13 +897,27 @@ health-sector entity under a national regime), `provides_financial_services`
 does), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
-regulator), `provides_telecom_services` and `provides_cloud_services` (offers
+regulator), `provides_telecom_services`, `provides_cloud_services` (offers
 customers, under a contract, a hosted service that stores or runs their own
-data or workloads; running on somebody else's cloud is not it). These rows are
+data or workloads; running on somebody else's cloud is not it),
+`provides_general_purpose_ai_model` (places on the market, under its own name,
+an AI model that performs a wide range of distinct tasks, by API, as weights or
+inside its own product) and `is_frontier_developer` (trained, or started
+training, a model with more than 10^26 operations). These rows are
 always `ask`, and they are the rows `ask` is for; never mark a role `include`
 from the code. A health app is not a covered entity because it stores health
 data, a fintech is not a bank because it moves money, and a web app is not a
 cloud provider because it is hosted.
+
+**Does it build the model?** The duties only a model's provider owes (the AI
+Act's general-purpose model chapter, California's SB 53, New York's RAISE Act)
+are on `provides_general_purpose_ai_model` and `is_frontier_developer`, never
+on `trains_models`, so a team that fine-tunes a classifier is not told them.
+When the profile declares `trains_models`, ask whether the company behind the
+software is either, and record both answers: each it is goes in `activities`,
+each it is not in `activities_left_out`. An unanswered role reaches nothing,
+and each jurisdiction holding a law that binds it has an `info` coverage line,
+`<slug>:model-role-undeclared`, counting those laws.
 
 **Which license class?** `provides_financial_services` has six children, one
 per license class whose rulebook does not cross into the others: `is_bank` (a
@@ -1437,7 +1451,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.71.0"
+  client_version="1.72.0"
 )
 ```
 
@@ -1524,7 +1538,7 @@ axis alone: `automated_outreach`, `places_automated_calls`, `sends_automated_tex
 `handles_health_records`,
 `provides_financial_services`, `operates_essential_service`,
 `is_listed_company`, `provides_telecom_services`, `provides_cloud_services`,
-`statutory_requests`,
+`provides_general_purpose_ai_model`, `is_frontier_developer`, `statutory_requests`,
 `records_calls`, `records_text_chat`, `tracks_devices`, the license classes
 `is_bank`, `is_lender`, `is_insurer`, `is_securities_firm`,
 `is_payment_provider` and `is_crypto_asset_provider`. Those are ordinary
@@ -1944,13 +1958,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.71.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.72.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.71.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.72.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2151,7 +2165,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.71.0'")
+                         "lint.tool, such as 'lexlint 1.72.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2357,7 +2371,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.71.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.72.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2375,7 +2389,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.71.0`, and `--summary` is the one sentence you author.
+`lexlint 1.72.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -3002,7 +3016,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.71.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.72.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3113,7 +3127,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.71.0
+     version:  1.72.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3242,7 +3256,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.71.0`, the bundle that ran the lint. The
+- `client_version`: `1.72.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

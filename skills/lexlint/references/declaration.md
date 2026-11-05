@@ -54,7 +54,7 @@ a typed chat differ in law, so the choice is the clarification. Then declare the
 one they name, rewrite `lexlint.yml`, and run again. Old runs that name the
 retired activity still read.
 
-**Who runs it?** Six more values are roles rather than activities, and a
+**Who runs it?** Eight more values are roles rather than activities, and a
 sector-gated statute reaches the app through them and through nothing else:
 `handles_health_records` (a HIPAA covered entity or business associate, or a
 health-sector entity under a national regime), `provides_financial_services`
@@ -62,13 +62,27 @@ health-sector entity under a national regime), `provides_financial_services`
 does), `operates_essential_service` (an essential or important
 entity under NIS2 or a transposition, or a designated critical-infrastructure
 operator), `is_listed_company` (a public company filing with a securities
-regulator), `provides_telecom_services` and `provides_cloud_services` (offers
+regulator), `provides_telecom_services`, `provides_cloud_services` (offers
 customers, under a contract, a hosted service that stores or runs their own
-data or workloads; running on somebody else's cloud is not it). These rows are
+data or workloads; running on somebody else's cloud is not it),
+`provides_general_purpose_ai_model` (places on the market, under its own name,
+an AI model that performs a wide range of distinct tasks, by API, as weights or
+inside its own product) and `is_frontier_developer` (trained, or started
+training, a model with more than 10^26 operations). These rows are
 always `ask`, and they are the rows `ask` is for; never mark a role `include`
 from the code. A health app is not a covered entity because it stores health
 data, a fintech is not a bank because it moves money, and a web app is not a
 cloud provider because it is hosted.
+
+**Does it build the model?** The duties only a model's provider owes (the AI
+Act's general-purpose model chapter, California's SB 53, New York's RAISE Act)
+are on `provides_general_purpose_ai_model` and `is_frontier_developer`, never
+on `trains_models`, so a team that fine-tunes a classifier is not told them.
+When the profile declares `trains_models`, ask whether the company behind the
+software is either, and record both answers: each it is goes in `activities`,
+each it is not in `activities_left_out`. An unanswered role reaches nothing,
+and each jurisdiction holding a law that binds it has an `info` coverage line,
+`<slug>:model-role-undeclared`, counting those laws.
 
 **Which license class?** `provides_financial_services` has six children, one
 per license class whose rulebook does not cross into the others: `is_bank` (a

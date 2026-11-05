@@ -5,6 +5,20 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.72.0 (2026-11-05)
+
+- Two roles for the companies that build the largest AI models:
+  `provides_general_purpose_ai_model` (you put a general-purpose AI model on the
+  market under your own name) and `is_frontier_developer` (you trained a model with
+  more than 10^26 operations). The EU AI Act's general-purpose model chapter and the
+  frontier model acts (California's SB 53, New York's RAISE Act and others) now
+  bind these roles rather than `trains_models`, so a team that fine-tunes a
+  classifier is no longer told them.
+- A declaration that names `trains_models` and neither role does not get those
+  laws. Each place that holds one gets an `info` coverage line,
+  `<slug>:model-role-undeclared`, counting them, and `set_profile` and the form
+  ask. List a role the company does not hold in `activities_left_out`.
+
 ## 1.71.0 (2026-11-04)
 
 - A new activity for de-identification, pseudonymization and re-identification
