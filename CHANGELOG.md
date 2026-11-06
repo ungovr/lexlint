@@ -5,6 +5,16 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.73.0 (2026-11-06)
+
+- Every option the declaration asks you to pick now has a sentence beside it
+  saying what it means: the EU AI Act and GDPR roles, the public-body and
+  financial questions, and the kinds of decision, content, outreach, chatbot,
+  financial firm and model provider. A role's sentence comes from the LexLint
+  glossary, and the form, the tool schemas and this skill print the same one.
+- When the skill asks for your roles, it gives you each role's sentence as
+  written, so you answer from what the law means by the term.
+
 ## 1.72.1 (2026-11-05)
 
 - The merge step now says what to do on a client that has python3 but no

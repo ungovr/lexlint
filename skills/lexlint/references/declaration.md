@@ -292,15 +292,36 @@ finding or one line of it, has an `info` coverage line,
 **Which role does the maker hold under each regime?** Asked of every
 declaration, like `public_sector`, and never answered from the code. One firm
 can be a provider under the EU AI Act and a processor under the GDPR, and some
-duties bind only one role. Ask two things: under the EU AI Act, does the
-developer's company build the AI system and put it out under its own name
-(`provider`), use one under its own authority (`deployer`), or act as
-`importer`, `distributor`, `product_manufacturer` or
-`authorised_representative`, or none of these (`none`)? Under the GDPR, does it
-decide why and how personal data is processed (`controller`), process it on a
-client's documented instructions (`processor`), or neither (`none`)? A role can
-be both (`["provider", "deployer"]`), and `none` is only ever alone. Send the
-answers as `roles`, keyed by regime: `{"ai_system": ["provider"],
+duties bind only one role. Ask two things, and give the developer each role's
+sentence as written, since a term of art cannot be answered from its name. Under
+the EU AI Act, which of these is the developer's company, or none of them
+(`none`)?
+
+- `provider`: You develop an AI system or general-purpose AI model, or have
+  one developed, and put it on the EU market or into service under your own
+  name or trademark, paid or free.
+- `deployer`: You use an AI system under your own authority, other than in a
+  personal, non-professional activity.
+- `importer`: You are located or established in the EU and place on its market
+  an AI system bearing the name or trademark of someone established outside
+  it.
+- `distributor`: You make an AI system available on the EU market as part of
+  its supply chain, without being its provider or importer.
+- `product_manufacturer`: You put a product on the EU market under your own
+  name with an AI system inside it as a safety component, which makes you that
+  system's provider.
+- `authorised_representative`: You are located or established in the EU and
+  hold a written mandate from a provider outside it to carry out its
+  obligations under the Act on its behalf.
+
+Under the GDPR, which of these, or neither (`none`)?
+
+- `controller`: You decide, alone or jointly with others, why and how personal
+  data is processed.
+- `processor`: You process personal data on behalf of a controller.
+
+A role can be both (`["provider", "deployer"]`), and `none` is only ever alone.
+Send the answers as `roles`, keyed by regime: `{"ai_system": ["provider"],
 "personal_data": ["processor"]}`. A duty line tagged for a role the developer
 does not hold moves to `requires_elsewhere`. The same rule governs when to ask:
 whenever the profile is declared or re-declared, once on the next interactive
