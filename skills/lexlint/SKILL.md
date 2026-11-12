@@ -4,7 +4,7 @@ description: Use this skill first, before reading or editing code, whenever a re
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io and python3 with PyYAML for the merge step.
 metadata:
-  version: "1.73.0"
+  version: "1.74.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -91,17 +91,17 @@ already stuck.
 Read `references/clients.md` before any install, key, update, restart or
 sign-in step, or to scope one run by path, to find your own client.
 
-**Run `check_access` before anything else**, pass `client_version: "1.73.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.74.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.73.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.74.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.73.0`.** State it, do not go looking
+**That version string is yours and it is `1.74.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -195,6 +195,11 @@ before its situation arises.
 ## The loop
 
 Read `references/cheaper-tools.md` before step 2, once per run.
+
+**`get_law` answers with an index.** A bare call returns one short row per
+instrument, with its `record_id`, and none of what it requires. Read the
+instruments you need with a second call: the same `jurisdiction` and up to 5
+`record_id` values in `instrument`.
 
 Read `references/cache.md` the first time a `get_law` is about to be fetched.
 

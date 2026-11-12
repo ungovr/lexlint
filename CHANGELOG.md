@@ -5,6 +5,32 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.74.0 (2026-11-12)
+
+- `get_law` now answers with an index: one short row per instrument, with its
+  `record_id`, name, status, topics and whether it is in force, and none of
+  what it requires. The skill reads the instruments it needs with a second
+  call, passing up to five `record_id` values as `instrument` with the same
+  jurisdiction. The largest jurisdictions used to answer with several
+  megabytes, which clients save to a file instead of reading; the index fits
+  in the conversation. `detail: "full"` still returns the whole file, and
+  earlier versions of the plugin keep getting it by default.
+- The `.lexlint/` cache keeps the instruments the skill read in full, keyed by
+  `record_id`, and stores the index apart from them, never as the law.
+- Setting up Codex or another MCP client by hand now adds an
+  `X-LexLint-Bundle` header naming this version, so the server answers in the
+  shape this version reads.
+- Three roles for software run by or sold to schools: `serves_k12_schools`
+  (K-12 schools or districts, charter and private schools included),
+  `serves_higher_education` (colleges or universities, community colleges
+  included) and their parent `serves_education_institutions`. The manifest
+  schema accepts them, and the skill asks for the level whenever a project
+  declares `serves_minors` or names `public_education`, because school law
+  binds a school's vendor whether or not its users are children. Until it is
+  answered, `serves_minors` is matched as if the software serves both levels,
+  with an `info` coverage line, `<slug>:education-undeclared`, counting the
+  laws shown for that reason.
+
 ## 1.73.0 (2026-11-06)
 
 - Every option the declaration asks you to pick now has a sentence beside it

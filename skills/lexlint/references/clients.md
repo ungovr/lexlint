@@ -128,13 +128,16 @@ running, and never offer a command from another entry.
   custom header, and `--bearer-token-env-var` sends `Authorization`, which
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
-  `~/.codex/config.toml`: `http_headers = { "X-API-Key" = "" }` and
-  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. The first is what
-  lets the server answer before there is a key: with the variable unset Codex
-  sends no header at all, this server reads no header as a sign-in it cannot
-  offer, and no tools appear (measured on Codex 0.155, 2026-09-20). An empty
-  header is read as no key, the tools appear, and the variable's value
-  replaces it the moment it is set.
+  `~/.codex/config.toml`:
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.74.0" }` and
+  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
+  names the version of this procedure, so the server answers `get_law` in the
+  shape this procedure reads; change it when you re-read a newer one. The
+  empty `X-API-Key` is what lets the server answer before there is a key: with
+  the variable unset Codex sends no header at all, this server reads no header
+  as a sign-in it cannot offer, and no tools appear (measured on Codex 0.155,
+  2026-09-20). An empty header is read as no key, the tools appear, and the
+  variable's value replaces it the moment it is set.
 - **Key** persisted to `UNGOVR_API_KEY` in the environment Codex starts from,
   named by the `env_http_headers` line in `~/.codex/config.toml`
 
@@ -228,8 +231,10 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  The server is stateless and holds no session of its own, so nothing has to
-  be kept between calls.
+  Add an `X-LexLint-Bundle` header of `1.74.0`, the version of this procedure,
+  so the server answers `get_law` in the shape this procedure reads, and
+  change it when you re-read a newer one. The server is stateless and holds no
+  session of its own, so nothing has to be kept between calls.
 - **Key** persisted to `UNGOVR_API_KEY` in the environment the client starts
   from
 

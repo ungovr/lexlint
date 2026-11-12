@@ -2,14 +2,28 @@
 
 ## Cache what you fetched
 
-A jurisdiction payload is roughly 10 KB and costs one upstream request every
-time it is read, plus one more for each parent the resolution walk passes
-through on the way. A triage pass that re-reads the same six jurisdictions
+Every `get_law` call is one lookup, and it costs one upstream request, plus
+one more for each parent the resolution walk passes through on the way. A
+triage pass that re-reads the same instruments of the same six jurisdictions
 while working the lanes spends most of a day's free tier re-downloading law
 that did not change.
 
-So persist what `get_law` returns, into the repo you
-are working in:
+### Read the index, then the instruments
+
+A bare `get_law` returns the jurisdiction's index, and says so in
+`detail: "index"` and in its `note`: one short row per instrument, with its
+`record_id`, `name`, `status`, `topics` and `in_force`, and none of what the
+instrument requires. To read that, call again with the same `jurisdiction`
+argument the index call used and up to 5 `record_id` values in `instrument`.
+The answer has `detail: "instrument"`, those instruments in full, and in
+`not_found` any id this jurisdiction does not hold, which usually means the id
+came from another jurisdiction's index. `topic` narrows the index to one topic
+by its slug. `detail: "full"` returns every instrument in full in one call,
+which for the largest jurisdictions runs to millions of characters: ask for it
+only when the developer wants the whole file, and expect your client to save
+it to a file rather than show it.
+
+So persist what you read, into the repo you are working in:
 
 ```
 .lexlint/
@@ -24,27 +38,43 @@ Committing it deliberately is a reasonable choice and often a good one: it
 turns "the law changed underneath us" into a diff a reviewer can read.
 Committing it by accident is neither, so ask rather than assume.
 
-Each file holds the payload plus the two fields that make it checkable:
+Each file is one jurisdiction. It holds the instruments you read in full,
+keyed by `record_id`, the index you found them in, kept apart, and the fields
+that make it checkable:
 
 ```json
 {
   "slug": "us/ca",
   "as_of_date": "2026-08-12",
-  "cached_at": "2026-08-25T20:31:00Z",
-  "payload": { }
+  "index": { "cached_at": "2026-08-25T20:31:00Z", "rows": [ ] },
+  "instruments": {
+    "us/ca:1a2b3c4d5e6f": { "cached_at": "2026-08-25T20:33:00Z", "row": { } }
+  }
 }
 ```
 
-`as_of_date` is the payload's own `provenance.as_of_date`, lifted to the top
-level so the check below can run without parsing the whole file.
+`as_of_date` is the response's own `provenance.as_of_date`, lifted to the top
+level so the check below can run without parsing the whole file. Each part
+carries its own `cached_at`, because instruments join the file as you read
+them. Keep an index under `index` only when it was asked for without `topic`:
+a `topic` call answers with part of the index, and cached there it would later
+read as every instrument the jurisdiction holds.
+
+**Never cache an index as the law.** An index row names an instrument and
+carries none of its duties. It never goes under `instruments`, and nothing is
+quoted, cited as a requirement or counted as covered from `index`. An
+instrument is under `instruments` only when an `instrument` call, or a
+`detail: "full"` call, returned it in full.
 
 **Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
-walks up and answers from `us/ca`. The resolved slug is the payload's own
+walks up and answers from `us/ca`. The resolved slug is the response's own
 `jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
 holds the slug you asked for, and it is present only when a parent answered.
-Filed under what was asked for, one row of the law library lands in the cache repeatedly
-under slugs `check_access` has never heard of, and not one of those entries can
-be revalidated.
+Every `record_id` starts with the resolved slug (`us/ca:1a2b3c4d5e6f`), so an
+instrument whose id names another slug does not belong in the file. Filed
+under what was asked for, one row of the law library lands in the cache
+repeatedly under slugs `check_access` has never heard of, and not one of those
+entries can be revalidated.
 
 ### Revalidating is free, so do it every run
 
@@ -60,15 +90,24 @@ the same question `set_profile` already answers, off a request `check_access`
 spends either way: asking both costs nothing extra, it just gives you the same
 dates twice. Read them from `set_profile`, so there is one place to look, not two.
 
-Re-fetch a jurisdiction when any of these holds:
+Start a jurisdiction's file over, and fetch what you need again, when any of
+these holds:
 
-- `set_profile` reports an `as_of_date` the cached copy does not carry.
-- The cached entry is more than 24 hours old. `as_of_date` is a review date
-  rather than a build stamp, so a correction that does not move it is invisible
-  to the comparison above, and the 24-hour bound is what limits how long such
-  an edit can be served from disk.
-- The file does not parse, or its envelope disagrees with the payload inside.
-  Delete it and fetch. An entry LexLint cannot read is not a cache hit.
+- `set_profile` reports an `as_of_date` the cached copy does not carry, or a
+  response you just fetched for it carries another `as_of_date`.
+- The file does not parse, its `slug` is not the response's
+  `jurisdiction.slug`, or an instrument in it has an id that names another
+  slug. Delete it and fetch. An entry LexLint cannot read is not a cache hit.
+- A file with a top-level `payload` is in the shape earlier bundles wrote,
+  before `get_law` answered with an index, and that payload may be an index
+  saved as if it were the law. Delete it and fetch, whatever its `as_of_date`
+  says.
+
+Re-fetch one part of the file, the index or one instrument, when its
+`cached_at` is more than 24 hours old. `as_of_date` is a review date rather
+than a build stamp, so a correction that does not move it is invisible to the
+comparison above, and the 24-hour bound is what limits how long such an edit
+can be served from disk.
 
 ### What the cache must never do
 
@@ -89,7 +128,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.73.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.74.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

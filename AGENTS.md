@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.73.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.74.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.73.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.74.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.73.0`.** State it, do not go looking
+**That version string is yours and it is `1.74.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.73.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.74.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.73.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.74.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -531,13 +531,16 @@ running, and never offer a command from another entry.
   custom header, and `--bearer-token-env-var` sends `Authorization`, which
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
-  `~/.codex/config.toml`: `http_headers = { "X-API-Key" = "" }` and
-  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. The first is what
-  lets the server answer before there is a key: with the variable unset Codex
-  sends no header at all, this server reads no header as a sign-in it cannot
-  offer, and no tools appear (measured on Codex 0.155, 2026-09-20). An empty
-  header is read as no key, the tools appear, and the variable's value
-  replaces it the moment it is set.
+  `~/.codex/config.toml`:
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.74.0" }` and
+  `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
+  names the version of this procedure, so the server answers `get_law` in the
+  shape this procedure reads; change it when you re-read a newer one. The
+  empty `X-API-Key` is what lets the server answer before there is a key: with
+  the variable unset Codex sends no header at all, this server reads no header
+  as a sign-in it cannot offer, and no tools appear (measured on Codex 0.155,
+  2026-09-20). An empty header is read as no key, the tools appear, and the
+  variable's value replaces it the moment it is set.
 - **Key** persisted to `UNGOVR_API_KEY` in the environment Codex starts from,
   named by the `env_http_headers` line in `~/.codex/config.toml`
 
@@ -631,8 +634,10 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  The server is stateless and holds no session of its own, so nothing has to
-  be kept between calls.
+  Add an `X-LexLint-Bundle` header of `1.74.0`, the version of this procedure,
+  so the server answers `get_law` in the shape this procedure reads, and
+  change it when you re-read a newer one. The server is stateless and holds no
+  session of its own, so nothing has to be kept between calls.
 - **Key** persisted to `UNGOVR_API_KEY` in the environment the client starts
   from
 
@@ -938,6 +943,22 @@ lender is not told a broker-dealer's rules. A profile that declares the role
 and no class is answered with every class's rules, and each jurisdiction where
 a class would narrow them has an `info` coverage line,
 `<slug>:financial-class-undeclared`, counting those findings.
+
+**Is it run by, or sold to, schools or universities?** Three more roles say so:
+`serves_k12_schools` (K-12 schools or districts, charter and private schools
+included), `serves_higher_education` (colleges or universities, community
+colleges included) and their parent `serves_education_institutions`, which a
+level implies. A vendor declares the level of its customers, and one that sells
+at both levels declares both. `serves_minors` does not answer this: school law
+binds a school's vendor whether or not its users are children, so a school
+vendor declares its level either way. Ask it whenever the profile declares
+`serves_minors` or names `public_education`, the developer's answer and never
+the code's. If neither applies, add `serves_education_institutions` to
+`activities_left_out`. Until it is answered, `serves_minors` is matched as if the
+software serves both levels, with an `info` coverage line,
+`<slug>:education-undeclared`, counting the laws shown for that reason; naming
+`public_education` sets the parent for you, with
+`<slug>:education-level-undeclared` counting the laws that bind one level only.
 
 **Which decisions?** `high_risk_decisions` has eight children, one per domain
 of decision about a person: `employment_decisions` (hiring, promotion, pay,
@@ -1472,7 +1493,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.73.0"
+  client_version="1.74.0"
 )
 ```
 
@@ -1560,7 +1581,9 @@ axis alone: `automated_outreach`, `places_automated_calls`, `sends_automated_tex
 `provides_financial_services`, `operates_essential_service`,
 `is_listed_company`, `provides_telecom_services`, `provides_cloud_services`,
 `provides_general_purpose_ai_model`, `is_frontier_developer`, `statutory_requests`,
-`records_calls`, `records_text_chat`, `tracks_devices`, the license classes
+`records_calls`, `records_text_chat`, `tracks_devices`, the education role
+`serves_education_institutions` and its levels `serves_k12_schools` and
+`serves_higher_education`, the license classes
 `is_bank`, `is_lender`, `is_insurer`, `is_securities_firm`,
 `is_payment_provider` and `is_crypto_asset_provider`. Those are ordinary
 declarations rather than exotic ones, so expect the case rather than treating
@@ -1979,13 +2002,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.73.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.74.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.73.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.74.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2186,7 +2209,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.73.0'")
+                         "lint.tool, such as 'lexlint 1.74.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2392,7 +2415,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.73.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.74.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2410,7 +2433,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.73.0`, and `--summary` is the one sentence you author.
+`lexlint 1.74.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2951,14 +2974,28 @@ nobody to approve the payload and an unanswered prompt reads as a yes.
 
 ## Cache what you fetched
 
-A jurisdiction payload is roughly 10 KB and costs one upstream request every
-time it is read, plus one more for each parent the resolution walk passes
-through on the way. A triage pass that re-reads the same six jurisdictions
+Every `get_law` call is one lookup, and it costs one upstream request, plus
+one more for each parent the resolution walk passes through on the way. A
+triage pass that re-reads the same instruments of the same six jurisdictions
 while working the lanes spends most of a day's free tier re-downloading law
 that did not change.
 
-So persist what `get_law` returns, into the repo you
-are working in:
+### Read the index, then the instruments
+
+A bare `get_law` returns the jurisdiction's index, and says so in
+`detail: "index"` and in its `note`: one short row per instrument, with its
+`record_id`, `name`, `status`, `topics` and `in_force`, and none of what the
+instrument requires. To read that, call again with the same `jurisdiction`
+argument the index call used and up to 5 `record_id` values in `instrument`.
+The answer has `detail: "instrument"`, those instruments in full, and in
+`not_found` any id this jurisdiction does not hold, which usually means the id
+came from another jurisdiction's index. `topic` narrows the index to one topic
+by its slug. `detail: "full"` returns every instrument in full in one call,
+which for the largest jurisdictions runs to millions of characters: ask for it
+only when the developer wants the whole file, and expect your client to save
+it to a file rather than show it.
+
+So persist what you read, into the repo you are working in:
 
 ```
 .lexlint/
@@ -2973,27 +3010,43 @@ Committing it deliberately is a reasonable choice and often a good one: it
 turns "the law changed underneath us" into a diff a reviewer can read.
 Committing it by accident is neither, so ask rather than assume.
 
-Each file holds the payload plus the two fields that make it checkable:
+Each file is one jurisdiction. It holds the instruments you read in full,
+keyed by `record_id`, the index you found them in, kept apart, and the fields
+that make it checkable:
 
 ```json
 {
   "slug": "us/ca",
   "as_of_date": "2026-08-12",
-  "cached_at": "2026-08-25T20:31:00Z",
-  "payload": { }
+  "index": { "cached_at": "2026-08-25T20:31:00Z", "rows": [ ] },
+  "instruments": {
+    "us/ca:1a2b3c4d5e6f": { "cached_at": "2026-08-25T20:33:00Z", "row": { } }
+  }
 }
 ```
 
-`as_of_date` is the payload's own `provenance.as_of_date`, lifted to the top
-level so the check below can run without parsing the whole file.
+`as_of_date` is the response's own `provenance.as_of_date`, lifted to the top
+level so the check below can run without parsing the whole file. Each part
+carries its own `cached_at`, because instruments join the file as you read
+them. Keep an index under `index` only when it was asked for without `topic`:
+a `topic` call answers with part of the index, and cached there it would later
+read as every instrument the jurisdiction holds.
+
+**Never cache an index as the law.** An index row names an instrument and
+carries none of its duties. It never goes under `instruments`, and nothing is
+quoted, cited as a requirement or counted as covered from `index`. An
+instrument is under `instruments` only when an `instrument` call, or a
+`detail: "full"` call, returned it in full.
 
 **Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
-walks up and answers from `us/ca`. The resolved slug is the payload's own
+walks up and answers from `us/ca`. The resolved slug is the response's own
 `jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
 holds the slug you asked for, and it is present only when a parent answered.
-Filed under what was asked for, one row of the law library lands in the cache repeatedly
-under slugs `check_access` has never heard of, and not one of those entries can
-be revalidated.
+Every `record_id` starts with the resolved slug (`us/ca:1a2b3c4d5e6f`), so an
+instrument whose id names another slug does not belong in the file. Filed
+under what was asked for, one row of the law library lands in the cache
+repeatedly under slugs `check_access` has never heard of, and not one of those
+entries can be revalidated.
 
 ### Revalidating is free, so do it every run
 
@@ -3009,15 +3062,24 @@ the same question `set_profile` already answers, off a request `check_access`
 spends either way: asking both costs nothing extra, it just gives you the same
 dates twice. Read them from `set_profile`, so there is one place to look, not two.
 
-Re-fetch a jurisdiction when any of these holds:
+Start a jurisdiction's file over, and fetch what you need again, when any of
+these holds:
 
-- `set_profile` reports an `as_of_date` the cached copy does not carry.
-- The cached entry is more than 24 hours old. `as_of_date` is a review date
-  rather than a build stamp, so a correction that does not move it is invisible
-  to the comparison above, and the 24-hour bound is what limits how long such
-  an edit can be served from disk.
-- The file does not parse, or its envelope disagrees with the payload inside.
-  Delete it and fetch. An entry LexLint cannot read is not a cache hit.
+- `set_profile` reports an `as_of_date` the cached copy does not carry, or a
+  response you just fetched for it carries another `as_of_date`.
+- The file does not parse, its `slug` is not the response's
+  `jurisdiction.slug`, or an instrument in it has an id that names another
+  slug. Delete it and fetch. An entry LexLint cannot read is not a cache hit.
+- A file with a top-level `payload` is in the shape earlier bundles wrote,
+  before `get_law` answered with an index, and that payload may be an index
+  saved as if it were the law. Delete it and fetch, whatever its `as_of_date`
+  says.
+
+Re-fetch one part of the file, the index or one instrument, when its
+`cached_at` is more than 24 hours old. `as_of_date` is a review date rather
+than a build stamp, so a correction that does not move it is invisible to the
+comparison above, and the 24-hour bound is what limits how long such an edit
+can be served from disk.
 
 ### What the cache must never do
 
@@ -3038,7 +3100,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.73.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.74.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3149,7 +3211,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.73.0
+     version:  1.74.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3278,7 +3340,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.73.0`, the bundle that ran the lint. The
+- `client_version`: `1.74.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

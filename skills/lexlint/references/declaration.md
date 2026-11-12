@@ -104,6 +104,22 @@ and no class is answered with every class's rules, and each jurisdiction where
 a class would narrow them has an `info` coverage line,
 `<slug>:financial-class-undeclared`, counting those findings.
 
+**Is it run by, or sold to, schools or universities?** Three more roles say so:
+`serves_k12_schools` (K-12 schools or districts, charter and private schools
+included), `serves_higher_education` (colleges or universities, community
+colleges included) and their parent `serves_education_institutions`, which a
+level implies. A vendor declares the level of its customers, and one that sells
+at both levels declares both. `serves_minors` does not answer this: school law
+binds a school's vendor whether or not its users are children, so a school
+vendor declares its level either way. Ask it whenever the profile declares
+`serves_minors` or names `public_education`, the developer's answer and never
+the code's. If neither applies, add `serves_education_institutions` to
+`activities_left_out`. Until it is answered, `serves_minors` is matched as if the
+software serves both levels, with an `info` coverage line,
+`<slug>:education-undeclared`, counting the laws shown for that reason; naming
+`public_education` sets the parent for you, with
+`<slug>:education-level-undeclared` counting the laws that bind one level only.
+
 **Which decisions?** `high_risk_decisions` has eight children, one per domain
 of decision about a person: `employment_decisions` (hiring, promotion, pay,
 termination, task allocation, or monitoring and rating workers),

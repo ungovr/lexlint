@@ -82,7 +82,9 @@
                      "places_automated_calls", "sends_automated_texts", "sends_commercial_email", "sends_faxes",
                      "generates_text", "generates_images", "generates_video",
                      "generates_audio",
-                     "provides_general_purpose_ai_model", "is_frontier_developer"]
+                     "provides_general_purpose_ai_model", "is_frontier_developer",
+                     "serves_education_institutions", "serves_k12_schools",
+                     "serves_higher_education"]
           }
         },
         "activities_left_out": {
