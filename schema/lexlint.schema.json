@@ -272,6 +272,13 @@
           "type": ["string", "null"],
           "description": "LexLint's own page on this instrument, when it has one: what the citation should be shown as a link to. Distinct from url, which is the official source. Copied from the run and never constructed: a jurisdiction researched before the note pages existed has none, and a guessed URL is a dead link beside a statute."
         },
+        "catalog": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^LXD-\\d{4,}$" },
+          "description": "The IDs of the LexLint catalog entries this instrument finding belongs to, sorted and distinct: one for each activity in matched_by.activities that has an entry in the finding's jurisdiction, each a page at https://lexlint.io/catalog/<ID>. From the engine since the catalog's November 2026 deploy, and in this schema since bundle 1.75.0. Absent, never empty, when there is none: a coverage or posture finding, a law about government behavior, a cell holding only proposals."
+        },
         "status": { "type": ["string", "null"] },
         "requires": {
           "type": "array",

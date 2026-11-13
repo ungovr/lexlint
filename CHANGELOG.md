@@ -5,6 +5,16 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.75.0 (2026-11-13)
+
+- A finding can carry `catalog`, the IDs of the LexLint catalog entries it
+  belongs to. Each ID has its own page: `LXD-0725` is at
+  https://lexlint.io/catalog/LXD-0725 and the others follow the same pattern.
+  The server has sent them since the catalog went live, but the manifest
+  schema did not list the key,
+  so the merge left it out of `lexlint.yml` and reported it as a field an
+  update would pick up. The schema now accepts it and `lexlint.yml` keeps it.
+
 ## 1.74.0 (2026-11-12)
 
 - `get_law` now answers with an index: one short row per instrument, with its
