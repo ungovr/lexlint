@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.75.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.75.1"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.75.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.75.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.75.0`.** State it, do not go looking
+**That version string is yours and it is `1.75.1`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.75.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.75.1 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.75.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.75.1) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +532,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.75.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.75.1" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -634,7 +634,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.75.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.75.1`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -1493,7 +1493,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.75.0"
+  client_version="1.75.1"
 )
 ```
 
@@ -1878,12 +1878,20 @@ declaration reported as it was made rather than a duplicate to clean up, and
 both entries stay in the manifest: the developer declared the city, and the
 record should say what the city returned.
 
+**One jurisdiction declared under two names mirrors the same way, with no
+`resolved_from` to say so.** The other names of a jurisdiction LexLint holds
+(its Atlas path, its Atlas ID, a law slug it was known by before) answer as
+that jurisdiction: `jurisdiction` is the held slug and the finding carries no
+`resolved_from`, while `id` is still keyed on the name that was declared. So the field that
+names the declared slug on every finding is the id's own first segment, the
+part before the first `:`, since a slug never holds one.
+
 Three rules stop the mirror from inflating everything downstream:
 
-- **A finding carrying `resolved_from` mirrors the entry with the same
-  instrument key under the slug `jurisdiction` names, kept only when the two
-  share a citation.** `id` is `<declared slug>:<instrument key>`, so the
-  mirror's own instrument key, read off its id, is the same key the parent
+- **A finding whose id's slug is not its `jurisdiction` mirrors the entry with
+  the same instrument key under the slug `jurisdiction` names, kept only when
+  the two share a citation.** `id` is `<declared slug>:<instrument key>`, so
+  the mirror's own instrument key, read off its id, is the same key the parent
   carries under the answering slug: an exact id match, never a citation
   guess, and never a fuzzy read of the summary. This is also the only match
   that folds a citation-less coverage pair (a state and its city both
@@ -2002,13 +2010,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.75.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.75.1' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.75.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.75.1' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2160,8 +2168,12 @@ def load_run(paths):
         die("the calls report different corpus_built_at (" + ", ".join(stamps) +
             "): the law library rebuilt mid-run, so start again from the first call",
             EXIT_RUN_SHAPE)
-    merged, per_call = {}, []
+    merged, per_call, ran = {}, [], set()
     for p, c in calls:
+        # The slugs this call ran on, as the worker validated them: run_lint
+        # echoes them as `jurisdictions`, findings or none.
+        echo = c.get("jurisdictions")
+        ran |= {j for j in echo if isinstance(j, str)} if isinstance(echo, list) else set()
         acts = set()
         for f in c["findings"]:
             fid = f.get("id") if isinstance(f, dict) else None
@@ -2173,7 +2185,7 @@ def load_run(paths):
         per_call.append(acts)
     keep = set.intersection(*per_call)
     return ([f for i, f in merged.items() if not i.startswith("activity:") or i in keep],
-            sorted(set.union(*per_call) - keep), stamps[0], len(calls))
+            sorted(set.union(*per_call) - keep), stamps[0], len(calls), ran)
 
 def read_manifest(path):
     """A manifest's text and its parsed document, or a stop with EXIT_MANIFEST."""
@@ -2209,7 +2221,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.75.0'")
+                         "lint.tool, such as 'lexlint 1.75.1'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2226,7 +2238,7 @@ def main():
             "`uv run`, which reads the dependency from its header, or write the "
             "lint: block by hand as step 4 describes", EXIT_USAGE)
 
-    findings, act_gone, corpus, calls = load_run(a.runs)
+    findings, act_gone, corpus, calls, ran = load_run(a.runs)
     if not findings and not a.allow_empty:
         die("this run has no findings: refusing to overwrite a manifest with an "
             "empty lint block (--allow-empty if that is really the run)",
@@ -2340,27 +2352,31 @@ def main():
                     f"so {a.output} was left as it was", EXIT_MANIFEST)
             die(f"cannot write {a.output}: {exc}", EXIT_MANIFEST)
 
-    # `jurisdiction` is the slug a finding was READ FROM. `resolved_from`, set
-    # only when a parent answered, is the slug that was DECLARED. A mirror's
-    # id is `<declared>:<instrument key>`, so the entry it mirrors is that
-    # same key under the slug that answered it -- an exact id match, never a
-    # citation guess, and the only match that also folds a citation-less
+    # A finding about one place has the id `<declared slug>:<key>`, keyed on
+    # the slug as the worker validated the declaration, and a slug holds no
+    # colon: the id's first segment IS the slug that was DECLARED. Its
+    # `jurisdiction` is the slug the law was READ FROM, which is another place
+    # in two cases: a parent whose law reaches the declared one (and then
+    # `resolved_from` repeats the declared slug), and the held place an alias
+    # names (its Atlas path, its URN, a renamed law slug's old spelling),
+    # which carries no `resolved_from` at all. Either way the finding mirrors
+    # the same key under the slug that answered it -- an exact id match, never
+    # a citation guess, and the only match that also folds a citation-less
     # coverage pair (a state and a city both reporting "not shown" carry no
     # citation to group on, and a join keyed on citation cannot see them).
     def declared(f):
-        rf = f.get("resolved_from")
-        return [rf] if isinstance(rf, str) else list(rf or [f.get("jurisdiction")])
+        fid = f.get("id")
+        if not (isinstance(fid, str) and ":" in fid and isinstance(f.get("jurisdiction"), str)):
+            return None                       # activity: and derived: are about no place
+        return fid.split(":", 1)[0] or None
     by_id = {f["id"]: f for f in out_f if isinstance(f.get("id"), str)}
     elected = {}
     mirrors = 0
     for f in out_f:
         fid = f.get("id")
         answered_by = f.get("jurisdiction")
-        rf = f.get("resolved_from")
-        candidates = [rf] if isinstance(rf, str) else list(rf or [])
-        rf = next((c for c in candidates if isinstance(c, str) and c
-                   and isinstance(fid, str) and fid.startswith(c + ":")), None)
-        if not (rf and isinstance(answered_by, str) and answered_by and answered_by != rf):
+        rf = declared(f)
+        if not (rf and answered_by and answered_by != rf):
             continue
         parent_id = answered_by + ":" + fid[len(rf) + 1:]
         parent = by_id.get(parent_id)
@@ -2376,7 +2392,20 @@ def main():
             parent = head
         if (f.get("citation") or "").strip() == (parent.get("citation") or "").strip():
             mirrors += 1
-    seen = {s for f in out_f for s in declared(f)}
+
+    # A declared jurisdiction came back when a call echoed it or a finding is
+    # keyed on it. The profile may spell it any way the schema allows, so it is
+    # compared as the worker's validateSlug writes it; the worker's ISO
+    # crosswalk (a territory's own code, a changed one) is the server's alone,
+    # so such a code in a hand-edited profile still reads as not linted. The
+    # profile set_profile writes always holds the slug.
+    def spelled(j):
+        if not isinstance(j, str):
+            return None
+        s = re.sub(r"^(urn:ungovr:|https?://(www\.)?(ungovr\.org|lexlint\.io/law)/)", "",
+                   j.strip().lower()).strip("/")
+        return re.sub(r"^([a-z]{2})-([a-z0-9]{1,3})$", r"\1/\2", s)
+    seen = ran | {declared(f) for f in out_f}
     json.dump({
         "calls": calls, "corpus_built_at": corpus, "findings": len(out_f),
         "distinct_instruments": len(out_f) - mirrors, "mirrors": mirrors,
@@ -2389,7 +2418,7 @@ def main():
         "activity_findings_intersected_away": act_gone,
         "work_items": len(lint.get("work_items") or []),
         "jurisdictions_missing": [j for j in doc["profile"].get("jurisdictions") or []
-                                  if j not in seen],
+                                  if spelled(j) not in seen - {None}],
         "output": None if a.dry_run else a.output,
         "dry_run": a.dry_run,
     }, sys.stdout, indent=2, sort_keys=True)
@@ -2415,7 +2444,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.75.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.75.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2433,7 +2462,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.75.0`, and `--summary` is the one sentence you author.
+`lexlint 1.75.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2465,9 +2494,13 @@ them, `triage_carried` and `triage_restored`, `vanished_added` and
 `vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having
-come back when any finding names it in `resolved_from`, or in `jurisdiction`
-with no `resolved_from` beside it, so a city that answered from its state is
-not listed: it was linted, one rung up. A `triage_carried` of 0
+come back when a call's `jurisdictions` lists it or a finding's id is keyed on
+it, so a city that answered from its state is not listed (it was linted, one
+rung up), and neither is a jurisdiction declared by another of its names. The
+profile's spelling is compared the way the server reads it, so `US-CA` or
+`urn:ungovr:us/ca` matches `us/ca`; a territory's own ISO code, which only the
+server can map, still reads as missing until the profile holds its slug,
+which `set_profile` writes. A `triage_carried` of 0
 against a manifest that had acknowledgments is the failure this whole section
 is written against, and it is a number rather than a silence.
 
@@ -3100,7 +3133,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.75.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.75.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3211,7 +3244,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.75.0
+     version:  1.75.1
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3340,7 +3373,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.75.0`, the bundle that ran the lint. The
+- `client_version`: `1.75.1`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

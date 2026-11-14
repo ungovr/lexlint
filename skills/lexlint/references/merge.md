@@ -39,12 +39,20 @@ declaration reported as it was made rather than a duplicate to clean up, and
 both entries stay in the manifest: the developer declared the city, and the
 record should say what the city returned.
 
+**One jurisdiction declared under two names mirrors the same way, with no
+`resolved_from` to say so.** The other names of a jurisdiction LexLint holds
+(its Atlas path, its Atlas ID, a law slug it was known by before) answer as
+that jurisdiction: `jurisdiction` is the held slug and the finding carries no
+`resolved_from`, while `id` is still keyed on the name that was declared. So the field that
+names the declared slug on every finding is the id's own first segment, the
+part before the first `:`, since a slug never holds one.
+
 Three rules stop the mirror from inflating everything downstream:
 
-- **A finding carrying `resolved_from` mirrors the entry with the same
-  instrument key under the slug `jurisdiction` names, kept only when the two
-  share a citation.** `id` is `<declared slug>:<instrument key>`, so the
-  mirror's own instrument key, read off its id, is the same key the parent
+- **A finding whose id's slug is not its `jurisdiction` mirrors the entry with
+  the same instrument key under the slug `jurisdiction` names, kept only when
+  the two share a citation.** `id` is `<declared slug>:<instrument key>`, so
+  the mirror's own instrument key, read off its id, is the same key the parent
   carries under the answering slug: an exact id match, never a citation
   guess, and never a fuzzy read of the summary. This is also the only match
   that folds a citation-less coverage pair (a state and its city both
@@ -134,7 +142,7 @@ run it against the manifest in place:
 ```bash
 SKILL_DIR='<the base directory your client named for this skill>'
 python3 "$SKILL_DIR/scripts/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.75.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.75.1' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 ```
 
@@ -150,7 +158,7 @@ and write its one Python block to `merge.py` inside a new private directory
 from `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, never a fixed name in a
 shared directory. **Check its version before you run it.** That page follows
 the newest bundle, not this one, and the block's `--tool` examples name the
-bundle it belongs to: they must read `lexlint 1.75.0`, this skill's own.
+bundle it belongs to: they must read `lexlint 1.75.1`, this skill's own.
 Then it is the same script, byte for byte, and a test holds the two together;
 run it with the same arguments, then delete the directory. If they name any
 other version, do not run it: delete the directory, write the block by hand as
@@ -168,7 +176,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.75.0`, and `--summary` is the one sentence you author.
+`lexlint 1.75.1`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -200,9 +208,13 @@ them, `triage_carried` and `triage_restored`, `vanished_added` and
 `vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having
-come back when any finding names it in `resolved_from`, or in `jurisdiction`
-with no `resolved_from` beside it, so a city that answered from its state is
-not listed: it was linted, one rung up. A `triage_carried` of 0
+come back when a call's `jurisdictions` lists it or a finding's id is keyed on
+it, so a city that answered from its state is not listed (it was linted, one
+rung up), and neither is a jurisdiction declared by another of its names. The
+profile's spelling is compared the way the server reads it, so `US-CA` or
+`urn:ungovr:us/ca` matches `us/ca`; a territory's own ISO code, which only the
+server can map, still reads as missing until the profile holds its slug,
+which `set_profile` writes. A `triage_carried` of 0
 against a manifest that had acknowledgments is the failure this whole section
 is written against, and it is a number rather than a silence.
 

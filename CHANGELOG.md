@@ -5,6 +5,24 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.75.1 (2026-11-14)
+
+- A jurisdiction declared by another of its names, such as its Atlas path
+  (`us/ca/san-diego/city/san-diego` for `us/ca/san-diego`) or a law slug it
+  was known by before, is linted as the jurisdiction it names. The merge
+  step reported it as not linted, and when both names were declared it
+  counted that jurisdiction's instruments twice. It now reads the declared
+  name from each finding's id and from the jurisdictions the run says it
+  linted, so the report counts that jurisdiction once.
+- The same step now matches a profile that spells a jurisdiction as an ISO
+  code or an Atlas ID (`US-CA`, `urn:ungovr:us/ca`) to the slug the run
+  answered with, instead of reporting it as not linted.
+- Declaring a city beside its state can lower `distinct_instruments`. A few
+  of the city's findings, such as its crawl posture, are the state's own read
+  again but arrive without `resolved_from`, and earlier versions counted them
+  as distinct. They now count as mirrors, so the number is the law the run
+  actually returned.
+
 ## 1.75.0 (2026-11-13)
 
 - A finding can carry `catalog`, the IDs of the LexLint catalog entries it
