@@ -45,7 +45,8 @@ kinds of public body as the open question beside the
 `provides_financial_services` or a class declared and no `regulated_sector`:
 name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its
-suppliers. And for a run with the role and no class: name the class as the
+suppliers; and for a run with an education level or the parent declared and no
+education answer, beside the `<slug>:education-sector-undeclared` line. And for a run with the role and no class: name the class as the
 open question beside the `<slug>:financial-class-undeclared` line. And for a
 run with a `roles` axis unanswered: name the role question beside the
 `<slug>:ai-role-undeclared` or `<slug>:data-role-undeclared` line. And for a

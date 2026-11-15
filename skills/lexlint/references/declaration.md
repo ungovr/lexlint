@@ -120,6 +120,23 @@ software serves both levels, with an `info` coverage line,
 `public_education` sets the parent for you, with
 `<slug>:education-level-undeclared` counting the laws that bind one level only.
 
+**Whose duty is the school's law?** Once a level or the parent is declared, ask
+a second question with it: is this software run by a school, district, college
+or university, public or private (`body`), supplied to them (`supplier`), or
+neither (`none`)? Send the answer as `regulated_sector`, beside any financial
+answer: `{"education": "supplier"}`. A learning platform sold to districts and
+universities is `supplier`; a university's own system is `body`. It moves a
+duty the school owes, such as a student-records law's disclosure rule, off the
+vendor and onto its customer, and never adds or removes a law. A
+`public_sector` of `body` or `supplier` answers it for you when
+`public_sector_functions` names `public_education`, since a public school is a
+school; send `regulated_sector` only to say otherwise. Left unanswered, the kinds
+of public body infer nothing, and `<slug>:public-functions-undeclared` counts
+the findings naming `public_education` would move. The same
+rules govern when to ask as for the financial answer below, and a run sent
+without it has an `info` coverage line, `<slug>:education-sector-undeclared`,
+counting the findings the answer would move.
+
 **Which decisions?** `high_risk_decisions` has eight children, one per domain
 of decision about a person: `employment_decisions` (hiring, promotion, pay,
 termination, task allocation, or monitoring and rating workers),
@@ -303,7 +320,9 @@ declares the role or a class and has no `regulated_sector`, never
 when it cannot be had. A run sent without it says so: each jurisdiction where
 the answer would move a matched financial-law duty off the caller, a whole
 finding or one line of it, has an `info` coverage line,
-`<slug>:regulated-sector-undeclared`, counting those findings.
+`<slug>:regulated-sector-undeclared`, counting those findings. Each sector is
+its own answer: an education answer leaves the financial one open, and the
+reverse.
 
 **Which role does the maker hold under each regime?** Asked of every
 declaration, like `public_sector`, and never answered from the code. One firm

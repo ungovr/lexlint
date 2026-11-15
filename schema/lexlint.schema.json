@@ -129,9 +129,14 @@
               "type": "string",
               "enum": ["body", "supplier", "none"],
               "description": "Whether a regulated financial entity such as a bank, insurer or payment institution runs this software (body), it is supplied to such entities (supplier), or neither (none). The developer's answer, never read from the code."
+            },
+            "education": {
+              "type": "string",
+              "enum": ["body", "supplier", "none"],
+              "description": "From bundle 1.76.0: whether a school, district, college or university, public or private, runs this software (body), it is supplied to them (supplier), or neither (none). Asked when serves_education_institutions, serves_k12_schools or serves_higher_education is declared. Absent, a public_sector answer of body or supplier answers it when public_sector_functions names public_education. The developer's answer, never read from the code."
             }
           },
-          "description": "Whose duty a bound-party role's law is, keyed by sector. Only financial exists, and it is asked only when provides_financial_services is declared. It moves duties between you and your customer and never adds or removes a match. Absent means never asked."
+          "description": "Whose duty a bound-party role's law is, keyed by sector: financial, asked when provides_financial_services is declared, and education. It moves duties between you and your customer and never adds or removes a match. Absent means never asked."
         },
         "roles": {
           "type": "object",
@@ -219,7 +224,7 @@
         "kind": {
           "type": "string",
           "enum": ["obligation", "coverage", "posture", "pending", "customer_duty", "derived"],
-          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on. customer_duty: with public_sector or regulated_sector declared, a duty your customer owes, a public body or a financial institution, and meets through your software. derived: with profile.derived true, from bundle 1.59.0, one finding per record an app holds to meet the deadlines the matched laws set, run-level (jurisdiction null, citation null) and always info. It is LexLint's inference, not a law's statement, except where a listed law's basis is record; triage it in the code lane."
+          "description": "obligation: a specific instrument binds the declared profile now. coverage: a note about what was not reported, never a pass. LexLint could not read something, holds no data for a declared jurisdiction, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. posture: a jurisdiction-wide crawl-law attribute, such as whether browsewrap binds or what weight robots.txt carries; cites nothing and binds nobody on its own, and appears only when crawls_web is declared. pending: an instrument LexLint cannot say is in force today, whether proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for; a duty to watch rather than one to act on. customer_duty: with public_sector or regulated_sector declared, a duty your customer owes, a public body, a financial institution or a school, college or university, and meets through your software. derived: with profile.derived true, from bundle 1.59.0, one finding per record an app holds to meet the deadlines the matched laws set, run-level (jurisdiction null, citation null) and always info. It is LexLint's inference, not a law's statement, except where a listed law's basis is record; triage it in the code lane."
         },
         "jurisdiction": { "type": ["string", "null"] },
         "jurisdiction_name": {

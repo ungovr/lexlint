@@ -5,6 +5,22 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.76.0 (2026-11-15)
+
+- A second answer for software run by or sold to schools: is it run by a
+  school, district, college or university, public or private (`body`),
+  supplied to them (`supplier`), or neither (`none`)? Send it as
+  `regulated_sector`, beside any financial answer:
+  `{"education": "supplier"}`. A duty the school owes, such as a
+  student-records law's disclosure rule, then reaches a vendor as its
+  customer's duty instead of its own, and nothing is added or removed. The
+  skill asks it with the education level, and the manifest schema accepts it.
+  A `public_sector` of `body` or `supplier` answers it for you when
+  `public_sector_functions` names `public_education`.
+- A run that declares a level and has no answer carries one `info` line,
+  `<slug>:education-sector-undeclared`, counting the findings the answer would
+  move. An education answer leaves the financial question open, and the
+  reverse.
 ## 1.75.1 (2026-11-14)
 
 - A jurisdiction declared by another of its names, such as its Atlas path

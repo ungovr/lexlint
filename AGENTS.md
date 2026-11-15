@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.75.1"`.
+**Run `check_access` before anything else**, pass `client_version: "1.76.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.75.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.76.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.75.1`.** State it, do not go looking
+**That version string is yours and it is `1.76.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.75.1 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.76.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.75.1) is available
+  lexlint 1.4.0 · a newer LexLint (1.76.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +532,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.75.1" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.76.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -634,7 +634,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.75.1`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.76.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -960,6 +960,23 @@ software serves both levels, with an `info` coverage line,
 `public_education` sets the parent for you, with
 `<slug>:education-level-undeclared` counting the laws that bind one level only.
 
+**Whose duty is the school's law?** Once a level or the parent is declared, ask
+a second question with it: is this software run by a school, district, college
+or university, public or private (`body`), supplied to them (`supplier`), or
+neither (`none`)? Send the answer as `regulated_sector`, beside any financial
+answer: `{"education": "supplier"}`. A learning platform sold to districts and
+universities is `supplier`; a university's own system is `body`. It moves a
+duty the school owes, such as a student-records law's disclosure rule, off the
+vendor and onto its customer, and never adds or removes a law. A
+`public_sector` of `body` or `supplier` answers it for you when
+`public_sector_functions` names `public_education`, since a public school is a
+school; send `regulated_sector` only to say otherwise. Left unanswered, the kinds
+of public body infer nothing, and `<slug>:public-functions-undeclared` counts
+the findings naming `public_education` would move. The same
+rules govern when to ask as for the financial answer below, and a run sent
+without it has an `info` coverage line, `<slug>:education-sector-undeclared`,
+counting the findings the answer would move.
+
 **Which decisions?** `high_risk_decisions` has eight children, one per domain
 of decision about a person: `employment_decisions` (hiring, promotion, pay,
 termination, task allocation, or monitoring and rating workers),
@@ -1143,7 +1160,9 @@ declares the role or a class and has no `regulated_sector`, never
 when it cannot be had. A run sent without it says so: each jurisdiction where
 the answer would move a matched financial-law duty off the caller, a whole
 finding or one line of it, has an `info` coverage line,
-`<slug>:regulated-sector-undeclared`, counting those findings.
+`<slug>:regulated-sector-undeclared`, counting those findings. Each sector is
+its own answer: an education answer leaves the financial one open, and the
+reverse.
 
 **Which role does the maker hold under each regime?** Asked of every
 declaration, like `public_sector`, and never answered from the code. One firm
@@ -1493,7 +1512,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.75.1"
+  client_version="1.76.0"
 )
 ```
 
@@ -2010,13 +2029,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.75.1' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.76.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.75.1' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.76.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2221,7 +2240,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.75.1'")
+                         "lint.tool, such as 'lexlint 1.76.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2444,7 +2463,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.75.1' \
+    --run-at 2026-09-10 --tool 'lexlint 1.76.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2462,7 +2481,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.75.1`, and `--summary` is the one sentence you author.
+`lexlint 1.76.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2614,7 +2633,7 @@ field existed.
 `run_lint` reports `applies_to` and does not filter on it, deliberately.
 Deciding that a government-only duty misses this caller means knowing what
 kind of body the caller is, which the profile collects only as `public_sector`
-and, for a regulated financial entity, `regulated_sector` (read `owed` below
+and, for a regulated financial entity or a school, `regulated_sector` (read `owed` below
 when either was declared) and no other tool here asks for. So
 the field comes to you and the reading lives here, which is the reason it is
 written down: a session that does not think to look reports duties binding
@@ -2624,7 +2643,7 @@ state agencies to a private studio as work to do.
 done the reading this section asks of you: `owed: yours` binds this app;
 `owed: elsewhere` does not, arrives at `info`, and keeps its lines in
 `requires_elsewhere`; and `owed: customer` means the duty is your customer's, a
-public body or a financial institution, with the lines your software has to
+public body, a financial institution or a school, with the lines your software has to
 support split into a `customer_duty` finding placed directly after it.
 `applies_to` stays on both as the law library recorded it. `owed` is the answer
 for this declaration. With `public_sector` declared every instrument finding
@@ -2936,7 +2955,8 @@ kinds of public body as the open question beside the
 `provides_financial_services` or a class declared and no `regulated_sector`:
 name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its
-suppliers. And for a run with the role and no class: name the class as the
+suppliers; and for a run with an education level or the parent declared and no
+education answer, beside the `<slug>:education-sector-undeclared` line. And for a run with the role and no class: name the class as the
 open question beside the `<slug>:financial-class-undeclared` line. And for a
 run with a `roles` axis unanswered: name the role question beside the
 `<slug>:ai-role-undeclared` or `<slug>:data-role-undeclared` line. And for a
@@ -3133,7 +3153,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.75.1 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.76.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3166,7 +3186,7 @@ Findings also carry a `kind`:
 | `coverage` | A note about what was not reported, never a pass: LexLint could not read something, holds no data, cannot map what it holds to a declared activity, or holds an instrument that no longer binds. |
 | `posture` | How this jurisdiction's law treats crawling as a whole: whether browsewrap binds, what weight robots.txt carries, whether a public page is outside computer-crime law. Jurisdiction-wide attributes rather than instruments, so they bind nobody on their own and cite nothing. They appear only when `crawls_web` is declared. |
 | `pending` | An instrument LexLint cannot say is in force today: proposed, not yet in force (from a later day, or from a date not yet set), blocked by a court, or carrying a status LexLint has no policy for. An injunction can be lifted, and a start date missing from the record does not mean the law is not in force, so treat this as a duty to watch, not one to ignore. |
-| `customer_duty` | With `public_sector` or `regulated_sector` declared: a duty your customer owes, a public body or a financial institution, and meets through your software. It follows the instrument finding it was split from, names it in `instrument_id`, and goes to the `product` lane. |
+| `customer_duty` | With `public_sector` or `regulated_sector` declared: a duty your customer owes, a public body, a financial institution or a school, and meets through your software. It follows the instrument finding it was split from, names it in `instrument_id`, and goes to the `product` lane. |
 | `derived` | With `derived: true` in the profile: one finding per record an app holds to meet the deadlines the matched laws set. It is about the run rather than one jurisdiction, so `jurisdiction` and `citation` are null, and it is always `info`. `capability` names the record, `derived_from` lists each law it rests on, and `stated_by` and `inferred_from` count the laws that name the record themselves and the laws it is inferred from. It goes to the `code` lane (step 5). A derived finding is LexLint's inference, not a law's statement: a record an app holds in order to meet a deadline the listed laws set. No law names the record unless the finding marks it as stated. |
 
 A `posture` finding whose value is `unsettled` is a warning, not a pass. "The
@@ -3244,7 +3264,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.75.1
+     version:  1.76.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3373,7 +3393,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.75.1`, the bundle that ran the lint. The
+- `client_version`: `1.76.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

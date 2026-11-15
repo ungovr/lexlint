@@ -15,7 +15,7 @@ field existed.
 `run_lint` reports `applies_to` and does not filter on it, deliberately.
 Deciding that a government-only duty misses this caller means knowing what
 kind of body the caller is, which the profile collects only as `public_sector`
-and, for a regulated financial entity, `regulated_sector` (read `owed` below
+and, for a regulated financial entity or a school, `regulated_sector` (read `owed` below
 when either was declared) and no other tool here asks for. So
 the field comes to you and the reading lives here, which is the reason it is
 written down: a session that does not think to look reports duties binding
@@ -25,7 +25,7 @@ state agencies to a private studio as work to do.
 done the reading this section asks of you: `owed: yours` binds this app;
 `owed: elsewhere` does not, arrives at `info`, and keeps its lines in
 `requires_elsewhere`; and `owed: customer` means the duty is your customer's, a
-public body or a financial institution, with the lines your software has to
+public body, a financial institution or a school, with the lines your software has to
 support split into a `customer_duty` finding placed directly after it.
 `applies_to` stays on both as the law library recorded it. `owed` is the answer
 for this declaration. With `public_sector` declared every instrument finding
