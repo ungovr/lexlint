@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.76.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.77.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.76.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.77.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.76.0`.** State it, do not go looking
+**That version string is yours and it is `1.77.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.76.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.77.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.76.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.77.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +532,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.76.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.77.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -634,7 +634,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.76.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.77.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -1241,6 +1241,23 @@ manufacturer of a product with digital elements, which is close to every
 shipped piece of software, so declare it alongside `ships_mobile_app` rather
 than instead of it where you ship both.
 
+**When `lexcode` is installed, start from its evidence.** Run `lexcode version`
+from the repository root. When it succeeds, run `lexcode scan --json`, which
+prints an evidence record and writes nothing into the repository, and use it
+for the evidence column: under each candidate, list the record's lines for
+that id, `file:line` and the rule, three at most with a count of the rest.
+**On a scoped run, use only the record's lines whose file is inside the
+scope**, judged the way scope judges a file you read (below): the scan reads
+the whole repository, and a line from outside the scope would put code into
+the evidence that the run says it did not read. A `performs` row reads "the
+code appears to perform it", an `enables` row "a dependency enables it". Show each `signals` row as "worth a look" with its
+location, never as a candidate marked `include`. A match is evidence for the
+question and never its answer: the call in every row is still yours to
+propose and the developer's to confirm, and an activity the record does not
+show can still be true. When `lexcode version` fails, say in one line that
+LexCode is not installed and that `npx @ungovr/lexcode scan --json` runs it without
+installing, then read the code yourself as below.
+
 Read the code to build the candidate and its evidence, never to declare on
 the developer's behalf: the table is a proposal until they confirm it.
 Declaring `trains_models` because you saw a model import, when the app only
@@ -1512,7 +1529,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.76.0"
+  client_version="1.77.0"
 )
 ```
 
@@ -2029,13 +2046,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.76.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.77.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.76.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.77.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2240,7 +2257,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.76.0'")
+                         "lint.tool, such as 'lexlint 1.77.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2463,7 +2480,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.76.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.77.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2481,7 +2498,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.76.0`, and `--summary` is the one sentence you author.
+`lexlint 1.77.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -3153,7 +3170,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.76.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.77.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3264,7 +3281,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.76.0
+     version:  1.77.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3393,7 +3410,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.76.0`, the bundle that ran the lint. The
+- `client_version`: `1.77.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

@@ -401,6 +401,23 @@ manufacturer of a product with digital elements, which is close to every
 shipped piece of software, so declare it alongside `ships_mobile_app` rather
 than instead of it where you ship both.
 
+**When `lexcode` is installed, start from its evidence.** Run `lexcode version`
+from the repository root. When it succeeds, run `lexcode scan --json`, which
+prints an evidence record and writes nothing into the repository, and use it
+for the evidence column: under each candidate, list the record's lines for
+that id, `file:line` and the rule, three at most with a count of the rest.
+**On a scoped run, use only the record's lines whose file is inside the
+scope**, judged the way scope judges a file you read (below): the scan reads
+the whole repository, and a line from outside the scope would put code into
+the evidence that the run says it did not read. A `performs` row reads "the
+code appears to perform it", an `enables` row "a dependency enables it". Show each `signals` row as "worth a look" with its
+location, never as a candidate marked `include`. A match is evidence for the
+question and never its answer: the call in every row is still yours to
+propose and the developer's to confirm, and an activity the record does not
+show can still be true. When `lexcode version` fails, say in one line that
+LexCode is not installed and that `npx @ungovr/lexcode scan --json` runs it without
+installing, then read the code yourself as below.
+
 Read the code to build the candidate and its evidence, never to declare on
 the developer's behalf: the table is a proposal until they confirm it.
 Declaring `trains_models` because you saw a model import, when the app only

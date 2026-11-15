@@ -5,6 +5,25 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.77.0 (2026-11-15)
+
+- When LexCode is installed, the skill starts the declaration from its
+  evidence. It runs `lexcode version`, then `lexcode scan --json`, which reads
+  the repository on your machine and writes nothing into it. Your code never
+  leaves the machine; LexCode's only network call is a one-time download of
+  its pinned scan engine. Each proposed activity then lists where the code
+  appears to perform it or where a dependency enables it, as `file:line` and
+  the rule that matched, three at most with a count of the rest. A weaker
+  match is shown as worth a look, never as a proposed activity. On a run
+  narrowed by `app.scope`, only evidence from files inside the scope is
+  used, because the scan reads the whole repository. A match is
+  evidence for the question and never its answer: you still confirm every
+  activity, and one LexCode does not show can still be true.
+- When LexCode is not installed, the skill says so in one line, notes that
+  `npx @ungovr/lexcode scan --json` runs it without installing, and reads the
+  code itself as before. It never installs anything. LexCode is described at
+  https://lexlint.io/lexcode
+
 ## 1.76.0 (2026-11-15)
 
 - A second answer for software run by or sold to schools: is it run by a
