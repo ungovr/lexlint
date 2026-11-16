@@ -5,6 +5,38 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.78.0 (2026-11-16)
+
+- A decision that fits none of the eight kinds can now say so. List a kind
+  the software does not decide in under `activities_left_out`, and the law
+  written only for that kind no longer reaches a bare `high_risk_decisions`.
+  Fraud screening is the case that needed it: `credit_decisions` and the EU
+  AI Act's credit rule both exclude fraud detection, so a fraud model is
+  `high_risk_decisions` with all eight kinds left out. It keeps the law every
+  automated decision owes, such as GDPR Article 22, and drops hiring,
+  patient-care and other law written for one kind.
+- The skill records that no, and the question form has a "None of these"
+  answer that leaves out every kind not picked. The
+  `<slug>:decision-domain-undeclared` line counts only the kinds not yet
+  answered, and says how to answer no. A declaration that never sends
+  `activities_left_out` gets exactly what it got before.
+
+## 1.77.1 (2026-11-15)
+
+- `ships_encryption` now means encrypting data or agreeing keys to keep data
+  confidential, whether in your own code, through the platform's
+  cryptography APIs or with a library you bundle, or bundling a
+  cryptography library that does. Hashing, password hashing and signing on
+  their own are no longer this, and neither is encrypting only the
+  passwords, tokens or session cookies that control access. Encryption
+  through the platform's own APIs (for example WebCrypto, Node's `crypto`,
+  the Java `Cipher` class or .NET's `AesGcm`) now is. HTTPS through the
+  platform's stock client is still not this. Export-control law draws the same line: it controls
+  cryptography that keeps data confidential, not cryptography that only
+  authenticates. If your `lexlint.yml` declares `ships_encryption` only
+  because the app hashes passwords, signs tokens or encrypts its session
+  cookies, remove it on your next run.
+
 ## 1.77.0 (2026-11-15)
 
 - When LexCode is installed, the skill starts the declaration from its

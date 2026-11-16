@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.77.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.78.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.77.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.78.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.77.0`.** State it, do not go looking
+**That version string is yours and it is `1.78.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.77.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.78.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.77.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.78.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +532,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.77.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.78.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -634,7 +634,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.77.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.78.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -993,10 +993,17 @@ evidence, while a "risk score" whose use the code does not state is `ask`. A
 domain implies `high_risk_decisions`, so declare the domain and the parent
 comes with it, and declare every domain the software decides in. A row written
 for one kind of decision reaches only that kind, so a hiring tool is not told a
-border-control rule. A profile that declares `high_risk_decisions` and no
-domain is answered with every domain's rules, and each jurisdiction where a
-domain would narrow them has an `info` coverage line,
-`<slug>:decision-domain-undeclared`, counting those findings.
+border-control rule. Record a no as well: a domain the software does not
+decide in goes in `activities_left_out`, and the bare parent does not reach a
+domain listed there. A decision that fits no domain, such as fraud screening
+(`credit_decisions` and the EU AI Act's credit rule both exclude fraud
+detection), is `high_risk_decisions` with all eight domains in
+`activities_left_out`: it keeps the law every automated decision owes and
+drops the law written for one kind. A profile that declares
+`high_risk_decisions` and answers no domain is answered with the rules of
+every domain not left out, and each jurisdiction where an answer would narrow
+them has an `info` coverage line, `<slug>:decision-domain-undeclared`,
+counting those findings.
 
 **What does it generate?** `generates_content` has four children, one per kind
 of output: `generates_text` (articles, messages, summaries, code),
@@ -1060,13 +1067,20 @@ record electronically, in its own flow or through an e-signature service; a
 checkbox accepting terms is not this. Both are activities, so the code settles
 them, and they are the triggers for digital-identity law.
 
-**Does it ship encryption?** `ships_encryption` is code that implements
-cryptography, or bundles or vendors a library that does, beyond calling the
-operating system's or platform's own TLS or cryptography APIs: a cryptography library
-in the dependency tree or in vendored source, a custom cipher, a bundled TLS
-stack or end-to-end encryption of its own. Calling HTTPS through the platform's
-stock client is not this. It is an activity, so the code settles it, and it is a
-trigger for export-control law.
+**Does it ship encryption?** `ships_encryption` is code that encrypts data or
+agrees keys to keep data confidential, whether in its own code, through the
+operating system's or platform's cryptography APIs, or with a library it
+bundles, or that bundles or vendors a cryptography library that does: a cipher
+call (AES-GCM, ChaCha20-Poly1305, RSA-OAEP), end-to-end or stored-data
+encryption, encrypted fields or files, a key exchange, a cryptography library
+in the dependency tree or vendored source, or a bundled TLS stack. Calling
+HTTPS through the platform's stock client is not this, and neither is hashing,
+password hashing, signing a token or a message authentication code on its own,
+nor encrypting only the passwords, tokens, two-factor secrets or session
+cookies that control access (a framework's encrypted session cookie, a stored
+sign-in token): export control counts those as authentication or integrity,
+and reaches cryptography that keeps other data confidential. It is an
+activity, so the code settles it, and it is a trigger for export-control law.
 
 **A sanctioned destination is set by the lint.** `serves_sanctioned_destination` is
 never asked and never read from the code. The lint sets it itself when the
@@ -1529,7 +1543,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.77.0"
+  client_version="1.78.0"
 )
 ```
 
@@ -2046,13 +2060,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.77.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.78.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.77.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.78.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2257,7 +2271,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.77.0'")
+                         "lint.tool, such as 'lexlint 1.78.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2480,7 +2494,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.77.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.78.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2498,7 +2512,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.77.0`, and `--summary` is the one sentence you author.
+`lexlint 1.78.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -3170,7 +3184,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.77.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.78.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3281,7 +3295,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.77.0
+     version:  1.78.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3410,7 +3424,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.77.0`, the bundle that ran the lint. The
+- `client_version`: `1.78.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

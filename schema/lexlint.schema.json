@@ -90,7 +90,7 @@
         "activities_left_out": {
           "type": "array",
           "uniqueItems": true,
-          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer. It also answers the two chatbot kinds: deploys_chatbot with neither declared nor left out is matched as if it is both, with a coverage line. And it answers the two model-provider roles: trains_models with a role neither declared nor left out is asked about it, and the laws that bind it are left off, with a coverage line counting them.",
+          "description": "Activities you were asked about and said this software does not do. Today it answers processes_personal_data: left unanswered, a declaration naming any activity its code settles is matched as if it processes personal data, with a coverage line, until you answer. It also answers the two chatbot kinds: deploys_chatbot with neither declared nor left out is matched as if it is both, with a coverage line. And it answers the two model-provider roles: trains_models with a role neither declared nor left out is asked about it, and the laws that bind it are left off, with a coverage line counting them. And it answers the eight decision domains: high_risk_decisions does not reach a domain left out, so a decision that fits none, such as fraud screening, leaves all eight out.",
           "items": { "$ref": "#/properties/profile/properties/activities/items" }
         },
         "jurisdictions": {

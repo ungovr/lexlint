@@ -153,10 +153,17 @@ evidence, while a "risk score" whose use the code does not state is `ask`. A
 domain implies `high_risk_decisions`, so declare the domain and the parent
 comes with it, and declare every domain the software decides in. A row written
 for one kind of decision reaches only that kind, so a hiring tool is not told a
-border-control rule. A profile that declares `high_risk_decisions` and no
-domain is answered with every domain's rules, and each jurisdiction where a
-domain would narrow them has an `info` coverage line,
-`<slug>:decision-domain-undeclared`, counting those findings.
+border-control rule. Record a no as well: a domain the software does not
+decide in goes in `activities_left_out`, and the bare parent does not reach a
+domain listed there. A decision that fits no domain, such as fraud screening
+(`credit_decisions` and the EU AI Act's credit rule both exclude fraud
+detection), is `high_risk_decisions` with all eight domains in
+`activities_left_out`: it keeps the law every automated decision owes and
+drops the law written for one kind. A profile that declares
+`high_risk_decisions` and answers no domain is answered with the rules of
+every domain not left out, and each jurisdiction where an answer would narrow
+them has an `info` coverage line, `<slug>:decision-domain-undeclared`,
+counting those findings.
 
 **What does it generate?** `generates_content` has four children, one per kind
 of output: `generates_text` (articles, messages, summaries, code),
@@ -220,13 +227,20 @@ record electronically, in its own flow or through an e-signature service; a
 checkbox accepting terms is not this. Both are activities, so the code settles
 them, and they are the triggers for digital-identity law.
 
-**Does it ship encryption?** `ships_encryption` is code that implements
-cryptography, or bundles or vendors a library that does, beyond calling the
-operating system's or platform's own TLS or cryptography APIs: a cryptography library
-in the dependency tree or in vendored source, a custom cipher, a bundled TLS
-stack or end-to-end encryption of its own. Calling HTTPS through the platform's
-stock client is not this. It is an activity, so the code settles it, and it is a
-trigger for export-control law.
+**Does it ship encryption?** `ships_encryption` is code that encrypts data or
+agrees keys to keep data confidential, whether in its own code, through the
+operating system's or platform's cryptography APIs, or with a library it
+bundles, or that bundles or vendors a cryptography library that does: a cipher
+call (AES-GCM, ChaCha20-Poly1305, RSA-OAEP), end-to-end or stored-data
+encryption, encrypted fields or files, a key exchange, a cryptography library
+in the dependency tree or vendored source, or a bundled TLS stack. Calling
+HTTPS through the platform's stock client is not this, and neither is hashing,
+password hashing, signing a token or a message authentication code on its own,
+nor encrypting only the passwords, tokens, two-factor secrets or session
+cookies that control access (a framework's encrypted session cookie, a stored
+sign-in token): export control counts those as authentication or integrity,
+and reaches cryptography that keeps other data confidential. It is an
+activity, so the code settles it, and it is a trigger for export-control law.
 
 **A sanctioned destination is set by the lint.** `serves_sanctioned_destination` is
 never asked and never read from the code. The lint sets it itself when the
