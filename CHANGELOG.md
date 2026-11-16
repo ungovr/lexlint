@@ -5,6 +5,20 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.79.0 (2026-11-16)
+
+- A public-sector profile that never said which kinds of public body run or
+  buy the software now hears what that silence hides. When `public_sector` is
+  `body` or `supplier`, `public_sector_functions` was not sent and no education
+  id is declared or left out, each jurisdiction with school law the run does
+  not show has an `info` line, `<slug>:public-education-undeclared`, counting
+  the laws that bind schools, or the companies that run or supply their
+  software. Ask the kinds of public body and send `public_sector_functions`;
+  naming `public_education` shows them. Answering without it silences the line,
+  as does a `public_sector` of `none`. The existing
+  `<slug>:public-functions-undeclared` line is unchanged: it counts findings
+  already shown, and either line can appear without the other.
+
 ## 1.78.1 (2026-11-16)
 
 - The role question no longer ties a role to one law. LexLint routes duty

@@ -132,7 +132,8 @@ vendor and onto its customer, and never adds or removes a law. A
 `public_sector_functions` names `public_education`, since a public school is a
 school; send `regulated_sector` only to say otherwise. Left unanswered, the kinds
 of public body infer nothing, and `<slug>:public-functions-undeclared` counts
-the findings naming `public_education` would move. The same
+the findings naming `public_education` would move, while
+`<slug>:public-education-undeclared` counts the school laws it would add. The same
 rules govern when to ask as for the financial answer below, and a run sent
 without it has an `info` coverage line, `<slug>:education-sector-undeclared`,
 counting the findings the answer would move.
@@ -316,7 +317,14 @@ sent without it says so: each jurisdiction with a finding whose duty binds only
 one kind of public body has an `info` coverage line,
 `<slug>:public-functions-undeclared`, counting those findings. A run sent with
 it has `<slug>:public-functions-narrowed` wherever it moved a duty, counting the
-duty lines by kind.
+duty lines by kind. A run sent without it, from a profile that declares no
+education id, has a second `info` coverage line wherever school law is hidden
+by that silence: `<slug>:public-education-undeclared`, counting the laws that
+bind schools, or the companies that run or supply their software, which the
+run does not show. It counts laws the run lacks, where
+`public-functions-undeclared` counts findings it already shows, and either can
+appear without the other. Ask the same question and send
+`public_sector_functions`; naming `public_education` shows them.
 
 **Whose duty is the financial law?** A second answer, asked only when
 `provides_financial_services` or one of its classes is a declared activity. A bank and a vendor whose

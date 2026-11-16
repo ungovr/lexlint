@@ -41,7 +41,9 @@ findings carrying a duty that binds only public bodies: some have `applies_to`
 the answer is what would route those duties. When it went out with
 `public_sector` `body` or `supplier` and no `public_sector_functions`, name the
 kinds of public body as the open question beside the
-`<slug>:public-functions-undeclared` line. The same goes for a run with
+`<slug>:public-functions-undeclared` line, and beside the
+`<slug>:public-education-undeclared` line when it appears, which counts school
+laws the run does not show. The same goes for a run with
 `provides_financial_services` or a class declared and no `regulated_sector`:
 name it beside the `<slug>:regulated-sector-undeclared` line, which counts the
 findings carrying a duty that binds only a regulated financial entity or its
