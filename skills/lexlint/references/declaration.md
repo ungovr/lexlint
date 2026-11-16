@@ -339,16 +339,18 @@ its own answer: an education answer leaves the financial one open, and the
 reverse.
 
 **Which role does the maker hold under each regime?** Asked of every
-declaration, like `public_sector`, and never answered from the code. One firm
-can be a provider under the EU AI Act and a processor under the GDPR, and some
-duties bind only one role. Ask two things, and give the developer each role's
-sentence as written, since a term of art cannot be answered from its name. Under
-the EU AI Act, which of these is the developer's company, or none of them
-(`none`)?
+declaration, like `public_sector`, and never answered from the code. A role is
+the position under each regime's own law, whatever that law calls it, and one
+firm can be a provider under an AI law and a processor under a data protection
+law, and some duties bind only one role. Ask two things, and give the developer
+each role's sentence as written, since a term of art cannot be answered from its
+name. Under the AI laws of the jurisdictions the app operates in, which of these
+is the developer's company, or none of them (`none`)? Colorado's developer is a
+`provider`.
 
-- `provider`: You develop an AI system or general-purpose AI model, or have
-  one developed, and put it on the EU market or into service under your own
-  name or trademark, paid or free.
+- `provider`: You develop an AI system or general-purpose AI model, have one
+  developed, or substantially modify one, and offer it or put it into service,
+  paid or free.
 - `deployer`: You use an AI system under your own authority, other than in a
   personal, non-professional activity.
 - `importer`: You are located or established in the EU and place on its market
@@ -363,14 +365,17 @@ the EU AI Act, which of these is the developer's company, or none of them
   hold a written mandate from a provider outside it to carry out its
   obligations under the Act on its behalf.
 
-Under the GDPR, which of these, or neither (`none`)?
+Under their data protection laws, which of these, or neither (`none`)? The
+CCPA's business and India's data fiduciary are each a `controller`, and the
+CCPA's service provider a `processor`.
 
 - `controller`: You decide, alone or jointly with others, why and how personal
   data is processed.
 - `processor`: You process personal data on behalf of a controller.
 
 A role can be both (`["provider", "deployer"]`), and `none` is only ever alone.
-Send the answers as `roles`, keyed by regime: `{"ai_system": ["provider"],
+`none` means no regime gives the company that role: a company with no users in
+the European Union can still be Colorado's developer. Send the answers as `roles`, keyed by regime: `{"ai_system": ["provider"],
 "personal_data": ["processor"]}`. A duty line tagged for a role the developer
 does not hold moves to `requires_elsewhere`. The same rule governs when to ask:
 whenever the profile is declared or re-declared, once on the next interactive
@@ -379,8 +384,7 @@ developer's behalf, and an axis left out of `roles` when its answer cannot be
 had. A run sent without an axis says so: each jurisdiction where the answer
 would move a matched duty off the caller has an `info` coverage line,
 `<slug>:ai-role-undeclared` or `<slug>:data-role-undeclared`, counting those
-findings. Only the European Union's own rows are tagged by role so far; a
-jurisdiction where no matched line is tagged by role has an `info`
+findings. A jurisdiction where no matched line is tagged by role has an `info`
 line, `<slug>:role-not-applied`, saying its duties are shown as yours.
 
 **Where does personal data go?** Asked of every declaration, like `roles`, and

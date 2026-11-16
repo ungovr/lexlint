@@ -149,7 +149,7 @@
               "uniqueItems": true,
               "items": { "type": "string", "enum": ["provider", "deployer", "importer", "distributor", "product_manufacturer", "authorised_representative", "none"] },
               "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
-              "description": "The roles the maker of this software holds under the EU AI Act (its operators, W3C DPV terms), or none alone. The developer's answer, never read from the code."
+              "description": "The roles the maker of this software holds under the AI laws of the jurisdictions it operates in, whatever each law calls them (Colorado's developer is a provider), or none alone. The values are the EU AI Act's operators, as W3C DPV terms. The developer's answer, never read from the code."
             },
             "personal_data": {
               "type": "array",
@@ -157,7 +157,7 @@
               "uniqueItems": true,
               "items": { "type": "string", "enum": ["controller", "processor", "none"] },
               "not": { "allOf": [{ "contains": { "const": "none" } }, { "minItems": 2 }] },
-              "description": "The roles the maker of this software holds under the GDPR, controller or processor (W3C DPV terms), or none alone. The developer's answer, never read from the code."
+              "description": "The roles the maker of this software holds under the data protection laws of the jurisdictions it operates in, whatever each law calls them (the CCPA's business and India's data fiduciary are each a controller), controller or processor (W3C DPV terms), or none alone. The developer's answer, never read from the code."
             }
           },
           "description": "Which role the maker of this software holds under each regime, keyed by axis. A duty line tagged for a role you do not hold moves to requires_elsewhere. An axis absent means never asked."

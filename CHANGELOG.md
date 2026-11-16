@@ -5,6 +5,25 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.78.1 (2026-11-16)
+
+- The role question no longer ties a role to one law. LexLint routes duty
+  lines by role under AI laws and data protection laws well beyond the EU AI
+  Act and the GDPR, so `roles` is the position the company holds under each
+  jurisdiction's own law, whatever that law calls it. Colorado's developer is
+  a `provider`. The CCPA's business and India's data fiduciary are each a
+  `controller`, and the CCPA's service provider is a `processor`.
+- `none` means no law the app is under gives the company that role. A company
+  with no users in the European Union can still be Colorado's developer, and
+  answering `none` for that reason shows its own duties as another party's.
+  If your `lexlint.yml` answers `none` only because the app has no EU users,
+  answer again on your next run.
+- The `provider` sentence now reads: you develop an AI system or model, have
+  one developed, or substantially modify one, and offer it or put it into
+  service. It used to require putting it on the EU market under your own
+  name, which left out Colorado's developer. The schema's two role
+  descriptions say the same as the question.
+
 ## 1.78.0 (2026-11-16)
 
 - A decision that fits none of the eight kinds can now say so. List a kind
