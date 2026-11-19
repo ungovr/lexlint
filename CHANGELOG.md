@@ -5,6 +5,17 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.80.0 (2026-11-18)
+
+- The LexLint catalog is now CLD, the Common Legal Duties. From this version
+  on, the IDs in a finding's `catalog` carry the CLD prefix, as in
+  `CLD-0725`. They were LXD until this version, and those IDs and their links
+  keep working: the number is the identity, so an ID or a catalog page
+  address written with either prefix names the same entry.
+- The schema accepts both prefixes in `catalog`, so a `lexlint.yml` written by
+  an earlier version, with IDs that were LXD until this version, still
+  validates.
+
 ## 1.79.0 (2026-11-16)
 
 - A public-sector profile that never said which kinds of public body run or

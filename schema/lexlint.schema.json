@@ -281,8 +281,8 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^LXD-\\d{4,}$" },
-          "description": "The IDs of the LexLint catalog entries this instrument finding belongs to, sorted and distinct: one for each activity in matched_by.activities that has an entry in the finding's jurisdiction, each a page at https://lexlint.io/catalog/<ID>. From the engine since the catalog's November 2026 deploy, and in this schema since bundle 1.75.0. Absent, never empty, when there is none: a coverage or posture finding, a law about government behavior, a cell holding only proposals."
+          "items": { "type": "string", "pattern": "^(CLD|LXD)-\\d{4,}$" },
+          "description": "The IDs of the LexLint catalog entries this instrument finding belongs to, sorted and distinct: one for each activity in matched_by.activities that has an entry in the finding's jurisdiction, each a page at https://lexlint.io/catalog/<ID>. From the engine since the catalog's November 2026 deploy, and in this schema since bundle 1.75.0. The prefix is CLD, the Common Legal Duties, from bundle 1.80.0; either prefix names the same entry, and the schema takes both. Absent, never empty, when there is none: a coverage or posture finding, a law about government behavior, a cell holding only proposals."
         },
         "status": { "type": ["string", "null"] },
         "requires": {
