@@ -36,12 +36,23 @@ the answer before going on:
   data, it is one that never gets looked at, so fix the spelling with the
   developer and call again rather than proceeding without it.
 - **`coverage`** says what is held for each slug, and `resolved_from_parent`
-  says which ones answered from a parent. Tell the developer when a slug they
-  named is answering from one rung up.
+  says which ones another jurisdiction's law answered for, and which one. Tell
+  the developer when a slug they named is answered by a jurisdiction whose law
+  reaches it rather than by its own. A slug that LexLint has renamed is the
+  other case to tell them about, and it comes back from `run_lint`, below.
 - **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send. It carries `public_sector`,
   `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
+
+**Relay a `renamed` notice to the developer, every time.** When a declared
+slug was LexLint's name for a jurisdiction that has a new slug now, and the old
+one is now another jurisdiction's slug, `run_lint` returns a `renamed` list and
+`get_law` a `notice.renamed`, each `{asked, now_names, renamed_to}`. The old
+slug now reads the law of `now_names`, the jurisdiction that answers for it, or
+no law at all when `now_names` is null; the jurisdiction it used to name is
+`renamed_to`. Say so, and ask whether to declare `renamed_to` instead. The
+profile is theirs to change.
 
 **`derived` passes through unchanged.** When the manifest's `profile` holds
 `derived`, send it as it stands, `true` or `false`, to `set_profile` and to
@@ -62,7 +73,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.80.0"
+  client_version="1.82.0"
 )
 ```
 
@@ -349,7 +360,9 @@ routing, for this first look; the lanes the work goes into are step 5's.
 beside its parent mirrors the parent's findings (step 4 says how), so the block
 reads each law once, by its instrument key and the slug it was read from, and
 the count says so: "4 of 90 instruments (94 findings, 4 of them a parent's law
-again)", never a bare total. A split run (step 3) is one run here too: read
+again)", never a bare total. Of a law's copies it keeps the one declared where
+the law was read, the one whose id begins with its `jurisdiction`, so a
+jurisdiction declared under two names prints its own row once. A split run (step 3) is one run here too: read
 every call's file at once, as the command below does for `lint-*.json`.
 
 This prints the blocks' rows from the unwrapped `lint.json`, then the two
@@ -365,6 +378,7 @@ the file:
 ```bash
 jq -r '
   def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
+  def declared: .id | split(":")[0];
   def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
   def lawname: if .kind == "coverage" then ""
                else .name // (.summary | split(": ") | if length > 1 then .[0] else "" end) end;
@@ -380,10 +394,10 @@ jq -r '
   def lead: [ .[] | select(.severity == "warn" and .kind == "obligation"
                            and ((.certainty.resultset // "present") == "present")
                            and .in_force.state == "in_force") ]
-            | group_by(.resolved_from // .jurisdiction)
+            | group_by(declared)
             | map(sort_by(.effective_date // "") | reverse | sort_by(.note_url == null) | .[0]);
   (.findings | length) as $total
-  | (.findings | group_by(law) | map(sort_by(.resolved_from != null) | .[0])) as $all
+  | (.findings | group_by(law) | map(sort_by(declared != .jurisdiction) | .[0])) as $all
   | ([$all | lead[]] + [$all[] | select(counsel)]
      + [$all[] | select(.kind == "coverage" and .severity == "warn")]
      | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown

@@ -5,6 +5,30 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.82.0 (2026-11-20)
+
+- The bundle now carries a power for Kiro, in its `kiro` folder. In Kiro,
+  import a power from the repository URL
+  https://github.com/ungovr/lexlint/tree/main/kiro and it brings the same four
+  skills and the same server as every other client. Nothing changes for Claude
+  Code or Codex: no tool, argument, field or schema changes.
+
+## 1.81.1 (2026-11-19)
+
+- The skill and `AGENTS.md` name the jurisdiction of every AI act they
+  mention, as in "the EU AI Act", because several jurisdictions now have an
+  AI act of their own. Wording only: no tool, argument, field or schema
+  changes.
+
+## 1.81.0 (2026-11-19)
+
+- Eighteen places now use their UnGovr Atlas name, such as us/ny/city/new-york
+  for New York City. Every old name still works, and your triage carries over.
+- When a jurisdiction you declared by an old name now names another
+  jurisdiction, the lint says so and asks before changing your profile.
+- The run summary keeps one row per law when a jurisdiction is declared under
+  two of its names.
+
 ## 1.80.0 (2026-11-18)
 
 - The LexLint catalog is now CLD, the Common Legal Duties. From this version

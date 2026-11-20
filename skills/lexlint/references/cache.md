@@ -66,10 +66,12 @@ quoted, cited as a requirement or counted as covered from `index`. An
 instrument is under `instruments` only when an `instrument` call, or a
 `detail: "full"` call, returned it in full.
 
-**Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
-walks up and answers from `us/ca`. The resolved slug is the response's own
+**Key on the resolved slug, never the requested one.**
+`get_law("us/ca/santa-barbara")` answers from `us/ca`, the jurisdiction whose
+law reaches the city. The resolved slug is the response's own
 `jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
-holds the slug you asked for, and it is present only when a parent answered.
+holds the slug you asked for, and it is present only when another
+jurisdiction's law answered.
 Every `record_id` starts with the resolved slug (`us/ca:1a2b3c4d5e6f`), so an
 instrument whose id names another slug does not belong in the file. Filed
 under what was asked for, one row of the law library lands in the cache
@@ -128,7 +130,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.80.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 

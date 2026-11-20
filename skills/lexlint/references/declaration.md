@@ -74,7 +74,7 @@ from the code. A health app is not a covered entity because it stores health
 data, a fintech is not a bank because it moves money, and a web app is not a
 cloud provider because it is hosted.
 
-**Does it build the model?** The duties only a model's provider owes (the AI
+**Does it build the model?** The duties only a model's provider owes (the EU AI
 Act's general-purpose model chapter, California's SB 53, New York's RAISE Act)
 are on `provides_general_purpose_ai_model` and `is_frontier_developer`, never
 on `trains_models`, so a team that fine-tunes a classifier is not told them.
@@ -528,8 +528,9 @@ tool nationwide from Austin names none of those cities when asked about
 operators or offering, and is bound by all three.
 
 Name the city when one is in play, not just the state: `us/ca/san-francisco`
-rather than `us/ca`. A city LexLint holds nothing for answers from its state
-parent and reports that in `resolved_from_parent`, so naming one is never worse
+rather than `us/ca`. A city LexLint holds nothing for is answered by the
+jurisdiction whose law reaches it, usually its state, and the preview reports
+that in `resolved_from_parent`, so naming one is never worse
 than leaving it off, and leaving it off is what hides the finding.
 
 A slug is the jurisdiction's UnGovr Atlas path: California is
@@ -541,12 +542,22 @@ territory the law library holds under its sovereign is reachable from its own
 code (`PR` is `us/pr`). The
 profile it writes always holds the slug. A city or county has no ISO code: name
 it by path, as above.
-A deeper or unresearched path resolves to the nearest jurisdiction with law,
-and the jurisdictions whose law is researched are listed at https://lexlint.io/law
+A deeper or unresearched path resolves to the nearest jurisdiction whose law
+reaches it, and to none for a territory with its own legal system. The
+jurisdictions whose law is researched are listed at https://lexlint.io/law
 for the developer to check. The server resolves whatever you send and names
 what it resolved to in the coverage preview, so there is nothing to look up
 anywhere else, and a slug taken from a web search is the one that quietly
 lints the wrong jurisdiction.
+
+**Relay a `renamed` notice to the developer, every time.** When a declared
+slug was LexLint's name for a jurisdiction that has a new slug now, and the old
+one is now another jurisdiction's slug, `run_lint` returns a `renamed` list and
+`get_law` a `notice.renamed`, each `{asked, now_names, renamed_to}`. The old
+slug now reads the law of `now_names`, the jurisdiction that answers for it, or
+no law at all when `now_names` is null; the jurisdiction it used to name is
+`renamed_to`. Say so, and ask whether to declare `renamed_to` instead. The
+profile is theirs to change.
 
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.

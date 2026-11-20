@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "lexlint": {
+      "type": "streamable-http",
+      "url": "https://mcp.lexlint.io/mcp",
+      "headers": {
+        "X-LexLint-Bundle": "1.82.0"
+      }
+    }
+  }
+}

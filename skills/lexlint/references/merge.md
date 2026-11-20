@@ -27,8 +27,8 @@ developer may have work here that this run cannot see.
 **A child jurisdiction that answered from a parent mirrors the parent's
 findings, and both sets arrive.** Declare `us/ca` and `us/ca/santa-barbara`
 and the city's findings are the state's a second time under city ids, because
-`id` is keyed on the slug that was declared while the answer came from one
-rung up. Two fields say which slug is which, and they are easy to read the
+`id` is keyed on the slug that was declared while the answer came from the
+state, whose law reaches the city. Two fields say which slug is which, and they are easy to read the
 wrong way round. **`jurisdiction` names the slug the law was read from**, so
 on the city's findings it is `us/ca`. **`resolved_from` names the slug that
 was declared**, here `us/ca/santa-barbara`, and it is present only on a
@@ -142,7 +142,7 @@ run it against the manifest in place:
 ```bash
 SKILL_DIR='<the base directory your client named for this skill>'
 python3 "$SKILL_DIR/scripts/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.80.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.82.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 ```
 
@@ -158,7 +158,7 @@ and write its one Python block to `merge.py` inside a new private directory
 from `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, never a fixed name in a
 shared directory. **Check its version before you run it.** That page follows
 the newest bundle, not this one, and the block's `--tool` examples name the
-bundle it belongs to: they must read `lexlint 1.80.0`, this skill's own.
+bundle it belongs to: they must read `lexlint 1.82.0`, this skill's own.
 Then it is the same script, byte for byte, and a test holds the two together;
 run it with the same arguments, then delete the directory. If they name any
 other version, do not run it: delete the directory, write the block by hand as
@@ -176,7 +176,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.80.0`, and `--summary` is the one sentence you author.
+`lexlint 1.82.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -209,8 +209,8 @@ them, `triage_carried` and `triage_restored`, `vanished_added` and
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having
 come back when a call's `jurisdictions` lists it or a finding's id is keyed on
-it, so a city that answered from its state is not listed (it was linted, one
-rung up), and neither is a jurisdiction declared by another of its names. The
+it, so a city that answered from its state is not listed (it was linted, by
+the state's law), and neither is a jurisdiction declared by another of its names. The
 profile's spelling is compared the way the server reads it, so `US-CA` or
 `urn:ungovr:us/ca` matches `us/ca`; a territory's own ISO code, which only the
 server can map, still reads as missing until the profile holds its slug,

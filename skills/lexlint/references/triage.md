@@ -85,7 +85,7 @@ it answers and the jurisdictions it spans.
 
 The same mitigation usually answers several findings at once. Honoring
 machine-readable TDM reservations answers the EU DSM article and its national
-implementations together. Labeling synthetic output answers the AI Act, the KR
+implementations together. Labeling synthetic output answers the EU AI Act, the KR
 phase-in and several US state duties together. **The findings are many; the
 things to build are few.**
 
@@ -206,7 +206,7 @@ the facts around it. The brief is the developer's document and lives in
 their repository beside the doc-lane drafts. It carries, in this order:
 
 1. **The question.** The work item's title, phrased as a question a lawyer
-   can answer: "Does the labeling duty in AI Act Art. 50 reach this product?"
+   can answer: "Does the labeling duty in EU AI Act Art. 50 reach this product?"
    **Where any finding in the item carries `settledness.open_questions`,
    those questions come first, verbatim and each attributed to its
    instrument**, and your title follows them. They were written by a

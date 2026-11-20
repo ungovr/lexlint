@@ -82,17 +82,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.80.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.82.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.80.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.80.0`.** State it, do not go looking
+**That version string is yours and it is `1.82.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +174,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.80.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.82.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -284,7 +284,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.80.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.82.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +532,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.80.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.82.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -634,7 +634,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.80.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.82.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -914,7 +914,7 @@ from the code. A health app is not a covered entity because it stores health
 data, a fintech is not a bank because it moves money, and a web app is not a
 cloud provider because it is hosted.
 
-**Does it build the model?** The duties only a model's provider owes (the AI
+**Does it build the model?** The duties only a model's provider owes (the EU AI
 Act's general-purpose model chapter, California's SB 53, New York's RAISE Act)
 are on `provides_general_purpose_ai_model` and `is_frontier_developer`, never
 on `trains_models`, so a team that fine-tunes a classifier is not told them.
@@ -1368,8 +1368,9 @@ tool nationwide from Austin names none of those cities when asked about
 operators or offering, and is bound by all three.
 
 Name the city when one is in play, not just the state: `us/ca/san-francisco`
-rather than `us/ca`. A city LexLint holds nothing for answers from its state
-parent and reports that in `resolved_from_parent`, so naming one is never worse
+rather than `us/ca`. A city LexLint holds nothing for is answered by the
+jurisdiction whose law reaches it, usually its state, and the preview reports
+that in `resolved_from_parent`, so naming one is never worse
 than leaving it off, and leaving it off is what hides the finding.
 
 A slug is the jurisdiction's UnGovr Atlas path: California is
@@ -1381,12 +1382,22 @@ territory the law library holds under its sovereign is reachable from its own
 code (`PR` is `us/pr`). The
 profile it writes always holds the slug. A city or county has no ISO code: name
 it by path, as above.
-A deeper or unresearched path resolves to the nearest jurisdiction with law,
-and the jurisdictions whose law is researched are listed at https://lexlint.io/law
+A deeper or unresearched path resolves to the nearest jurisdiction whose law
+reaches it, and to none for a territory with its own legal system. The
+jurisdictions whose law is researched are listed at https://lexlint.io/law
 for the developer to check. The server resolves whatever you send and names
 what it resolved to in the coverage preview, so there is nothing to look up
 anywhere else, and a slug taken from a web search is the one that quietly
 lints the wrong jurisdiction.
+
+**Relay a `renamed` notice to the developer, every time.** When a declared
+slug was LexLint's name for a jurisdiction that has a new slug now, and the old
+one is now another jurisdiction's slug, `run_lint` returns a `renamed` list and
+`get_law` a `notice.renamed`, each `{asked, now_names, renamed_to}`. The old
+slug now reads the law of `now_names`, the jurisdiction that answers for it, or
+no law at all when `now_names` is null; the jurisdiction it used to name is
+`renamed_to`. Say so, and ask whether to declare `renamed_to` instead. The
+profile is theirs to change.
 
 **Quote every slug.** YAML reads a bare `no` as boolean false and Norway
 disappears from the declaration without a trace.
@@ -1529,12 +1540,23 @@ the answer before going on:
   data, it is one that never gets looked at, so fix the spelling with the
   developer and call again rather than proceeding without it.
 - **`coverage`** says what is held for each slug, and `resolved_from_parent`
-  says which ones answered from a parent. Tell the developer when a slug they
-  named is answering from one rung up.
+  says which ones another jurisdiction's law answered for, and which one. Tell
+  the developer when a slug they named is answered by a jurisdiction whose law
+  reaches it rather than by its own. A slug that LexLint has renamed is the
+  other case to tell them about, and it comes back from `run_lint`, below.
 - **`profile`** is the canonical form. Write **that** into `lexlint.yml`, not
   what you typed: it is normalized, and the manifest should hold the same
   strings the next run will send. It carries `public_sector`,
   `public_sector_functions`, `regulated_sector`, `roles`, `flows` and `derived` when you sent them; send every field of it to `run_lint`.
+
+**Relay a `renamed` notice to the developer, every time.** When a declared
+slug was LexLint's name for a jurisdiction that has a new slug now, and the old
+one is now another jurisdiction's slug, `run_lint` returns a `renamed` list and
+`get_law` a `notice.renamed`, each `{asked, now_names, renamed_to}`. The old
+slug now reads the law of `now_names`, the jurisdiction that answers for it, or
+no law at all when `now_names` is null; the jurisdiction it used to name is
+`renamed_to`. Say so, and ask whether to declare `renamed_to` instead. The
+profile is theirs to change.
 
 **`derived` passes through unchanged.** When the manifest's `profile` holds
 `derived`, send it as it stands, `true` or `false`, to `set_profile` and to
@@ -1555,7 +1577,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.80.0"
+  client_version="1.82.0"
 )
 ```
 
@@ -1842,7 +1864,9 @@ routing, for this first look; the lanes the work goes into are step 5's.
 beside its parent mirrors the parent's findings (step 4 says how), so the block
 reads each law once, by its instrument key and the slug it was read from, and
 the count says so: "4 of 90 instruments (94 findings, 4 of them a parent's law
-again)", never a bare total. A split run (step 3) is one run here too: read
+again)", never a bare total. Of a law's copies it keeps the one declared where
+the law was read, the one whose id begins with its `jurisdiction`, so a
+jurisdiction declared under two names prints its own row once. A split run (step 3) is one run here too: read
 every call's file at once, as the command below does for `lint-*.json`.
 
 This prints the blocks' rows from the unwrapped `lint.json`, then the two
@@ -1858,6 +1882,7 @@ the file:
 ```bash
 jq -r '
   def counsel: (.settledness.band == "unsettled") or (.lifecycle.band == "blocked");
+  def declared: .id | split(":")[0];
   def law: [(.id | sub("^[^:]*:"; "")), .jurisdiction];
   def lawname: if .kind == "coverage" then ""
                else .name // (.summary | split(": ") | if length > 1 then .[0] else "" end) end;
@@ -1873,10 +1898,10 @@ jq -r '
   def lead: [ .[] | select(.severity == "warn" and .kind == "obligation"
                            and ((.certainty.resultset // "present") == "present")
                            and .in_force.state == "in_force") ]
-            | group_by(.resolved_from // .jurisdiction)
+            | group_by(declared)
             | map(sort_by(.effective_date // "") | reverse | sort_by(.note_url == null) | .[0]);
   (.findings | length) as $total
-  | (.findings | group_by(law) | map(sort_by(.resolved_from != null) | .[0])) as $all
+  | (.findings | group_by(law) | map(sort_by(declared != .jurisdiction) | .[0])) as $all
   | ([$all | lead[]] + [$all[] | select(counsel)]
      + [$all[] | select(.kind == "coverage" and .severity == "warn")]
      | unique_by(law) | sort_by([(.severity != "warn"), .jurisdiction])) as $shown
@@ -1928,8 +1953,8 @@ developer may have work here that this run cannot see.
 **A child jurisdiction that answered from a parent mirrors the parent's
 findings, and both sets arrive.** Declare `us/ca` and `us/ca/santa-barbara`
 and the city's findings are the state's a second time under city ids, because
-`id` is keyed on the slug that was declared while the answer came from one
-rung up. Two fields say which slug is which, and they are easy to read the
+`id` is keyed on the slug that was declared while the answer came from the
+state, whose law reaches the city. Two fields say which slug is which, and they are easy to read the
 wrong way round. **`jurisdiction` names the slug the law was read from**, so
 on the city's findings it is `us/ca`. **`resolved_from` names the slug that
 was declared**, here `us/ca/santa-barbara`, and it is present only on a
@@ -2072,13 +2097,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.80.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.82.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.80.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.82.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2283,7 +2308,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.80.0'")
+                         "lint.tool, such as 'lexlint 1.82.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2506,7 +2531,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.80.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.82.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2524,7 +2549,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.80.0`, and `--summary` is the one sentence you author.
+`lexlint 1.82.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2557,8 +2582,8 @@ them, `triage_carried` and `triage_restored`, `vanished_added` and
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having
 come back when a call's `jurisdictions` lists it or a finding's id is keyed on
-it, so a city that answered from its state is not listed (it was linted, one
-rung up), and neither is a jurisdiction declared by another of its names. The
+it, so a city that answered from its state is not listed (it was linted, by
+the state's law), and neither is a jurisdiction declared by another of its names. The
 profile's spelling is compared the way the server reads it, so `US-CA` or
 `urn:ungovr:us/ca` matches `us/ca`; a territory's own ISO code, which only the
 server can map, still reads as missing until the profile holds its slug,
@@ -2746,7 +2771,7 @@ it answers and the jurisdictions it spans.
 
 The same mitigation usually answers several findings at once. Honoring
 machine-readable TDM reservations answers the EU DSM article and its national
-implementations together. Labeling synthetic output answers the AI Act, the KR
+implementations together. Labeling synthetic output answers the EU AI Act, the KR
 phase-in and several US state duties together. **The findings are many; the
 things to build are few.**
 
@@ -2867,7 +2892,7 @@ the facts around it. The brief is the developer's document and lives in
 their repository beside the doc-lane drafts. It carries, in this order:
 
 1. **The question.** The work item's title, phrased as a question a lawyer
-   can answer: "Does the labeling duty in AI Act Art. 50 reach this product?"
+   can answer: "Does the labeling duty in EU AI Act Art. 50 reach this product?"
    **Where any finding in the item carries `settledness.open_questions`,
    those questions come first, verbatim and each attributed to its
    instrument**, and your title follows them. They were written by a
@@ -3136,10 +3161,12 @@ quoted, cited as a requirement or counted as covered from `index`. An
 instrument is under `instruments` only when an `instrument` call, or a
 `detail: "full"` call, returned it in full.
 
-**Key on the resolved slug, never the requested one.** `get_law("us/ca/sf")`
-walks up and answers from `us/ca`. The resolved slug is the response's own
+**Key on the resolved slug, never the requested one.**
+`get_law("us/ca/santa-barbara")` answers from `us/ca`, the jurisdiction whose
+law reaches the city. The resolved slug is the response's own
 `jurisdiction.slug`, and that is the key. `resolved_from` is the other one: it
-holds the slug you asked for, and it is present only when a parent answered.
+holds the slug you asked for, and it is present only when another
+jurisdiction's law answered.
 Every `record_id` starts with the resolved slug (`us/ca:1a2b3c4d5e6f`), so an
 instrument whose id names another slug does not belong in the file. Filed
 under what was asked for, one row of the law library lands in the cache
@@ -3198,7 +3225,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.80.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3309,7 +3336,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.80.0
+     version:  1.82.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3438,7 +3465,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.80.0`, the bundle that ran the lint. The
+- `client_version`: `1.82.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 
