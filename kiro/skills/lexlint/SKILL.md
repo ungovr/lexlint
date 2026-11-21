@@ -4,7 +4,7 @@ description: Use this skill first, before reading or editing code, whenever a re
 license: MIT
 compatibility: Needs network access to https://mcp.lexlint.io and python3 with PyYAML for the merge step.
 metadata:
-  version: "1.82.0"
+  version: "1.84.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -46,6 +46,16 @@ says there is no key", below (its file is named further down), is one command, a
 **The lint is advisory and never blocks the work.** If the developer declines a
 key, the sign-in, or the lint itself, say in one line that the lint was offered
 and declined, then go back to the request that brought you here and do it.
+
+**When that request was itself a question about the law, a lint that did not
+run leaves it to `get_law`, never to your memory.** "What do I need to handle?"
+or "which laws apply?" is answered from what `get_law` returns, which needs no
+key and no sign-in, and you name each instrument you read. Anything past those
+is your own knowledge: say so where you use it, and never present it as
+LexLint's, nor close it with LexLint's line that this is a research summary,
+not legal advice. This holds whether the lint was declined or stopped on a
+failure: either way no lint ran, there are no findings, and nothing written in
+their place is one.
 
 **There are two routes to a key and the developer picks, so ask BEFORE you
 start either one.** Neither is a fallback for the other. One needs an account,
@@ -91,17 +101,17 @@ already stuck.
 Read `references/clients.md` before any install, key, update, restart or
 sign-in step, or to scope one run by path, to find your own client.
 
-**Run `check_access` before anything else**, pass `client_version: "1.82.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.84.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.84.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.82.0`.** State it, do not go looking
+**That version string is yours and it is `1.84.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -116,7 +126,8 @@ the answer.
 
 Read `references/no-key.md` when `key_present` is false.
 
-Read `references/signed-in.md` when `credential` is `"none"`.
+Read `references/signed-in.md` when `credential` is `"none"`, or when any tool
+answers that sign-in is needed.
 
 Read `references/unreachable.md` when `check_access`, or any call after it,
 fails to answer.

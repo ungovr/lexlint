@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import string
 import sys
 import tempfile
 
@@ -35,13 +36,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.82.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.84.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.82.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.84.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -58,6 +59,9 @@ exit codes:
 """
 
 CARRY = ("state", "where", "note", "handled_by")
+# A jurisdiction is ASCII, and only its ASCII case folds: str.lower() would read
+# U+212A KELVIN SIGN as "k" and name a place the profile does not.
+ASCII_LOWER = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
 KEYS = {
     "lint": ("run_at", "tool", "summary", "findings", "work_items", "vanished"),
     "findings": (
@@ -246,7 +250,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.82.0'")
+                         "lint.tool, such as 'lexlint 1.84.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -427,8 +431,8 @@ def main():
     def spelled(j):
         if not isinstance(j, str):
             return None
-        s = re.sub(r"^(urn:ungovr:|https?://(www\.)?(ungovr\.org|lexlint\.io/law)/)", "",
-                   j.strip().lower()).strip("/")
+        s = re.sub(r"^(urn:(?:via|ungovr):|https?://(www\.)?(ungovr\.org|lexlint\.io/law)/)", "",
+                   j.strip().translate(ASCII_LOWER)).strip("/")
         return re.sub(r"^([a-z]{2})-([a-z0-9]{1,3})$", r"\1/\2", s)
     seen = ran | {declared(f) for f in out_f}
     json.dump({

@@ -4,7 +4,7 @@ description: Use when the developer wants to send feedback about LexLint, a find
 license: MIT
 compatibility: Needs the LexLint MCP server at https://mcp.lexlint.io and nothing else
 metadata:
-  version: "1.82.0"
+  version: "1.84.0"
   publisher: UnGovr
   homepage: https://lexlint.io
 ---
@@ -30,6 +30,13 @@ build it, recorded against their UnGovr account so we can write back.
 a session is recorded there, and a summary built from one would carry the
 developer's own key to us.
 
+**Where your client's entry in Client setup (`../lexlint/references/clients.md`) says
+signing in is not open from it and this session has no key, do not call
+`submit_feedback`.** On an install with no key it is one of the tools that ask
+for a sign-in, and from that client the sign-in can only fail. Say so before
+drafting anything, and give the developer the address the people who build
+LexLint read, lexlint-feedback@ungovr.org, to write to themselves.
+
 The shape:
 
 1. Draft a short usage summary from what you actually did this session. If no
@@ -53,7 +60,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.82.0
+     version:  1.84.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one

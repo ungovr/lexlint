@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "lexlint",
-  "version": "1.82.0",
+  "version": "1.84.0",
   "description": "A lint for AI, scraping, privacy, cybersecurity, communications, content-moderation, product-liability, digital-accessibility, digital-identity, cloud-service, export-control, age-gating, and reuse law. Declare what your app does and where it operates, and get cited, jurisdiction-specific findings before you ship.",
   "author": {
     "name": "UnGovr",

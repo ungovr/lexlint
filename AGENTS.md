@@ -43,6 +43,16 @@ says there is no key", below, is one command, and it comes first.
 key, the sign-in, or the lint itself, say in one line that the lint was offered
 and declined, then go back to the request that brought you here and do it.
 
+**When that request was itself a question about the law, a lint that did not
+run leaves it to `get_law`, never to your memory.** "What do I need to handle?"
+or "which laws apply?" is answered from what `get_law` returns, which needs no
+key and no sign-in, and you name each instrument you read. Anything past those
+is your own knowledge: say so where you use it, and never present it as
+LexLint's, nor close it with LexLint's line that this is a research summary,
+not legal advice. This holds whether the lint was declined or stopped on a
+failure: either way no lint ran, there are no findings, and nothing written in
+their place is one.
+
 **There are two routes to a key and the developer picks, so ask BEFORE you
 start either one.** Neither is a fallback for the other. One needs an account,
 which is free; the other needs none: `claim_trial_key`, called from this
@@ -82,17 +92,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.82.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.84.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.84.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.82.0`.** State it, do not go looking
+**That version string is yours and it is `1.84.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -174,7 +184,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.82.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.84.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -189,6 +199,15 @@ client they are in:
 - In the Claude apps, approve the Connect prompt.
 
 Once they have signed in, run the same step again.
+
+**A sign-in that fails is a stop, the same as a server that did not
+answer**.
+A registration error, a refused consent, any error from the sign-in itself:
+name the step that needed it, quote the error you got, report no findings, and
+give the route that does work, from your client's entry in Client
+setup. Do not start the sign-in again unasked. What is
+left of the request after that is the law lookups, as Setup
+says, and nothing from memory in the lint's place.
 
 Signing in to LexLint from Codex is not open yet, so a Codex user keeps the
 key route above: their key in an `X-API-Key` header.
@@ -284,7 +303,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.82.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.84.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -532,7 +551,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.82.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.84.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -628,13 +647,45 @@ running, and never offer a command from another entry.
   Nothing LexLint can key is installed here to update. Update from a terminal,
   as the Claude Code entry says.
 
+**Kiro**
+
+- **Install** `https://github.com/ungovr/lexlint/tree/main/kiro`
+
+  In the Kiro IDE, open the Powers panel, choose **Add Custom Power**, then
+  **Import power from a repository URL** (older Kiro builds call it **Import
+  power from GitHub**), paste this address and choose **Install**. Use the
+  whole address: the power is the bundle's `kiro` folder, and the repository's
+  root is laid out for Claude Code and Codex. Kiro's CLI installs a power from
+  a folder or by its catalog name, never from a URL: `kiro-cli powers install`
+  with the path of the `kiro` folder in a clone of the repository.
+- **Key** not available here.
+
+  A power's server entry is read as it ships and has no place for a key, so
+  the LexLint power never sends one, and a trial key has nowhere to land
+  either. To lint from Kiro, the developer sets LexLint up the other way, as
+  https://developer.lexlint.io/install/kiro says: the server alone, in Kiro's
+  own MCP configuration, with the key in an `X-API-Key` header, in place of
+  the power and not beside it, so that Kiro has one LexLint server to call.
+- **Update** not available here.
+
+  Nothing in a session can update a power. The developer updates it in the
+  Kiro IDE: in the Powers panel, choose the LexLint power, then **Check for
+  updates**, and **Install updates** when Kiro offers one, which Kiro's docs
+  say refreshes the power from its repository. Kiro's CLI documents no update,
+  only install and uninstall, so a power installed there from a clone is
+  refreshed by reinstalling it: pull the clone, run
+  `kiro-cli powers uninstall lexlint`, then `kiro-cli powers install` with the
+  clone's `kiro` folder again.
+- **Restart** after a key is saved or the bundle is updated: start a new Kiro
+  session.
+
 **Any other MCP client**
 
 - **Install** `https://mcp.lexlint.io/mcp`
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.82.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.84.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -1577,7 +1628,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.82.0"
+  client_version="1.84.0"
 )
 ```
 
@@ -1846,7 +1897,10 @@ blocked the law, struck it or part of it down, or upheld it after a block, or
 when a suit against it is pending. Each ruling gets a line under the block's
 first line, at the same indent: what the court did, with the parts of the law
 it reached when it reached only some, the day, the ruling and its court, and
-where the ruling stands now. A pending suit adds `under challenge in court`,
+where the ruling stands now. A ruling whose `basis` is `reported` is one
+LexLint has not read: its line says who reported it (`, reported by A and B`,
+from `reported_by`), and wherever you cite it, say that its outcome is as
+those sources report it. A pending suit adds `under challenge in court`,
 and never a name: the law library does not name it. The command below writes
 these lines after the lane, one per column, in the order to print them. They
 are the law library's words; print them as they come, and never name a court
@@ -1891,6 +1945,10 @@ jq -r '
               + ({"enjoins": "blocked", "invalidates": "struck down", "upholds": "upheld"}[.role] // .role)
               + (if .decided then " \(.decided)" else "" end)
               + " by \(.name)" + (if .court then " (\(.court))" else "" end)
+              + (if .basis != "reported" then ""
+                 else [.reported_by[]?.publisher | select(. != null and . != "")]
+                      | if length > 1 then ", reported by " + (.[:-1] | join(", ")) + " and " + .[-1]
+                        elif length == 1 then ", reported by " + .[0] else "" end end)
               + (if .stage then "; now \(.stage.word // .stage.stage | ascii_downcase)"
                                 + (if .stage.date then " \(.stage.date)" else "" end) else "" end);
   def courtlines: [(.court_action.rulings // [])[] | ruling]
@@ -2069,6 +2127,7 @@ import argparse
 import json
 import os
 import re
+import string
 import sys
 import tempfile
 
@@ -2097,13 +2156,13 @@ EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.82.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.84.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.82.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.84.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2120,6 +2179,9 @@ exit codes:
 """
 
 CARRY = ("state", "where", "note", "handled_by")
+# A jurisdiction is ASCII, and only its ASCII case folds: str.lower() would read
+# U+212A KELVIN SIGN as "k" and name a place the profile does not.
+ASCII_LOWER = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
 KEYS = {
     "lint": ("run_at", "tool", "summary", "findings", "work_items", "vanished"),
     "findings": (
@@ -2308,7 +2370,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.82.0'")
+                         "lint.tool, such as 'lexlint 1.84.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2489,8 +2551,8 @@ def main():
     def spelled(j):
         if not isinstance(j, str):
             return None
-        s = re.sub(r"^(urn:ungovr:|https?://(www\.)?(ungovr\.org|lexlint\.io/law)/)", "",
-                   j.strip().lower()).strip("/")
+        s = re.sub(r"^(urn:(?:via|ungovr):|https?://(www\.)?(ungovr\.org|lexlint\.io/law)/)", "",
+                   j.strip().translate(ASCII_LOWER)).strip("/")
         return re.sub(r"^([a-z]{2})-([a-z0-9]{1,3})$", r"\1/\2", s)
     seen = ran | {declared(f) for f in out_f}
     json.dump({
@@ -2531,7 +2593,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.82.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.84.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2549,7 +2611,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.82.0`, and `--summary` is the one sentence you author.
+`lexlint 1.84.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -3225,7 +3287,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.82.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.84.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3336,7 +3398,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.82.0
+     version:  1.84.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3465,7 +3527,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.82.0`, the bundle that ran the lint. The
+- `client_version`: `1.84.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

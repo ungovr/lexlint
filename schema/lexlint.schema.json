@@ -98,7 +98,7 @@
           "minItems": 1,
           "uniqueItems": true,
           "description": "Jurisdictions, each a slug (lowercase, \"/\"-separated), an ISO 3166 code (\"US-CA\", \"FR\") or an Atlas ID (\"urn:ungovr:us/ca\"). The profile the server writes always holds the slug. Declare every jurisdiction you operate in: an undeclared one is simply unlinted, and unlinted is not clean.",
-          "items": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|urn:ungovr:[a-z0-9-]+(?:/[a-z0-9-]+)*)$", "description": "A jurisdiction: a slug (lowercase, \"/\"-separated), an ISO 3166 code (\"US-CA\", \"FR\") or an Atlas ID. The written profile always holds the slug. ALWAYS QUOTE IT: YAML reads a bare no as boolean false, so an unquoted list silently drops Norway. A jurisdiction left off is not passed, it is unlinted, and unlinted is not clean." }
+          "items": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|[Uu][Rr][Nn]:(?:[Vv][Ii][Aa]|[Uu][Nn][Gg][Oo][Vv][Rr]):[A-Za-z0-9-]+(?:/[A-Za-z0-9-]+)*)$", "description": "A jurisdiction: a slug (lowercase, \"/\"-separated), an ISO 3166 code (\"US-CA\", \"FR\") or an Atlas ID. The written profile always holds the slug. ALWAYS QUOTE IT: YAML reads a bare no as boolean false, so an unquoted list silently drops Norway. A jurisdiction left off is not passed, it is unlinted, and unlinted is not clean." }
         },
         "domains": {
           "type": "object",
@@ -170,8 +170,8 @@
             "required": ["from", "to", "data", "basis"],
             "additionalProperties": false,
             "properties": {
-              "from": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|urn:ungovr:[a-z0-9-]+(?:/[a-z0-9-]+)*)$", "description": "The jurisdiction slug the personal data is collected in or held under, as profile.jurisdictions takes it (\"eu\", \"us/ca\")." },
-              "to": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|urn:ungovr:[a-z0-9-]+(?:/[a-z0-9-]+)*)$", "description": "The jurisdiction slug it is stored in or sent to. Never the same as from or inside it: a flow is a route that leaves a jurisdiction." },
+              "from": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|[Uu][Rr][Nn]:(?:[Vv][Ii][Aa]|[Uu][Nn][Gg][Oo][Vv][Rr]):[A-Za-z0-9-]+(?:/[A-Za-z0-9-]+)*)$", "description": "The jurisdiction slug the personal data is collected in or held under, as profile.jurisdictions takes it (\"eu\", \"us/ca\")." },
+              "to": { "type": "string", "pattern": "^(?:[a-z0-9]+(?:/[a-z0-9-]+)*|[A-Za-z]{2}(?:-[A-Za-z0-9]{1,3})?|[Uu][Rr][Nn]:(?:[Vv][Ii][Aa]|[Uu][Nn][Gg][Oo][Vv][Rr]):[A-Za-z0-9-]+(?:/[A-Za-z0-9-]+)*)$", "description": "The jurisdiction slug it is stored in or sent to. Never the same as from or inside it: a flow is a route that leaves a jurisdiction." },
               "data": { "type": "string", "enum": ["personal", "sensitive"], "description": "personal, or sensitive for a special category (health, biometrics and the like)." },
               "basis": { "type": "string", "enum": ["adequacy", "contract_clauses", "binding_rules", "certification", "authority_approval", "consent", "derogation", "unknown"], "description": "The transfer mechanism the route relies on, in regime-neutral words: an adequacy decision, standard contract clauses, binding corporate rules, a certification, an authority's approval or security assessment, the person's consent, a derogation, or unknown." }
             }

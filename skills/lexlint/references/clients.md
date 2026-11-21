@@ -129,7 +129,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.82.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.84.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -225,13 +225,50 @@ running, and never offer a command from another entry.
   Nothing LexLint can key is installed here to update. Update from a terminal,
   as the Claude Code entry says.
 
+**Kiro**
+
+- **Install** `https://github.com/ungovr/lexlint/tree/main/kiro`
+
+  In the Kiro IDE, open the Powers panel, choose **Add Custom Power**, then
+  **Import power from a repository URL** (older Kiro builds call it **Import
+  power from GitHub**), paste this address and choose **Install**. Use the
+  whole address: the power is the bundle's `kiro` folder, and the repository's
+  root is laid out for Claude Code and Codex. Kiro's CLI installs a power from
+  a folder or by its catalog name, never from a URL: `kiro-cli powers install`
+  with the path of the `kiro` folder in a clone of the repository.
+- **Key** not available here.
+
+  A power's server entry is read as it ships and has no place for a key, so
+  the LexLint power never sends one, and a trial key has nowhere to land
+  either. To lint from Kiro, the developer sets LexLint up the other way, as
+  https://developer.lexlint.io/install/kiro says: the server alone, in Kiro's
+  own MCP configuration, with the key in an `X-API-Key` header, in place of
+  the power and not beside it, so that Kiro has one LexLint server to call.
+- **Update** not available here.
+
+  Nothing in a session can update a power. The developer updates it in the
+  Kiro IDE: in the Powers panel, choose the LexLint power, then **Check for
+  updates**, and **Install updates** when Kiro offers one, which Kiro's docs
+  say refreshes the power from its repository. Kiro's CLI documents no update,
+  only install and uninstall, so a power installed there from a clone is
+  refreshed by reinstalling it: pull the clone, run
+  `kiro-cli powers uninstall lexlint`, then `kiro-cli powers install` with the
+  clone's `kiro` folder again.
+- **Restart** after a key is saved or the bundle is updated: start a new Kiro
+  session.
+- **Sign-in** not open from Kiro yet. Kiro starts the sign-in itself when a
+  tool answers that one is needed, and from Kiro it ends in a registration
+  error (seen in kiro-cli on 2026-11-21). So in Kiro, do not call a tool in
+  `sign_in.needed_for`, nor a lookup once `free_lookups.remaining` is 0: keep
+  to the law lookups while they last, and for a lint give the Key entry above.
+
 **Any other MCP client**
 
 - **Install** `https://mcp.lexlint.io/mcp`
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.82.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.84.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.

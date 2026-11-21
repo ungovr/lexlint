@@ -73,7 +73,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.82.0"
+  client_version="1.84.0"
 )
 ```
 
@@ -342,7 +342,10 @@ blocked the law, struck it or part of it down, or upheld it after a block, or
 when a suit against it is pending. Each ruling gets a line under the block's
 first line, at the same indent: what the court did, with the parts of the law
 it reached when it reached only some, the day, the ruling and its court, and
-where the ruling stands now. A pending suit adds `under challenge in court`,
+where the ruling stands now. A ruling whose `basis` is `reported` is one
+LexLint has not read: its line says who reported it (`, reported by A and B`,
+from `reported_by`), and wherever you cite it, say that its outcome is as
+those sources report it. A pending suit adds `under challenge in court`,
 and never a name: the law library does not name it. The command below writes
 these lines after the lane, one per column, in the order to print them. They
 are the law library's words; print them as they come, and never name a court
@@ -387,6 +390,10 @@ jq -r '
               + ({"enjoins": "blocked", "invalidates": "struck down", "upholds": "upheld"}[.role] // .role)
               + (if .decided then " \(.decided)" else "" end)
               + " by \(.name)" + (if .court then " (\(.court))" else "" end)
+              + (if .basis != "reported" then ""
+                 else [.reported_by[]?.publisher | select(. != null and . != "")]
+                      | if length > 1 then ", reported by " + (.[:-1] | join(", ")) + " and " + .[-1]
+                        elif length == 1 then ", reported by " + .[0] else "" end end)
               + (if .stage then "; now \(.stage.word // .stage.stage | ascii_downcase)"
                                 + (if .stage.date then " \(.stage.date)" else "" end) else "" end);
   def courtlines: [(.court_action.rulings // [])[] | ruling]

@@ -5,6 +5,29 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.84.0 (2026-11-21)
+
+- When a lint cannot run, the skill no longer answers in its place. A sign-in
+  that fails is a stop, like a server that did not answer: the skill names the
+  step, quotes the error, reports no findings, and gives the route that works.
+  A question about the law that the lint would have answered is answered from
+  `get_law` instead, naming each law it read, and anything beyond those is
+  marked as the agent's own knowledge, never as LexLint's.
+- The skill's client setup has an entry for Kiro: how to install and update
+  the power, why it carries no key, and how to lint from Kiro with one. Signing
+  in to LexLint from Kiro is not open yet, so in Kiro the skill keeps to the
+  law lookups and does not start a sign-in that cannot finish.
+
+## 1.83.0 (2026-11-20)
+
+- A court ruling on a finding now says whether LexLint read its judgment.
+  Each ruling in `court_action` carries `basis`: `judgment_read`, or
+  `reported` for a ruling LexLint has not read and holds on secondary
+  sources, listed in `reported_by` as `{publisher, url}`. A reported ruling's
+  court line ends its "by" with `, reported by A and B`, and the skill says,
+  wherever it cites one, that its outcome is as those sources report it. A
+  ruling LexLint read prints as before.
+
 ## 1.82.0 (2026-11-20)
 
 - The bundle now carries a power for Kiro, in its `kiro` folder. In Kiro,

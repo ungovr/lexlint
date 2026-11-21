@@ -20,11 +20,19 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.82.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.84.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
 to read a law never needs to.
+
+**Where your client's entry in `references/clients.md` says signing in is not
+open from it, do not call a tool in `sign_in.needed_for` at all, nor a lookup
+once `free_lookups.remaining` is 0.** Both answer by asking for a sign-in, some
+clients start that sign-in themselves the moment they are asked, and from a
+client it is not open to, it can only fail. Stop before the call, keep to the
+law lookups while they last, say when they reset once they are spent, and give
+the route that entry names for a lint.
 
 **When a tool answers that sign-in is needed, stop and say how to sign in.** A
 tool in `sign_in.needed_for` answers that way every time on this install, and
@@ -37,6 +45,15 @@ client they are in:
 - In the Claude apps, approve the Connect prompt.
 
 Once they have signed in, run the same step again.
+
+**A sign-in that fails is a stop, the same as a server that did not
+answer** (`references/unreachable.md`).
+A registration error, a refused consent, any error from the sign-in itself:
+name the step that needed it, quote the error you got, report no findings, and
+give the route that does work, from your client's entry in Client
+setup (`references/clients.md`). Do not start the sign-in again unasked. What is
+left of the request after that is the law lookups, as Setup
+says (in `SKILL.md`), and nothing from memory in the lint's place.
 
 Signing in to LexLint from Codex is not open yet, so a Codex user keeps the
 key route above (in `SKILL.md`): their key in an `X-API-Key` header.
