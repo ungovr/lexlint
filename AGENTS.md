@@ -92,17 +92,17 @@ Where a step differs by client, "Client setup" at the end of this section
 gives it per client, and no command from another client's entry is worth
 offering: it is a dead end at the moment the developer is already stuck.
 
-**Run `check_access` before anything else**, pass `client_version: "1.84.0"`.
+**Run `check_access` before anything else**, pass `client_version: "1.86.0"`.
 Do not pass `jurisdictions`, even on a re-run whose manifest already declares
 them: `check_access` spends this one request either way, and `set_profile`
 answers the same coverage question later, off its own separate request, so that
 is the one place to read it. Show the developer the result as one line:
 
 ```
-lexlint 1.84.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.86.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 ```
 
-**That version string is yours and it is `1.84.0`.** State it, do not go looking
+**That version string is yours and it is `1.86.0`.** State it, do not go looking
 for it: it is checked against the bundle's own `plugin.json` before this file
 ships, and a version read out of a file at runtime is a version that can be
 read from the wrong tree.
@@ -184,7 +184,7 @@ the server could not count, never that none are left. Show it on the preflight
 line where the key would go:
 
 ```
-lexlint 1.84.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
+lexlint 1.86.0 · signs in when asked · free law lookups: 18 of 25 left, reset at UTC midnight
 ```
 
 Do not ask anyone to sign in before a tool asks for it: a person who only came
@@ -303,7 +303,7 @@ question at all.
   the reason they came.
 
   ```
-  lexlint 1.4.0 · a newer LexLint (1.84.0) is available
+  lexlint 1.4.0 · a newer LexLint (1.86.0) is available
   ```
 
   There is no installed client to update: the tools are served remotely and
@@ -551,7 +551,7 @@ running, and never offer a command from another entry.
   this server does not read. Add two lines by hand to the
   `[mcp_servers.lexlint]` entry the command just wrote in
   `~/.codex/config.toml`:
-  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.84.0" }` and
+  `http_headers = { "X-API-Key" = "", "X-LexLint-Bundle" = "1.86.0" }` and
   `env_http_headers = { "X-API-Key" = "UNGOVR_API_KEY" }`. `X-LexLint-Bundle`
   names the version of this procedure, so the server answers `get_law` in the
   shape this procedure reads; change it when you re-read a newer one. The
@@ -685,7 +685,7 @@ running, and never offer a command from another entry.
 
   Any client that speaks streamable HTTP works. Register that endpoint with an
   `X-API-Key` header carrying the key; an `Authorization` header is ignored.
-  Add an `X-LexLint-Bundle` header of `1.84.0`, the version of this procedure,
+  Add an `X-LexLint-Bundle` header of `1.86.0`, the version of this procedure,
   so the server answers `get_law` in the shape this procedure reads, and
   change it when you re-read a newer one. The server is stateless and holds no
   session of its own, so nothing has to be kept between calls.
@@ -1628,7 +1628,7 @@ run_lint(
   regulated_sector={"financial": "none"},  # likewise
   roles={"ai_system": ["deployer"], "personal_data": ["controller"]},  # likewise
   flows=[{"from": "eu", "to": "us", "data": "personal", "basis": "contract_clauses"}],  # likewise
-  client_version="1.84.0"
+  client_version="1.86.0"
 )
 ```
 
@@ -2067,7 +2067,8 @@ For every finding in the new run:
   and `handled_by` across verbatim** and refresh everything else from the run.
   `handled_by` is a triage decision, not a fact about the law, so the run has
   no opinion about it and must not clear it.
-- If its `id` is new, set `state: new`.
+- If its `id` is new and the second match below finds no earlier entry for
+  it, set `state: new`.
 - A finding whose `id` begins `topic:` is a **tool-coverage notice** from an
   older LexLint, not a finding about this app. It said LexLint held law on a
   topic `run_lint` could not evaluate. Every topic in the law library is evaluated
@@ -2077,12 +2078,74 @@ For every finding in the new run:
   to `lint.vanished`, and expect real findings on that topic in its place. It
   never had a `handled_by` or a work item, so there is nothing to reassign.
 
-For every acknowledged finding whose `id` did **not** appear in the new run, a
-`topic:` notice excepted as above, move the entry to `lint.vanished` with a
+For every acknowledged finding whose `id` did **not** appear in the new run,
+and that the second match below did not find under a new id, a `topic:`
+notice excepted as above, move the entry to `lint.vanished` with a
 `last_seen` date and tell the developer. Do not delete it. The instrument may
 have been repealed, or its citation may have been edited upstream so the
 derived id moved. Those have opposite implications and the lint cannot tell
-them apart.
+them apart. Copy the finding's `note_url`, `citation` and `name` onto the
+entry when it has them: the first lets the second match find it when the law
+comes back, and the other two prove or refuse its id when a law comes to sit
+under the same one.
+
+**An id can move while its law does not, so look for it before anything
+vanishes.** When two findings would share an id, the server adds a suffix to
+both, so a finding nobody touched gains one when a sibling arrives and loses
+it when the sibling goes; an upstream citation edit moves an id too. After the
+exact-id pass, take the new findings that matched nothing and the previous
+entries, findings and `lint.vanished` alike, that matched nothing either, and
+apply two rules in order:
+
+1. **The same note code.** A `note_url` is `https://lexlint.io/l/<code>` (a
+   manifest written before the move may carry the old `.org` host), and the
+   code is set when the law was researched, so neither a suffix nor a citation
+   edit moves it. A new finding and a previous entry with the same note code,
+   the same `kind` where both record one, and the same declared slug (the id's
+   part before the first `:`) fit. A link on any other host has no code.
+2. **The same id once the suffix is set aside, where the law proves it.** The
+   suffix is a `-` and seven characters, digits and lowercase letters, the
+   first a `0` or a `1`, at the very end of the id, or just before the
+   `:customer` that ends a customer duty's id, which stays. A new finding and a
+   previous entry fit when one's id is the other's with its suffix set aside,
+   or both are the same once each sets its suffix aside, and that shared id is
+   proven to be the server's own id for the law: the id's declared slug, a
+   `:`, and the entry's `citation` slugged the way the server slugs it
+   (lowercase; every run of anything but `a` to `z` and `0` to `9` becomes one
+   `-`; no `-` at either end; cut at 60 characters, with a `-` the cut leaves at
+   the end removed; `unnamed` when nothing is left), using its `name` where it
+   has no citation, as the server does. **Each side whose suffix is set aside
+   proves it**: its own citation or name must slug to exactly the shared id,
+   and a side with neither matches nothing. The other side proves nothing
+   about that suffix, though if it carries a citation or a name it must slug
+   to the shared id too. `ie:order-1234567` can be the law "Order 1234567"
+   itself, with no suffix at all, and where nothing proves the shared id
+   nothing is matched.
+   They must also have the same `kind` where both record one; where both carry
+   a `citation`, the two must be equal; and where both carry a note code, the
+   two must be equal: two codes are two laws. A code missing on either side
+   does not stop the match, since a law can gain a note page later. A
+   `lint.vanished` entry written before this bundle carries no citation and no
+   name, so it is restored when the new finding is the suffixed one and proves
+   its own suffix, and never when the entry is the one whose suffix would be
+   set aside.
+
+Under either rule it is a match only when exactly one candidate stands on each
+side: the new finding fits one previous entry, and that entry fits no other
+new finding. Two or more either way is no match, and both sides are handled as
+if the rule did not exist. Neither rule reads an id whose first segment is
+`activity`, `derived` or `topic`, which are used whole
+(`activity:deploys-chatbot` ends in seven letters that are not a suffix), or
+an id the previous manifest holds twice, and neither pairs a customer duty
+(an id ending `:customer`) with anything but a customer duty.
+
+A matched entry takes the new `id`, carries `state`, `where`, `note` and
+`handled_by` across exactly as an exact match does, and never goes to
+`lint.vanished`. **Its work items follow it**: in every `lint.work_items`
+entry, each id in `findings` that was matched away is rewritten to the new
+id, so no work item cites an id the manifest no longer holds. No other id in
+a work item is touched. Count these apart in the report: "2 kept under a new
+id".
 
 **A vanished finding that comes back brings its triage with it.** Read the four
 fields off the `lint.vanished` entry exactly as you would off a finding, and
@@ -2147,22 +2210,25 @@ DESCRIPTION = """\
 Merge one LexLint run into lexlint.yml, the way step 4 of the procedure says.
 
 Each finding's triage (state, where, note, handled_by) is carried across by
-id; lint.work_items is kept as it was; an acknowledged finding the run no
-longer returns moves to lint.vanished; only the lint: block is rewritten, and
-everything above and below it is kept byte for byte. stdout carries exactly
+id, or, where an id moved, by the second match (exactly one candidate on each
+side with the same note code, or the same id once a collision suffix is set
+aside); lint.work_items is kept as it was, save that an id matched that way is
+rewritten to the new one; an acknowledged finding the run no longer returns
+moves to lint.vanished; only the lint: block is rewritten, and everything
+above and below it is kept byte for byte. stdout carries exactly
 one JSON object of counts for the report; every diagnostic goes to stderr."""
 
 EPILOG = """\
 examples:
   one run_lint call, merged into the manifest in place:
     python3 %(prog)s lint.json --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.84.0' \\
+        --run-at 2026-10-22 --tool 'lexlint 1.86.0' \\
         --summary 'Six findings, five instruments, across three jurisdictions.'
 
   a split run of three calls, counted without writing anything:
     python3 %(prog)s lint-1.json lint-2.json lint-3.json \\
         --manifest lexlint.yml -o lexlint.yml \\
-        --run-at 2026-10-22 --tool 'lexlint 1.84.0' --dry-run
+        --run-at 2026-10-22 --tool 'lexlint 1.86.0' --dry-run
 
   On a python3 without PyYAML, run it as `uv run %(prog)s ...` with the same
   arguments: the script's own header declares the dependency.
@@ -2194,8 +2260,170 @@ KEYS = {
         "court_action", "as_of_date",
         "stale", "confidence", "resolved_from") + CARRY,
     "work_items": ("id", "lane", "title", "findings", "jurisdictions"),
-    "vanished": ("id", "last_seen") + CARRY,
+    "vanished": ("id", "last_seen") + CARRY + ("note_url", "citation", "name"),
 }
+
+# A note link is LexLint's page on one law, `/l/<short code>`. The code is set
+# when the law is researched, so a citation edit or a collision suffix leaves
+# it alone. The old host still appears in manifests written before the move.
+# Exact host and https only: a link anywhere else names no law of ours.
+NOTE_PREFIXES = ("https://lexlint.io/l/", "https://lexlint.org/l/")  # suppress: lexlint-legacy-domain -- older manifests carry note links on the old host
+
+def note_code(url):
+    """The short code in a LexLint note link, or None."""
+    if not isinstance(url, str):
+        return None
+    for prefix in NOTE_PREFIXES:
+        if url.startswith(prefix):
+            return url[len(prefix):].strip("/") or None
+    return None
+
+# The suffix the server adds when two findings would share an id: FNV-1a over
+# 32 bits, in base 36, padded to seven. 2**32 - 1 is `1z141z3`, so a real
+# suffix starts with 0 or 1, which keeps a seven-letter word from reading as one.
+SUFFIX = re.compile(r"-[01][0-9a-z]{6}\Z")
+# One per jurisdiction or per run by construction, so never suffixed: these ids are
+# used whole (`activity:deploys-chatbot` ends in seven letters, not a hash).
+STRUCTURAL = ("activity", "derived", "topic")
+
+def plain(fid):
+    """An id about one jurisdiction that is not structural: the only kind the
+    second match reads."""
+    return ":" in fid and fid.split(":", 1)[0] not in STRUCTURAL
+
+def base_id(fid):
+    """`fid` with its collision suffix set aside, or None when it has none. A
+    customer duty is its instrument's final id plus `:customer`, so its suffix
+    sits before that tail, and the tail is kept."""
+    if not isinstance(fid, str) or not plain(fid):
+        return None
+    tail = ":customer" if fid.endswith(":customer") else ""
+    m = SUFFIX.search(fid[:len(fid) - len(tail)])
+    base = fid[:m.start()] if m else ""
+    if ":" not in base or base.endswith(":"):
+        return None
+    return base + tail
+
+def slug_of(text):
+    """The server's citation slug for an instrument id, character for
+    character: lowercase, every run of anything but a-z and 0-9 one `-`, no
+    `-` at either end, cut at 60 characters."""
+    s = re.sub(r"[^a-z0-9]+", "-", str(text or "").lower()).strip("-")
+    return s[:60].rstrip("-") or "unnamed"
+
+def worker_id(e):
+    """The unsuffixed id the server derives for this entry's law, from its
+    citation, or its name when it has none, as the server does; None when the
+    entry carries neither (a vanished entry written before it kept one)."""
+    src = next((v for v in (e.get("citation"), e.get("name")) if isinstance(v, str) and v),
+               None)
+    if src is None:
+        return None
+    tail = ":customer" if e["id"].endswith(":customer") else ""
+    return e["id"].split(":", 1)[0] + ":" + slug_of(src) + tail
+
+def kin(a, b):
+    """The same kind where both say one. A customer duty (its id ends
+    `:customer`) is never its instrument, whatever either side records."""
+    ka, kb = a.get("kind"), b.get("kind")
+    if isinstance(ka, str) and ka and isinstance(kb, str) and kb and ka != kb:
+        return False
+    return a["id"].endswith(":customer") == b["id"].endswith(":customer")
+
+def cite(e):
+    c = e.get("citation")
+    c = c.strip() if isinstance(c, str) else c
+    return None if c in (None, "", []) else c
+
+def by_code(e):
+    code = note_code(e.get("note_url"))
+    return [(e["id"].split(":", 1)[0], code)] if code else []
+
+def by_base(e):
+    return [k for k in (e["id"], base_id(e["id"])) if k]
+
+def same_base(n, o):
+    """The shared unsuffixed id must be proven the server's own id for the
+    law, by each side whose tail is set aside: that side's own citation (or
+    name) slugs to exactly it, so a seven-character token that belongs to a
+    name is never set aside as a suffix, and a side with nothing to prove it
+    matches nothing. A side that carries a citation or name must slug to it
+    too. Equal citations where both carry one, and never two different note
+    codes: the code names the law, so two codes are two laws. A code missing
+    on either side is allowed, since a law can gain a note page later."""
+    bn, bo = base_id(n["id"]), base_id(o["id"])
+    shared = n["id"] if n["id"] == bo else o["id"] if o["id"] == bn else bn if bn == bo else None
+    if shared is None:
+        return False
+    stripped = [e for e in (n, o) if e["id"] != shared]
+    if any(worker_id(e) != shared for e in stripped):
+        return False
+    if any(worker_id(e) not in (None, shared) for e in (n, o)):
+        return False
+    cn, co = note_code(n.get("note_url")), note_code(o.get("note_url"))
+    if cn and co and cn != co:
+        return False
+    return (cite(n) is None or cite(o) is None or cite(n) == cite(o)) and kin(n, o)
+
+def pair(news, olds, keys, fits):
+    """{new id: previous id} for each pair that is the only candidate the other
+    side has. More than one either way is no match."""
+    bucket = {}
+    for o in olds:
+        for k in keys(o):
+            bucket.setdefault(k, []).append(o)
+    cand, back = {}, {}
+    for n in news:
+        found = {}
+        for k in keys(n):
+            for o in bucket.get(k, ()):
+                if fits(n, o):
+                    found[o["id"]] = o
+        cand[n["id"]] = list(found)
+        for oid in found:
+            back.setdefault(oid, []).append(n["id"])
+    return {nid: found[0] for nid, found in cand.items()
+            if len(found) == 1 and back[found[0]] == [nid]}
+
+def second_match(findings, prev, prev_f, prev_v):
+    """{new id: previous id} for every finding whose id moved.
+
+    Only what the exact-id pass left on both sides is read. The same kind, the
+    same declared slug and the same note code first; then the same id once a
+    collision suffix is set aside on either side, where a citation or name
+    proves the shared id is the server's own (same_base). When in doubt
+    nothing is matched and the entry is left as it was: an id held twice in
+    the previous manifest is never a candidate.
+    """
+    held = {}
+    for block in ("findings", "vanished"):
+        entries = prev.get(block)
+        for e in entries if isinstance(entries, list) else []:
+            if isinstance(e, dict) and isinstance(e.get("id"), str):
+                held[e["id"]] = held.get(e["id"], 0) + 1
+    live = {f["id"] for f in findings}
+    news = [f for f in findings if f["id"] not in held and plain(f["id"])]
+    olds = [e for pid, e in list(prev_f.items()) + list(prev_v.items())
+            if held.get(pid) == 1 and pid not in live and plain(pid)]
+    moved = pair(news, olds, by_code, kin)
+    taken = set(moved.values())
+    moved.update(pair([n for n in news if n["id"] not in moved],
+                      [o for o in olds if o["id"] not in taken], by_base, same_base))
+    return moved
+
+def follow(items, renamed):
+    """Work items with each id the second match moved rewritten; no other id,
+    and nothing of another shape, is touched."""
+    if not renamed or not isinstance(items, list):
+        return items
+    out = []
+    for it in items:
+        ids = it.get("findings") if isinstance(it, dict) else None
+        if isinstance(ids, list) and any(isinstance(i, str) and i in renamed for i in ids):
+            it = dict(it, findings=[renamed[i] if isinstance(i, str) and i in renamed else i
+                                    for i in ids])
+        out.append(it)
+    return out
 
 def die(msg, code):
     sys.stderr.write(f"lexlint merge: {msg}\n")
@@ -2370,7 +2598,7 @@ def main():
                          "reads a clock")
     ap.add_argument("--tool", required=True,
                     help="this bundle's own name and version, written to "
-                         "lint.tool, such as 'lexlint 1.84.0'")
+                         "lint.tool, such as 'lexlint 1.86.0'")
     ap.add_argument("--summary",
                     help="the one sentence you author, written to lint.summary")
     ap.add_argument("-o", "--output", required=True,
@@ -2415,30 +2643,36 @@ def main():
     prev_v = {v["id"]: v for v in prev.get("vanished") or []
               if isinstance(v, dict) and isinstance(v.get("id"), str)}
 
+    # An id that moved while its law did not (a collision suffix gained or
+    # lost, a citation edited upstream) is matched by rule, not left to
+    # vanish; a matched entry never goes to lint.vanished.
+    moved = second_match(findings, prev, prev_f, prev_v)
     out_f, carried, restored, first, unknown = [], 0, 0, 0, set()
     for f in findings:
         # The run has no opinion about the four: drop them, then take the
-        # developer's, matched on id and on nothing else. A key the schema
-        # does not name is dropped too, and named in the summary: `finding`
-        # is closed, so writing it out lands a manifest that fails the schema
-        # this bundle ships with.
+        # developer's, matched on id, or on the id the second match found. A
+        # key the schema does not name is dropped too, and named in the
+        # summary: `finding` is closed, so writing it out lands a manifest
+        # that fails the schema this bundle ships with.
         new = {k: v for k, v in f.items()
                if k in KEYS["findings"] and k not in CARRY}
         unknown |= set(f) - set(KEYS["findings"])
-        was = prev_f.get(f["id"]) or prev_v.get(f["id"])
+        old = moved.get(f["id"], f["id"])
+        was = prev_f.get(old) or prev_v.get(old)
         new.update({k: was[k] for k in CARRY if was and was.get(k) not in (None, "")})
         new.setdefault("state", "new")
         if not was:
             first += 1
         elif new["state"] == "acknowledged" or any(new.get(k) for k in CARRY[1:]):
-            carried += f["id"] in prev_f
-            restored += f["id"] not in prev_f
+            carried += old in prev_f
+            restored += old not in prev_f
         out_f.append(new)
 
     live = {f["id"] for f in out_f}
+    kept = set(moved.values())                # matched by rule: never vanished
     vanished, topics, forgotten = [], 0, 0
     for pid, pf in prev_f.items():
-        if pid in live:
+        if pid in live or pid in kept:
             continue
         if pid.startswith("topic:"):
             topics += 1                       # dropped, never moved to vanished
@@ -2447,10 +2681,17 @@ def main():
         else:
             e = {"id": pid, "last_seen": prev.get("run_at")}
             e.update({k: pf[k] for k in CARRY if pf.get(k) not in (None, "")})
+            # The note link, the citation and the name go too: the first can
+            # match the entry back, and the other two prove (or refuse) its id
+            # when a law comes to sit under the same base id.
+            for k in ("note_url", "citation", "name"):
+                if isinstance(pf.get(k), str) and pf[k]:
+                    e[k] = pf[k]
             vanished.append(e)
     added = {e["id"] for e in vanished}
     for vid, ve in prev_v.items():
-        if vid not in live and vid not in added and not vid.startswith("topic:"):
+        if (vid not in live and vid not in kept and vid not in added
+                and not vid.startswith("topic:")):
             vanished.append(dict(ve))
     vanished.sort(key=lambda e: e["id"])
 
@@ -2459,7 +2700,10 @@ def main():
         lint["summary"] = a.summary
     lint["findings"] = out_f
     if prev.get("work_items") is not None:
-        lint["work_items"] = prev["work_items"]
+        # Each id the second match moved is rewritten to the new one, so no
+        # work item cites an id the manifest no longer holds.
+        lint["work_items"] = follow(prev["work_items"],
+                                    {old: new for new, old in moved.items()})
     if vanished:
         lint["vanished"] = vanished
 
@@ -2555,7 +2799,12 @@ def main():
                    j.strip().translate(ASCII_LOWER)).strip("/")
         return re.sub(r"^([a-z]{2})-([a-z0-9]{1,3})$", r"\1/\2", s)
     seen = ran | {declared(f) for f in out_f}
+    # "N kept under a new id": present only when N is not zero, so a merge
+    # where no id moved prints the counts it always did. These entries are
+    # also in triage_carried or triage_restored when they held triage.
+    moved_count = {"kept_under_a_new_id": len(moved)} if moved else {}
     json.dump({
+        **moved_count,
         "calls": calls, "corpus_built_at": corpus, "findings": len(out_f),
         "distinct_instruments": len(out_f) - mirrors, "mirrors": mirrors,
         "triage_carried": carried, "triage_restored": restored,
@@ -2593,7 +2842,7 @@ shell:
 ```bash
 LEXLINT_TMP='<the directory mktemp -d printed>'
 python3 "$LEXLINT_TMP/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.84.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.86.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 rm -r "$LEXLINT_TMP"
 ```
@@ -2611,7 +2860,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.84.0`, and `--summary` is the one sentence you author.
+`lexlint 1.86.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -2639,7 +2888,9 @@ merge could otherwise delete triage without saying so:
 **Read the JSON summary it prints, and put its numbers in the report.** They
 are the ones step 7 asks for and the ones that make a mishandled merge visible
 the same day: `findings` and `distinct_instruments` with `mirrors` between
-them, `triage_carried` and `triage_restored`, `vanished_added` and
+them, `triage_carried` and `triage_restored`, `kept_under_a_new_id`, which
+the script prints only when an id moved (an entry it counts that held triage
+is in one of the two before it as well), `vanished_added` and
 `vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having
@@ -3287,7 +3538,7 @@ cached either, for the same reason `lint.vanished` exists.
 prints:
 
 ```
-lexlint 1.84.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
+lexlint 1.86.0 · key: set · server: reachable · quota: 47 of 50 remaining, resets 17:00 PT
 cache: 5 jurisdictions held, 1 refreshed
 ```
 
@@ -3398,7 +3649,7 @@ The shape:
      usage:    <the drafted summary, or "none: no lint ran this session">
      comments: <their words>
      client:   <the client you are running in, such as claude-code or codex>
-     version:  1.84.0
+     version:  1.86.0
    ```
 
    Editing is expected, not exceptional, and the payload shown last is the one
@@ -3527,7 +3778,7 @@ file:
   and the run has no opinion about them. Leave the argument out when no
   finding carries one. An id the run does not carry is refused, and that is
   right: the triage is another run's.
-- `client_version`: `1.84.0`, the bundle that ran the lint. The
+- `client_version`: `1.86.0`, the bundle that ran the lint. The
   bundle's own server entry sends it on every call as well, so the server
   has it either way.
 

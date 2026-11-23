@@ -83,7 +83,8 @@ For every finding in the new run:
   and `handled_by` across verbatim** and refresh everything else from the run.
   `handled_by` is a triage decision, not a fact about the law, so the run has
   no opinion about it and must not clear it.
-- If its `id` is new, set `state: new`.
+- If its `id` is new and the second match below finds no earlier entry for
+  it, set `state: new`.
 - A finding whose `id` begins `topic:` is a **tool-coverage notice** from an
   older LexLint, not a finding about this app. It said LexLint held law on a
   topic `run_lint` could not evaluate. Every topic in the law library is evaluated
@@ -93,12 +94,74 @@ For every finding in the new run:
   to `lint.vanished`, and expect real findings on that topic in its place. It
   never had a `handled_by` or a work item, so there is nothing to reassign.
 
-For every acknowledged finding whose `id` did **not** appear in the new run, a
-`topic:` notice excepted as above, move the entry to `lint.vanished` with a
+For every acknowledged finding whose `id` did **not** appear in the new run,
+and that the second match below did not find under a new id, a `topic:`
+notice excepted as above, move the entry to `lint.vanished` with a
 `last_seen` date and tell the developer. Do not delete it. The instrument may
 have been repealed, or its citation may have been edited upstream so the
 derived id moved. Those have opposite implications and the lint cannot tell
-them apart.
+them apart. Copy the finding's `note_url`, `citation` and `name` onto the
+entry when it has them: the first lets the second match find it when the law
+comes back, and the other two prove or refuse its id when a law comes to sit
+under the same one.
+
+**An id can move while its law does not, so look for it before anything
+vanishes.** When two findings would share an id, the server adds a suffix to
+both, so a finding nobody touched gains one when a sibling arrives and loses
+it when the sibling goes; an upstream citation edit moves an id too. After the
+exact-id pass, take the new findings that matched nothing and the previous
+entries, findings and `lint.vanished` alike, that matched nothing either, and
+apply two rules in order:
+
+1. **The same note code.** A `note_url` is `https://lexlint.io/l/<code>` (a
+   manifest written before the move may carry the old `.org` host), and the
+   code is set when the law was researched, so neither a suffix nor a citation
+   edit moves it. A new finding and a previous entry with the same note code,
+   the same `kind` where both record one, and the same declared slug (the id's
+   part before the first `:`) fit. A link on any other host has no code.
+2. **The same id once the suffix is set aside, where the law proves it.** The
+   suffix is a `-` and seven characters, digits and lowercase letters, the
+   first a `0` or a `1`, at the very end of the id, or just before the
+   `:customer` that ends a customer duty's id, which stays. A new finding and a
+   previous entry fit when one's id is the other's with its suffix set aside,
+   or both are the same once each sets its suffix aside, and that shared id is
+   proven to be the server's own id for the law: the id's declared slug, a
+   `:`, and the entry's `citation` slugged the way the server slugs it
+   (lowercase; every run of anything but `a` to `z` and `0` to `9` becomes one
+   `-`; no `-` at either end; cut at 60 characters, with a `-` the cut leaves at
+   the end removed; `unnamed` when nothing is left), using its `name` where it
+   has no citation, as the server does. **Each side whose suffix is set aside
+   proves it**: its own citation or name must slug to exactly the shared id,
+   and a side with neither matches nothing. The other side proves nothing
+   about that suffix, though if it carries a citation or a name it must slug
+   to the shared id too. `ie:order-1234567` can be the law "Order 1234567"
+   itself, with no suffix at all, and where nothing proves the shared id
+   nothing is matched.
+   They must also have the same `kind` where both record one; where both carry
+   a `citation`, the two must be equal; and where both carry a note code, the
+   two must be equal: two codes are two laws. A code missing on either side
+   does not stop the match, since a law can gain a note page later. A
+   `lint.vanished` entry written before this bundle carries no citation and no
+   name, so it is restored when the new finding is the suffixed one and proves
+   its own suffix, and never when the entry is the one whose suffix would be
+   set aside.
+
+Under either rule it is a match only when exactly one candidate stands on each
+side: the new finding fits one previous entry, and that entry fits no other
+new finding. Two or more either way is no match, and both sides are handled as
+if the rule did not exist. Neither rule reads an id whose first segment is
+`activity`, `derived` or `topic`, which are used whole
+(`activity:deploys-chatbot` ends in seven letters that are not a suffix), or
+an id the previous manifest holds twice, and neither pairs a customer duty
+(an id ending `:customer`) with anything but a customer duty.
+
+A matched entry takes the new `id`, carries `state`, `where`, `note` and
+`handled_by` across exactly as an exact match does, and never goes to
+`lint.vanished`. **Its work items follow it**: in every `lint.work_items`
+entry, each id in `findings` that was matched away is rewritten to the new
+id, so no work item cites an id the manifest no longer holds. No other id in
+a work item is touched. Count these apart in the report: "2 kept under a new
+id".
 
 **A vanished finding that comes back brings its triage with it.** Read the four
 fields off the `lint.vanished` entry exactly as you would off a finding, and
@@ -142,7 +205,7 @@ run it against the manifest in place:
 ```bash
 SKILL_DIR='<the base directory your client named for this skill>'
 python3 "$SKILL_DIR/scripts/merge.py" lint.json --manifest lexlint.yml -o lexlint.yml \
-    --run-at 2026-09-10 --tool 'lexlint 1.84.0' \
+    --run-at 2026-09-10 --tool 'lexlint 1.86.0' \
     --summary 'Six findings, five instruments, across three jurisdictions.'
 ```
 
@@ -158,7 +221,7 @@ and write its one Python block to `merge.py` inside a new private directory
 from `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, never a fixed name in a
 shared directory. **Check its version before you run it.** That page follows
 the newest bundle, not this one, and the block's `--tool` examples name the
-bundle it belongs to: they must read `lexlint 1.84.0`, this skill's own.
+bundle it belongs to: they must read `lexlint 1.86.0`, this skill's own.
 Then it is the same script, byte for byte, and a test holds the two together;
 run it with the same arguments, then delete the directory. If they name any
 other version, do not run it: delete the directory, write the block by hand as
@@ -176,7 +239,7 @@ with a coverage warning in it that the declaration as a whole does not have.
 
 Four flags carry the run's own facts, because a script must not read them off
 a clock or invent them: `--run-at` is today's date, `--tool` is your own
-`lexlint 1.84.0`, and `--summary` is the one sentence you author.
+`lexlint 1.86.0`, and `--summary` is the one sentence you author.
 `--previous <path>` takes the triage from somewhere other than the manifest,
 which is the recovery above written to a file: make a private directory with
 `mktemp -d "${TMPDIR:-/tmp}/lexlint.XXXXXX"`, write `git show
@@ -204,7 +267,9 @@ merge could otherwise delete triage without saying so:
 **Read the JSON summary it prints, and put its numbers in the report.** They
 are the ones step 7 asks for and the ones that make a mishandled merge visible
 the same day: `findings` and `distinct_instruments` with `mirrors` between
-them, `triage_carried` and `triage_restored`, `vanished_added` and
+them, `triage_carried` and `triage_restored`, `kept_under_a_new_id`, which
+the script prints only when an id moved (an entry it counts that held triage
+is in one of the two before it as well), `vanished_added` and
 `vanished_total`, `topic_notices_dropped`, `activity_findings_intersected_away`
 for a split run, and `jurisdictions_missing`, which answers step 3's closing
 question about a declared slug that never came back. A slug counts as having

@@ -484,7 +484,19 @@
         "state": { "type": "string", "enum": ["new", "acknowledged"] },
         "where": { "type": "string" },
         "note": { "type": "string" },
-        "handled_by": { "type": "string", "minLength": 1 }
+        "handled_by": { "type": "string", "minLength": 1 },
+        "note_url": {
+          "type": ["string", "null"],
+          "description": "The finding's note_url as it last appeared, copied and never constructed. It lets a later merge recognise the same law when it returns under a new id. Absent on an entry written before merges kept it."
+        },
+        "citation": {
+          "type": ["string", "null"],
+          "description": "The finding's citation as it last appeared, copied and never constructed. It lets a later merge refuse a different law that returns under the same id. Absent on an entry written before merges kept it."
+        },
+        "name": {
+          "type": ["string", "null"],
+          "description": "The finding's name as it last appeared, copied and never constructed. An instrument with no citation takes its id from its name, so this lets a later merge prove that id when the law returns under a new one. Absent on an entry written before merges kept it."
+        }
       }
     },
     "work_item": {

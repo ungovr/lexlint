@@ -5,6 +5,15 @@ the plugin in your client to get the newest. In Claude Code that is
 `claude plugin update lexlint@lexlint`, then restart your session. The bundle
 is published at https://github.com/ungovr/lexlint
 
+## 1.86.0 (2026-11-22)
+
+- The merge now keeps a finding's triage when its identifier gains or loses a
+  collision suffix, or changes while its note page stays the same. For example, when a second finding arrives with the same
+  identifier and both take a suffix, the first keeps its acknowledgment,
+  location, note and owner (`state`, `where`, `note` and `handled_by`) under
+  its new identifier, and the work items that cited it follow, instead of it
+  being set aside in `lint.vanished` as if the law were gone.
+
 ## 1.84.0 (2026-11-21)
 
 - When a lint cannot run, the skill no longer answers in its place. A sign-in

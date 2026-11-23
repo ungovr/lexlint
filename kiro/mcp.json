@@ -5,7 +5,7 @@
       "type": "streamable-http",
       "url": "https://mcp.lexlint.io/mcp",
       "headers": {
-        "X-LexLint-Bundle": "1.84.0"
+        "X-LexLint-Bundle": "1.86.0"
       }
     }
   }
